@@ -8,6 +8,9 @@ use octocrab::{
 };
 
 const BANNER: &str = include_str!("assets/banner.txt");
+const AUTHOR: &str = "[author]";
+const CHECK: &str = "[check]";
+const STATE: &str = "[state]";
 
 pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow::Result<()> {
     print_banner(dry_run);
@@ -33,21 +36,22 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
             match &pull_request.user {
                 Some(trusted_user) if config.trusted_authors.contains(&trusted_user.login) => {
                     print_info(&format!(
-                        "author \"{}\" is in the list of trusted users",
-                        trusted_user.login
+                        "{} \"{}\" is in the list of trusted users",
+                        AUTHOR, trusted_user.login
                     ));
                 }
                 Some(other_user) => {
                     print_warning(&format!(
-                        "author \"{}\" is not in the list of trusted users",
-                        other_user.login
+                        "{} \"{}\" is not in the list of trusted users",
+                        AUTHOR, other_user.login
                     ));
                     continue;
                 }
                 None => {
-                    print_warning(
-                        "Github sent an empty user; skipping as I can't make any assumptions here",
-                    );
+                    print_warning(&format!(
+                        "{} Github sent an empty user; skipping as I can't make any assumptions here",
+                        AUTHOR
+                    ));
                     continue;
                 }
             }
@@ -71,15 +75,15 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
             for check in &checks.check_runs {
                 match check.conclusion.as_deref() {
                     Some("success") => {
-                        print_info(&format!("check \"{}\": ✅", check.name));
+                        print_info(&format!("{} \"{}\": ✅", CHECK, check.name));
                     }
                     Some("skipped") => {
                         if config.merge_if_checks_skipped.unwrap_or(false) {
-                            print_info(&format!("check \"{}\": skipped", check.name));
+                            print_info(&format!("{} \"{}\": skipped", CHECK, check.name));
                         } else {
                             print_warning(&format!(
-                                "check \"{}\" skipped; merge_if_checks_skipped is false, so skipping",
-                                check.name
+                                "{} \"{}\" skipped; merge_if_checks_skipped is false, so skipping",
+                                CHECK, check.name
                             ));
                             skip = true;
                             break;
@@ -87,16 +91,16 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
                     }
                     Some(non_successful_conclusion) => {
                         print_warning(&format!(
-                            "check \"{}\" {} ❌; skipping",
-                            check.name, non_successful_conclusion
+                            "{} \"{}\" {} ❌; skipping",
+                            CHECK, check.name, non_successful_conclusion
                         ));
                         skip = true;
                         break;
                     }
                     None => {
                         print_warning(&format!(
-                            "Github returned with an empty conclusion for the check {}; skipping as I can't make any assumptions here",
-                            check.name,
+                            "{} Github returned with an empty conclusion for the check {}; skipping as I can't make any assumptions here",
+                            CHECK, check.name,
                         ));
                         skip = true;
                         break;
@@ -115,28 +119,29 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
             match pr.mergeable_state.as_ref() {
                 Some(state) => match state {
                     MergeableState::Clean => {
-                        print_info("state: \"clean\" ✅");
+                        print_info(&format!("{} \"clean\" ✅", STATE));
                     }
                     MergeableState::Blocked => {
                         if config.merge_if_blocked.unwrap_or(false) {
-                            print_info("state: \"blocked\" ✅ (merge_if_blocked is true)");
+                            print_info(&format!(
+                                "{} \"blocked\" ✅ (merge_if_blocked is true)",
+                                STATE
+                            ));
                         } else {
-                            print_warning("PR state is blocked, skipping");
+                            print_warning(&format!("{} blocked ❌; skipping", STATE));
                             continue;
                         }
                     }
                     other => {
-                        print_warning(&format!(
-                            "PR state is not clean, skipping; state: {:?}",
-                            other
-                        ));
+                        print_warning(&format!("{} {:?} ❌; skipping", STATE, other));
                         continue;
                     }
                 },
                 None => {
-                    print_warning(
-                        "Github returned with an empty mergeable state; skipping as I can't make any assumptions here",
-                    );
+                    print_warning(&format!(
+                        "{} Github returned with an empty mergeable state; skipping as I can't make any assumptions here",
+                        STATE
+                    ));
                     continue;
                 }
             }
@@ -151,7 +156,7 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
                     .send()
                     .await
                     .context("couldn't merge PR")?;
-                print_success("PR merged! 🎉");
+                print_success("PR merged! 🎉🎉");
 
                 break;
             }
