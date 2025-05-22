@@ -1,0 +1,32 @@
+[package]
+name = "mrj"
+version = "0.1.0"
+edition = "2024"
+authors = ["Dhruv Thakur"]
+repository = "https://github.com/dhth/mrj"
+description = "mrj merges your open dependency upgrade PRs"
+keywords = [
+    "cli",
+    "github",
+]
+categories = [
+    "command-line-utilities",
+]
+exclude = [
+    ".github",
+    "justfile",
+]
+
+[dependencies]
+anyhow = "1.0.98"
+clap = { version = "4.5.38", features = ["derive"] }
+colored = "2"
+octocrab = "0.44.1"
+serde = { version = "1.0.219", features = ["derive"] }
+tokio = { version = "1.45.0", features = ["macros", "rt-multi-thread"] }
+toml = { version = "0.8.22", features = ["parse"] }
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
