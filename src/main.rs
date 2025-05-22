@@ -21,11 +21,6 @@ async fn main() -> anyhow::Result<()> {
         std::fs::read_to_string(args.config_file).context("couldn't read config file")?;
     let config: Config = toml::from_str(&config_bytes)?;
 
-    let (owner, repo) = args
-        .repo
-        .split_once("/")
-        .context("repo needs to be in the form \"owner/repo\"")?;
-
     let token = std::env::var(TOKEN_ENV_VAR).map_err(|err| match err {
         VarError::NotPresent => anyhow::anyhow!("GH_TOKEN is not set"),
         VarError::NotUnicode(_) => anyhow::anyhow!("GH_TOKEN is not valid unicode"),
@@ -35,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
         .user_access_token(token)
         .context("couldn't authorize github client")?;
 
-    merge_pr(client, owner, repo, config, args.dry_run).await?;
+    merge_pr(client, config, args.dry_run).await?;
 
     Ok(())
 }

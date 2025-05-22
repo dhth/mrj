@@ -22,8 +22,15 @@ impl MergeType {
     }
 }
 
+#[derive(Debug)]
+pub struct Repo {
+    pub owner: String,
+    pub repo: String,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Config {
+    pub repos: Vec<Repo>,
     pub trusted_authors: Vec<String>,
     pub merge_if_blocked: Option<bool>,
     pub merge_if_checks_skipped: Option<bool>,
@@ -58,5 +65,37 @@ impl<'de> Deserialize<'de> for MergeType {
         }
 
         deserializer.deserialize_str(MergeTypeVisitor)
+    }
+}
+
+impl<'de> Deserialize<'de> for Repo {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct RepoVisitor;
+
+        impl Visitor<'_> for RepoVisitor {
+            type Value = Repo;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str(r#"a value in the form "owner/repo""#)
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                match value.split_once("/") {
+                    Some((owner, repo)) => Ok(Repo {
+                        owner: owner.to_string(),
+                        repo: repo.to_string(),
+                    }),
+                    None => Err(de::Error::invalid_value(de::Unexpected::Str(value), &self)),
+                }
+            }
+        }
+
+        deserializer.deserialize_str(RepoVisitor)
     }
 }
