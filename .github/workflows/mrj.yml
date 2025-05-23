@@ -30,6 +30,8 @@ jobs:
           COLORTERM: "truecolor"
         run: |
           mv ./target/debug/mrj .
-          ./mrj \
+          ./mrj config validate \
+            --path ./.github/mrj.toml
+          ./mrj run \
             --config ./.github/mrj.toml \
             --dry-run

@@ -1,10 +1,11 @@
+use anyhow::Context;
 use octocrab::params::pulls::MergeMethod;
 use regex::Regex;
 use serde::{
     Deserialize, Deserializer,
     de::{self, Visitor},
 };
-use std::fmt;
+use std::{fmt, path::PathBuf};
 
 #[derive(Debug)]
 pub enum MergeType {
@@ -135,4 +136,16 @@ impl<'de> Deserialize<'de> for HeadPattern {
 
         deserializer.deserialize_str(HeadPatternVisitor)
     }
+}
+
+pub fn get_config(config_path: PathBuf) -> anyhow::Result<Config> {
+    let config_bytes = std::fs::read_to_string(&config_path).with_context(|| {
+        format!(
+            "couldn't read config file \"{}\"",
+            &config_path.to_string_lossy()
+        )
+    })?;
+    let config: Config = toml::from_str(&config_bytes)?;
+
+    Ok(config)
 }
