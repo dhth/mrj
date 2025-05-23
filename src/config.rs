@@ -1,4 +1,5 @@
 use octocrab::params::pulls::MergeMethod;
+use regex::Regex;
 use serde::{
     Deserialize, Deserializer,
     de::{self, Visitor},
@@ -28,10 +29,17 @@ pub struct Repo {
     pub repo: String,
 }
 
+#[derive(Debug)]
+pub struct HeadPattern {
+    pub re: Regex,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub repos: Vec<Repo>,
     pub trusted_authors: Vec<String>,
+    pub base_branch: Option<String>,
+    pub head_pattern: Option<HeadPattern>,
     pub merge_if_blocked: Option<bool>,
     pub merge_if_checks_skipped: Option<bool>,
     pub merge_type: MergeType,
@@ -97,5 +105,34 @@ impl<'de> Deserialize<'de> for Repo {
         }
 
         deserializer.deserialize_str(RepoVisitor)
+    }
+}
+
+impl<'de> Deserialize<'de> for HeadPattern {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct HeadPatternVisitor;
+
+        impl Visitor<'_> for HeadPatternVisitor {
+            type Value = HeadPattern;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str(r#"a valid regex"#)
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                match Regex::new(value) {
+                    Ok(re) => Ok(HeadPattern { re }),
+                    _ => Err(de::Error::invalid_value(de::Unexpected::Str(value), &self)),
+                }
+            }
+        }
+
+        deserializer.deserialize_str(HeadPatternVisitor)
     }
 }

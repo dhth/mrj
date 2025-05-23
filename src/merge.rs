@@ -9,21 +9,33 @@ use octocrab::{
 
 const BANNER: &str = include_str!("assets/banner.txt");
 const AUTHOR: &str = "[ author ]  ";
+const HEAD: &str = "[  head  ]  ";
 const CHECK: &str = "[ check  ]  ";
 const STATE: &str = "[ state  ]  ";
 
 pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow::Result<()> {
     print_banner(dry_run);
 
+    println!("\n");
+    if let Some(base_branch) = &config.base_branch {
+        print_info(&format!(
+            "only looking for PRs where base branch name is \"{}\"",
+            base_branch
+        ));
+    } else {
+        print_info("base_branch is not defined, will not filter PRs by base");
+    }
+
     for repo in &config.repos {
-        let page = client
-            .pulls(&repo.owner, &repo.repo)
-            .list()
-            .state(State::Open)
-            .per_page(100)
-            .send()
-            .await
-            .context("couldn't get PRs")?;
+        let pulls = client.pulls(&repo.owner, &repo.repo);
+
+        let mut page_builder = pulls.list().state(State::Open).per_page(100);
+
+        if let Some(base_branch) = &config.base_branch {
+            page_builder = page_builder.base(base_branch);
+        }
+
+        let page = page_builder.send().await.context("couldn't get PRs")?;
         print_repo_info(&repo.repo);
 
         if page.items.is_empty() {
@@ -34,21 +46,40 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
 
         for pull_request in &page {
             print_pr_info(&format!(
-                "-> checking PR #{}: {}",
+                r#"
+-> checking PR #{}
+        {}
+        {}"#,
                 pull_request.number,
-                pull_request.title.clone().unwrap_or_default()
+                pull_request.title.clone().unwrap_or_default(),
+                pull_request.url
             ));
+
+            if let Some(head_pattern) = &config.head_pattern {
+                if head_pattern.re.is_match(&pull_request.head.ref_field) {
+                    print_qualification(&format!(
+                        "{} \"{}\" matches the allowed head pattern",
+                        HEAD, &pull_request.head.ref_field
+                    ));
+                } else {
+                    print_disqualification(&format!(
+                        "{} \"{}\" doesn't match the allowed head pattern",
+                        AUTHOR, &pull_request.head.ref_field
+                    ));
+                    continue;
+                }
+            }
 
             match &pull_request.user {
                 Some(trusted_user) if config.trusted_authors.contains(&trusted_user.login) => {
                     print_qualification(&format!(
-                        "{} \"{}\" is in the list of trusted users",
+                        "{} \"{}\" is in the list of trusted authors",
                         AUTHOR, trusted_user.login
                     ));
                 }
                 Some(other_user) => {
                     print_disqualification(&format!(
-                        "{} \"{}\" is not in the list of trusted users",
+                        "{} \"{}\" is not in the list of trusted authors",
                         AUTHOR, other_user.login
                     ));
                     continue;
@@ -118,10 +149,6 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
                 continue;
             }
 
-            if !&checks.check_runs.is_empty() {
-                print_qualification("checks look good");
-            }
-
             match pr.mergeable_state.as_ref() {
                 Some(state) => match state {
                     MergeableState::Clean => {
@@ -181,14 +208,19 @@ fn print_banner(dry_run: bool) {
     }
 }
 
+fn print_info(message: &str) {
+    println!("[INFO] {}", message);
+}
+
 fn print_repo_info(name: &str) {
     println!(
         "{}",
         format!(
             r#"
-========
+
+=============
 {}
-========"#,
+============="#,
             name
         )
         .cyan()
@@ -196,21 +228,21 @@ fn print_repo_info(name: &str) {
 }
 
 fn print_pr_info(msg: &str) {
-    println!("\n{}", msg.purple());
+    println!("{}", msg.purple());
 }
 
 fn print_qualification(msg: &str) {
-    println!("\t{}", msg.blue());
+    println!("        {}", msg.blue());
 }
 
 fn print_disqualification(msg: &str) {
-    println!("\t{} ❌", msg.yellow());
+    println!("        {} ❌", msg.yellow());
 }
 
 fn print_absence(msg: &str) {
-    println!("\t{}", msg.yellow());
+    println!("        {}", msg.yellow());
 }
 
 fn print_success(msg: &str) {
-    println!("\t{}", msg.green());
+    println!("        {}", msg.green());
 }
