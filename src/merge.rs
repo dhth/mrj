@@ -191,7 +191,7 @@ fn print_repo_info(name: &str) {
 ========"#,
             name
         )
-        .bright_cyan()
+        .cyan()
     );
 }
 

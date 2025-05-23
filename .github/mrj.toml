@@ -1,8 +1,12 @@
 repos = [
     "dhth/act3",
+    "dhth/bmm",
     "dhth/ecscope",
     "dhth/ecsv",
+    "dhth/hours",
     "dhth/mrj",
+    "dhth/omm",
+    "dhth/prs",
     "dhth/shfl",
     "dhth/squidge",
     "dhth/squish",
