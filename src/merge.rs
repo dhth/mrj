@@ -8,9 +8,9 @@ use octocrab::{
 };
 
 const BANNER: &str = include_str!("assets/banner.txt");
-const AUTHOR: &str = "[author]";
-const CHECK: &str = "[check]";
-const STATE: &str = "[state]";
+const AUTHOR: &str = "[ author ]  ";
+const CHECK: &str = "[ check  ]  ";
+const STATE: &str = "[ state  ]  ";
 
 pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow::Result<()> {
     print_banner(dry_run);
