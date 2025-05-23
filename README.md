@@ -53,6 +53,17 @@ repos = [
 # (required)
 trusted_authors = ["dependabot[bot]"]
 
+# by default mrj doesn't filter PRs by base branches
+# (optional, default: empty)
+base_branch = "main"
+
+# by default mrj doesn't filter PRs by head refs
+# read more on this here
+# https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests--parameters
+# the value needs to be valid regex
+# (optional, default: empty)
+head_pattern = "(dependabot|update)"
+
 # by default mrj only considers PRs which can be cleanly merged
 # if this setting is ON, mrj will also consider PRs where merging is blocked
 # (optional, default: false)
