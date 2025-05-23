@@ -1,0 +1,32 @@
+name: mrj
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Build
+        run: cargo build
+      - name: Generate GH token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.MRJ_APP_ID }}
+          private-key: ${{ secrets.MRJ_APP_PRIVATE_KEY }}
+          owner: dhth
+      - name: Run mrj
+        env:
+          MRJ_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          ./mrj \
+            --config .github/mrj.toml \
+            --dry-run
