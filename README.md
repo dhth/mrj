@@ -17,9 +17,25 @@
 ---
 
 ```text
+$ mrj -h
 mrj merges your open PRs
 
-Usage: mrj [OPTIONS]
+Usage: mrj <COMMAND>
+
+Commands:
+  run     Check for open PRs and merge them
+  config  Interact with mrj's config
+  help    Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help
+```
+
+```text
+$ mrj run -h
+Check for open PRs and merge them
+
+Usage: mrj run [OPTIONS]
 
 Options:
   -c, --config <PATH>  Path to mrj's config file [default: mrj.toml]
