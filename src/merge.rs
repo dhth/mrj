@@ -19,11 +19,11 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
     println!("\n");
     if let Some(base_branch) = &config.base_branch {
         print_info(&format!(
-            "I'm only looking for PRs where base branch name is \"{}\"",
+            "I'm only looking for PRs where base branch is \"{}\"",
             base_branch
         ));
     } else {
-        print_info("base_branch is not defined, will not filter PRs by base");
+        print_info("base_branch is not defined, I am not filtering PRs by base");
     }
 
     for repo in &config.repos {
@@ -52,7 +52,11 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
         {}"#,
                 pull_request.number,
                 pull_request.title.clone().unwrap_or_default(),
-                pull_request.url
+                pull_request
+                    .html_url
+                    .as_ref()
+                    .map(|url| url.to_string())
+                    .unwrap_or_default(),
             ));
 
             if let Some(head_pattern) = &config.head_pattern {
@@ -179,7 +183,11 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
                 }
             }
 
-            if !dry_run {
+            if dry_run {
+                print_qualification(
+                    "PR matches all criteria, I would've merged it if this weren't a dry run ✅",
+                );
+            } else {
                 print_qualification("PR matches all criteria, merging...");
                 client
                     .pulls(&repo.owner, &repo.repo)
@@ -191,8 +199,6 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
                 print_success("PR merged! 🎉✅");
 
                 break;
-            } else {
-                print_qualification("PR matches all criteria, would've been merged ✅");
             }
         }
     }
