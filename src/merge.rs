@@ -26,6 +26,12 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
             .context("couldn't get PRs")?;
         print_repo_info(&repo.repo);
 
+        if page.items.is_empty() {
+            println!();
+            print_warning("no PRs");
+            continue;
+        }
+
         for pull_request in &page {
             print_pr_info(&format!(
                 "-> checking PR #{}: {}",
@@ -75,7 +81,7 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
             for check in &checks.check_runs {
                 match check.conclusion.as_deref() {
                     Some("success") => {
-                        print_info(&format!("{} \"{}\": ✅", CHECK, check.name));
+                        print_info(&format!("{} \"{}\": success", CHECK, check.name));
                     }
                     Some("skipped") => {
                         if config.merge_if_checks_skipped.unwrap_or(false) {
@@ -119,12 +125,12 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
             match pr.mergeable_state.as_ref() {
                 Some(state) => match state {
                     MergeableState::Clean => {
-                        print_info(&format!("{} \"clean\" ✅", STATE));
+                        print_info(&format!("{} \"clean\"", STATE));
                     }
                     MergeableState::Blocked => {
                         if config.merge_if_blocked.unwrap_or(false) {
                             print_info(&format!(
-                                "{} \"blocked\" ✅ (merge_if_blocked is true)",
+                                "{} \"blocked\" (merge_if_blocked is true)",
                                 STATE
                             ));
                         } else {
@@ -146,9 +152,8 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
                 }
             }
 
-            print_info("PR matches all criteria, merging...");
-
             if !dry_run {
+                print_info("PR matches all criteria, merging...");
                 client
                     .pulls(&repo.owner, &repo.repo)
                     .merge(pr.number)
@@ -156,9 +161,11 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
                     .send()
                     .await
                     .context("couldn't merge PR")?;
-                print_success("PR merged! 🎉🎉");
+                print_success("PR merged! 🎉✅");
 
                 break;
+            } else {
+                print_info("PR matches all criteria, would've been merged ✅");
             }
         }
     }

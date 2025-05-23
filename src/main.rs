@@ -22,8 +22,8 @@ async fn main() -> anyhow::Result<()> {
     let config: Config = toml::from_str(&config_bytes)?;
 
     let token = std::env::var(TOKEN_ENV_VAR).map_err(|err| match err {
-        VarError::NotPresent => anyhow::anyhow!("GH_TOKEN is not set"),
-        VarError::NotUnicode(_) => anyhow::anyhow!("GH_TOKEN is not valid unicode"),
+        VarError::NotPresent => anyhow::anyhow!("{} is not set", TOKEN_ENV_VAR),
+        VarError::NotUnicode(_) => anyhow::anyhow!("{} is not valid unicode", TOKEN_ENV_VAR),
     })?;
 
     let client = octocrab::instance()
