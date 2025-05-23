@@ -84,7 +84,7 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
                         print_info(&format!("{} \"{}\": success", CHECK, check.name));
                     }
                     Some("skipped") => {
-                        if config.merge_if_checks_skipped.unwrap_or(false) {
+                        if config.merge_if_checks_skipped.unwrap_or(true) {
                             print_info(&format!("{} \"{}\": skipped", CHECK, check.name));
                         } else {
                             print_warning(&format!(
