@@ -19,7 +19,7 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
     println!("\n");
     if let Some(base_branch) = &config.base_branch {
         print_info(&format!(
-            "only looking for PRs where base branch name is \"{}\"",
+            "I'm only looking for PRs where base branch name is \"{}\"",
             base_branch
         ));
     } else {
@@ -64,7 +64,7 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
                 } else {
                     print_disqualification(&format!(
                         "{} \"{}\" doesn't match the allowed head pattern",
-                        AUTHOR, &pull_request.head.ref_field
+                        HEAD, &pull_request.head.ref_field
                     ));
                     continue;
                 }
