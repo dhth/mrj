@@ -27,6 +27,6 @@ jobs:
         env:
           MRJ_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
-          ./mrj \
+          ./target/debug/mrj \
             --config .github/mrj.toml \
             --dry-run
