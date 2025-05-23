@@ -1,0 +1,12 @@
+# mrj.toml
+repos = [
+    "owner/repo-1",
+    "owner/repo-2",
+    "owner/repo-3",
+]
+trusted_authors = ["dependabot[bot]"]
+base_branch = "main"
+head_pattern = "(dependabot|update)"
+merge_if_blocked = true
+merge_if_checks_skipped = true
+merge_type = "squash"

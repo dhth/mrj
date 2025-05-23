@@ -1,0 +1,11 @@
+repos = [
+    "dhth/act3",
+    "dhth/bmm",
+    "dhth/ecscope",
+    "dhth/ecsv",
+    "dhth/hours",
+    "dhth/mrj",
+    "dhth/omm",
+]
+trusted_authors = ["dependabot[bot]"]
+merge_type = "squash"

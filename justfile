@@ -8,6 +8,7 @@ alias i := install
 alias l := lint
 alias lf := lint-fix
 alias r := run
+alias t := test
 
 aud:
   cargo audit --all-targets
@@ -39,6 +40,10 @@ publish-dry:
 run:
   cargo run
 
+test:
+  cargo nextest run
+
 all:
   cargo fmt --all
   cargo clippy --all-targets
+  cargo nextest run
