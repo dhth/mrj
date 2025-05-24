@@ -78,3 +78,19 @@ fn parsing_invalid_config_fails() {
     // THEN
     cmd.assert().failure();
 }
+
+#[test]
+fn fails_if_invalid_repos_provided_via_config() {
+    // GIVEN
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+    cmd.args([
+        "config",
+        "validate",
+        "-p",
+        "tests/assets/config-with-invalid-repos.toml",
+    ]);
+
+    // WHEN
+    // THEN
+    cmd.assert().failure();
+}

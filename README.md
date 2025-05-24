@@ -20,7 +20,7 @@
 $ mrj -h
 mrj merges your open PRs
 
-Usage: mrj <COMMAND>
+Usage: mrj [OPTIONS] <COMMAND>
 
 Commands:
   run     Check for open PRs and merge them
@@ -28,7 +28,8 @@ Commands:
   help    Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help  Print help
+      --debug  Output debug information without doing anything
+  -h, --help   Print help
 ```
 
 ```text
@@ -38,9 +39,11 @@ Check for open PRs and merge them
 Usage: mrj run [OPTIONS]
 
 Options:
-  -c, --config <PATH>  Path to mrj's config file [default: mrj.toml]
-  -d, --dry-run        Whether to only print out information without merging any PRs
-  -h, --help           Print help
+  -c, --config <PATH>          Path to mrj's config file [default: mrj.toml]
+  -r, --repos <STRING,STRING>  Repos to run for (will override repos in config)
+  -d, --dry-run                Whether to only print out information without merging any PRs
+      --debug                  Output debug information without doing anything
+  -h, --help                   Print help
 ```
 
 📃 Config

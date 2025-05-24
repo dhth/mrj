@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::domain::Repo;
 use anyhow::Context;
 use colored::Colorize;
 use octocrab::Octocrab;
@@ -13,7 +14,12 @@ const HEAD: &str = "[  head  ]  ";
 const CHECK: &str = "[ check  ]  ";
 const STATE: &str = "[ state  ]  ";
 
-pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow::Result<()> {
+pub async fn merge_prs(
+    client: Octocrab,
+    config: Config,
+    repos_override: Vec<Repo>,
+    dry_run: bool,
+) -> anyhow::Result<()> {
     print_banner(dry_run);
 
     println!("\n");
@@ -26,7 +32,13 @@ pub async fn merge_pr(client: Octocrab, config: Config, dry_run: bool) -> anyhow
         print_info("base_branch is not defined, I am not filtering PRs by base");
     }
 
-    for repo in &config.repos {
+    let repos_to_use = if repos_override.is_empty() {
+        &config.repos
+    } else {
+        &repos_override
+    };
+
+    for repo in repos_to_use {
         let pulls = client.pulls(&repo.owner, &repo.repo);
 
         let mut page_builder = pulls.list().state(State::Open).per_page(100);
@@ -225,7 +237,7 @@ fn print_repo_info(name: &str) {
             r#"
 
 =============
-{}
+  {}
 ============="#,
             name
         )
