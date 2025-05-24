@@ -10,7 +10,7 @@ use octocrab::{
 
 const BANNER: &str = include_str!("assets/banner.txt");
 const AUTHOR: &str = "[ author ]  ";
-const HEAD: &str = "[  head  ]  ";
+const HEAD: &str = "[ head   ]  ";
 const CHECK: &str = "[ check  ]  ";
 const STATE: &str = "[ state  ]  ";
 
