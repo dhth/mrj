@@ -2,6 +2,7 @@
 
 mod args;
 mod config;
+mod domain;
 mod merge;
 
 use anyhow::Context;
@@ -9,7 +10,7 @@ use args::Args;
 use args::{ConfigCommand, MrjCommand};
 use clap::Parser;
 use config::{Config, get_config};
-use merge::merge_pr;
+use merge::merge_prs;
 use std::env::VarError;
 
 const TOKEN_ENV_VAR: &str = "MRJ_TOKEN";
@@ -19,12 +20,22 @@ const SAMPLE_CONFIG: &str = include_str!("./assets/sample-config.toml");
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
+    if args.debug {
+        print!("DEBUG INFO\n{}", args);
+        return Ok(());
+    }
+
     match args.command {
         MrjCommand::Run {
             config_file,
+            repos,
             dry_run,
         } => {
             let config = get_config(config_file)?;
+
+            if config.repos.is_empty() && repos.is_empty() {
+                anyhow::bail!("no repos to run for");
+            }
 
             let token = std::env::var(TOKEN_ENV_VAR).map_err(|err| match err {
                 VarError::NotPresent => anyhow::anyhow!("{} is not set", TOKEN_ENV_VAR),
@@ -37,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
                 .user_access_token(token)
                 .context("couldn't authorize github client")?;
 
-            merge_pr(client, config, dry_run).await?;
+            merge_prs(client, config, repos, dry_run).await?;
         }
         MrjCommand::Config { config_command } => match config_command {
             ConfigCommand::Validate { config_file } => {
