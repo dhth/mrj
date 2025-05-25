@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use crate::config::Config;
 use crate::domain::Repo;
@@ -18,14 +18,17 @@ const HEAD: &str = "[ head   ]  ";
 const CHECK: &str = "[ check  ]  ";
 const STATE: &str = "[ state  ]  ";
 
-pub async fn merge_prs(
+pub async fn merge_prs<P>(
     client: Octocrab,
     config: Config,
     repos_override: Vec<Repo>,
     output: bool,
-    output_file: PathBuf,
+    output_file: P,
     dry_run: bool,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<()>
+where
+    P: AsRef<Path>,
+{
     let out_file = if output {
         Some(
             OpenOptions::new()

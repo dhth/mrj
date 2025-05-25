@@ -25,6 +25,7 @@ Usage: mrj [OPTIONS] <COMMAND>
 Commands:
   run     Check for open PRs and merge them
   config  Interact with mrj's config
+  report  Work with mrj's reports
   help    Print this message or the help of the given subcommand(s)
 
 Options:
@@ -41,9 +42,24 @@ Usage: mrj run [OPTIONS]
 Options:
   -c, --config <PATH>          Path to mrj's config file [default: mrj.toml]
   -r, --repos <STRING,STRING>  Repos to run for (will override repos in config)
-  -d, --dry-run                Whether to only print out information without merging any PRs
+  -o, --output                 Whether to write output to a file
       --debug                  Output debug information without doing anything
+  -p, --output-path <PATH>     Output file to write to [default: output.txt]
+  -d, --dry-run                Whether to only print out information without merging any PRs
   -h, --help                   Print help
+```
+
+```text
+$ mrj report generate
+Generate a report
+
+Usage: mrj report generate [OPTIONS]
+
+Options:
+  -p, --output-path <PATH>  File containing the output of "mrj run" [default: output.txt]
+  -o, --open                Whether to open report in the browser
+      --debug               Output debug information without doing anything
+  -h, --help                Print help
 ```
 
 📃 Config

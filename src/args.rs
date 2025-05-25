@@ -53,7 +53,7 @@ pub enum MrjCommand {
         #[command(subcommand)]
         config_command: ConfigCommand,
     },
-    /// Work with mrj's reports
+    /// Generate report from mrj runs
     Report {
         #[command(subcommand)]
         report_command: ReportCommand,
@@ -80,7 +80,19 @@ pub enum ConfigCommand {
 #[derive(Subcommand, Debug)]
 pub enum ReportCommand {
     /// Generate a report
-    Generate,
+    Generate {
+        /// File containing the output of "mrj run"
+        #[arg(
+            long = "output-path",
+            short = 'p',
+            value_name = "PATH",
+            default_value = "output.txt"
+        )]
+        output_path: PathBuf,
+        /// Whether to open report in the browser
+        #[arg(long = "open", short = 'o')]
+        open_report: bool,
+    },
 }
 
 fn validate_repo(value: &str) -> Result<Repo, String> {
@@ -126,10 +138,18 @@ command                  : Show sample config
                 .to_string(),
             },
             MrjCommand::Report { report_command } => match report_command {
-                ReportCommand::Generate => r#"
+                ReportCommand::Generate {
+                    output_path,
+                    open_report,
+                } => format!(
+                    r#"
 command                  : Generate report
-"#
-                .to_string(),
+output file              : {}
+open report              : {}
+"#,
+                    output_path.to_string_lossy(),
+                    open_report,
+                ),
             },
         };
 
