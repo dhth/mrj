@@ -236,7 +236,7 @@ where
                     .send()
                     .await
                     .context("couldn't merge PR")?;
-                p.success("PR merged! 🎉✅");
+                p.success("PR merged! 🎉 ✅");
 
                 break;
             }
