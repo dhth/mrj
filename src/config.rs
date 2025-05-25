@@ -1,10 +1,7 @@
 use crate::domain::{HeadPattern, MergeType, Repo};
 use anyhow::Context;
-use serde::{
-    Deserialize, Deserializer,
-    de::{self, Visitor},
-};
-use std::{fmt, path::PathBuf};
+use serde::Deserialize;
+use std::path::PathBuf;
 
 #[derive(Debug, Deserialize)]
 pub struct Config {

@@ -33,6 +33,17 @@ pub enum MrjCommand {
             value_parser = validate_repo
             )]
         repos: Vec<Repo>,
+        /// Whether to write output to a file
+        #[arg(long = "output", short = 'o')]
+        output: bool,
+        /// Output file to write to
+        #[arg(
+            long = "output-path",
+            short = 'p',
+            value_name = "PATH",
+            default_value = "output.txt"
+        )]
+        output_path: PathBuf,
         /// Whether to only print out information without merging any PRs
         #[arg(long = "dry-run", short = 'd')]
         dry_run: bool,
@@ -41,6 +52,11 @@ pub enum MrjCommand {
     Config {
         #[command(subcommand)]
         config_command: ConfigCommand,
+    },
+    /// Work with mrj's reports
+    Report {
+        #[command(subcommand)]
+        report_command: ReportCommand,
     },
 }
 
@@ -61,6 +77,12 @@ pub enum ConfigCommand {
     Sample,
 }
 
+#[derive(Subcommand, Debug)]
+pub enum ReportCommand {
+    /// Generate a report
+    Generate,
+}
+
 fn validate_repo(value: &str) -> Result<Repo, String> {
     Repo::try_from(value)
 }
@@ -71,16 +93,22 @@ impl std::fmt::Display for Args {
             MrjCommand::Run {
                 config_file,
                 repos,
+                output,
+                output_path,
                 dry_run,
             } => format!(
                 r#"
 command                  : Run
 config file              : {}
 repos (overridden)       : {:?}
+output                   : {}
+output file              : {}
 dry run                  : {}
 "#,
                 config_file.to_string_lossy(),
                 repos.iter().map(|r| r.to_string()).collect::<Vec<String>>(),
+                output,
+                output_path.to_string_lossy(),
                 dry_run
             ),
             MrjCommand::Config { config_command } => match config_command {
@@ -94,6 +122,12 @@ config file              : {}
 
                 ConfigCommand::Sample => r#"
 command                  : Show sample config
+"#
+                .to_string(),
+            },
+            MrjCommand::Report { report_command } => match report_command {
+                ReportCommand::Generate => r#"
+command                  : Generate report
 "#
                 .to_string(),
             },
