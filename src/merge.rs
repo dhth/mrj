@@ -3,6 +3,7 @@ use std::path::Path;
 use crate::config::Config;
 use crate::domain::Repo;
 use anyhow::Context;
+use chrono::Utc;
 use colored::Colorize;
 use octocrab::Octocrab;
 use octocrab::{
@@ -44,6 +45,9 @@ where
 
     let mut p = Printer::new(out_file);
     p.banner(dry_run);
+
+    let start = Utc::now();
+    p.info(&format!("The time right now is {}", start));
 
     if let Some(base_branch) = &config.base_branch {
         p.info(&format!(
@@ -243,6 +247,15 @@ where
         }
     }
 
+    let end_ts = Utc::now();
+    let num_seconds = (end_ts - start).num_seconds();
+
+    p.empty_line();
+    p.info(&format!(
+        "This run ended at {}; took {} seconds",
+        end_ts, num_seconds
+    ));
+
     Ok(())
 }
 
@@ -343,6 +356,14 @@ impl Printer {
 
         if let Some(o) = self.out_file.as_mut() {
             let _ = writeln!(o, "        {}", msg);
+        }
+    }
+
+    fn empty_line(&mut self) {
+        println!();
+
+        if let Some(o) = self.out_file.as_mut() {
+            let _ = writeln!(o);
         }
     }
 }

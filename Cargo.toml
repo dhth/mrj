@@ -19,6 +19,7 @@ exclude = [
 
 [dependencies]
 anyhow = "1.0.98"
+chrono = "0.4.41"
 clap = { version = "4.5.38", features = ["derive"] }
 colored = "3"
 octocrab = "0.44.1"
@@ -36,3 +37,7 @@ predicates = "3.1.3"
 [profile.dist]
 inherits = "release"
 lto = "thin"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"

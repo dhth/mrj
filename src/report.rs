@@ -1,4 +1,5 @@
 use anyhow::Context;
+use chrono::Utc;
 use regex::Regex;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
@@ -30,7 +31,9 @@ where
     let last_run_number =
         get_last_run_number(&run_number_file_path).context("couldn't get last run number")?;
     let run_number = last_run_number + 1;
-    let new_run_file = runs_dir.join(format!("run-{}.txt", run_number));
+    let now = Utc::now();
+    let date = now.format("%a-%b-%d").to_string().to_lowercase();
+    let new_run_file = runs_dir.join(format!("run-{}--{}.txt", run_number, date));
 
     fs::copy(output_file, new_run_file)
         .context("couldn't copy latest run to mrj's \"runs\" directory")?;
@@ -94,7 +97,8 @@ fn keep_last_n_outputs<P>(dir: P, n: u16) -> anyhow::Result<()>
 where
     P: AsRef<Path>,
 {
-    let re = Regex::new(r"^run-(\d+)\.txt$").unwrap();
+    #[allow(clippy::unwrap_used)]
+    let re = Regex::new(r"^run-(\d+)[^\.]*\.txt$").unwrap();
 
     let mut entries: Vec<_> = fs::read_dir(dir)?
         .filter_map(|res| res.ok())
@@ -132,7 +136,8 @@ fn generate_run_html_outputs<P>(runs_dir: P, dist_dir: P) -> anyhow::Result<()>
 where
     P: AsRef<Path>,
 {
-    let re = Regex::new(r"^run-(\d+)\.txt$").unwrap();
+    #[allow(clippy::unwrap_used)]
+    let re = Regex::new(r"^run-(\d+)[^\.]*\.txt$").unwrap();
     for entry in fs::read_dir(runs_dir.as_ref())? {
         let entry = entry?;
         let file_name = entry.file_name();
@@ -143,14 +148,19 @@ where
                 let num: u16 = num_match.as_str().parse()?;
                 let mut contents = String::new();
                 File::open(entry.path())?.read_to_string(&mut contents)?;
-                generate_run_html(num, &contents, dist_dir.as_ref())?;
+                generate_run_html(&file_name, num, &contents, dist_dir.as_ref())?;
             }
         }
     }
     Ok(())
 }
 
-fn generate_run_html<P>(run_number: u16, contents: &str, dist_dir: P) -> anyhow::Result<()>
+fn generate_run_html<P>(
+    file_name: &str,
+    run_number: u16,
+    contents: &str,
+    dist_dir: P,
+) -> anyhow::Result<()>
 where
     P: AsRef<Path>,
 {
@@ -158,7 +168,7 @@ where
         .replace(BUILD_NUM_PLACEHOLDER, &run_number.to_string())
         .replace(CONTENT_PLACEHOLDER, contents);
 
-    let output_path = dist_dir.as_ref().join(format!("run-{}.html", run_number));
+    let output_path = dist_dir.as_ref().join(file_name.replace(".txt", ".html"));
 
     let mut output_file = OpenOptions::new()
         .create(true)
@@ -189,7 +199,8 @@ fn generate_index_output<P>(runs_dir: P, dist_dir: P) -> anyhow::Result<()>
 where
     P: AsRef<Path>,
 {
-    let re = Regex::new(r"^run-(\d+)\.txt$").unwrap();
+    #[allow(clippy::unwrap_used)]
+    let re = Regex::new(r"^run-(\d+)[^\.]*\.txt$").unwrap();
 
     let mut entries: Vec<_> = fs::read_dir(runs_dir)?
         .filter_map(|res| res.ok())
@@ -217,10 +228,16 @@ where
                 None => return None,
             };
 
+            let stem = path_str.replace(".txt", "");
+            let link_text = match stem.split_once("--") {
+                Some((r, d)) => format!("{} ({})", r, d),
+                None => stem.to_string(),
+            };
+
             Some(format!(
                 r#"<li><a class="hover:underline" href="{}">{}</a></li>"#,
                 path_str.replace(".txt", ".html"),
-                path_str.replace(".txt", "")
+                link_text,
             ))
         })
         .collect::<Vec<String>>();
