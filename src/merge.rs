@@ -257,7 +257,6 @@ impl Printer {
 
     fn banner(&mut self, dry_run: bool) {
         println!("{}", BANNER.green().bold());
-
         if dry_run {
             println!("{}", "                         dry run".yellow());
         }
@@ -265,7 +264,9 @@ impl Printer {
 
         if let Some(o) = self.out_file.as_mut() {
             let _ = writeln!(o, "{}", BANNER);
-            let _ = writeln!(o, "                         dry run");
+            if dry_run {
+                let _ = writeln!(o, "                         dry run");
+            }
             let _ = writeln!(o, "\n");
         }
     }
