@@ -1,16 +1,16 @@
-#![allow(unused)]
-
 mod args;
 mod config;
 mod domain;
 mod merge;
+mod report;
 
 use anyhow::Context;
 use args::Args;
-use args::{ConfigCommand, MrjCommand};
+use args::{ConfigCommand, MrjCommand, ReportCommand};
 use clap::Parser;
-use config::{Config, get_config};
+use config::get_config;
 use merge::merge_prs;
+use report::generate_report;
 use std::env::VarError;
 
 const TOKEN_ENV_VAR: &str = "MRJ_TOKEN";
@@ -29,6 +29,8 @@ async fn main() -> anyhow::Result<()> {
         MrjCommand::Run {
             config_file,
             repos,
+            output,
+            output_path,
             dry_run,
         } => {
             let config = get_config(config_file)?;
@@ -48,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
                 .user_access_token(token)
                 .context("couldn't authorize github client")?;
 
-            merge_prs(client, config, repos, dry_run).await?;
+            merge_prs(client, config, repos, output, &output_path, dry_run).await?;
         }
         MrjCommand::Config { config_command } => match config_command {
             ConfigCommand::Validate { config_file } => {
@@ -56,6 +58,12 @@ async fn main() -> anyhow::Result<()> {
                 println!("config looks good ✅");
             }
             ConfigCommand::Sample => print!("{}", SAMPLE_CONFIG),
+        },
+        MrjCommand::Report { report_command } => match report_command {
+            ReportCommand::Generate {
+                output_path,
+                open_report,
+            } => generate_report(&output_path, open_report)?,
         },
     }
 
