@@ -9,11 +9,20 @@ pub struct Config {
     pub trusted_authors: Vec<String>,
     pub base_branch: Option<String>,
     pub head_pattern: Option<HeadPattern>,
-    pub merge_if_blocked: Option<bool>,
-    pub merge_if_checks_skipped: Option<bool>,
+    #[serde(default = "default_false")]
+    pub merge_if_blocked: bool,
+    #[serde(default = "default_true")]
+    pub merge_if_checks_skipped: bool,
     pub merge_type: MergeType,
 }
 
+fn default_true() -> bool {
+    true
+}
+
+fn default_false() -> bool {
+    false
+}
 pub fn get_config(config_path: PathBuf) -> anyhow::Result<Config> {
     let config_bytes = std::fs::read_to_string(&config_path).with_context(|| {
         format!(

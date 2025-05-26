@@ -1,7 +1,7 @@
 use octocrab::params::pulls::MergeMethod;
 use regex::Regex;
 use serde::{
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serialize,
     de::{self, Visitor},
 };
 use std::fmt::{self, Display};
@@ -21,37 +21,6 @@ impl MergeType {
             MergeType::Rebase => MergeMethod::Rebase,
         }
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct Repo {
-    pub owner: String,
-    pub repo: String,
-}
-
-impl Display for Repo {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}/{}", self.owner, self.repo)
-    }
-}
-
-impl TryFrom<&str> for Repo {
-    type Error = String;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value.split_once("/") {
-            Some((owner, repo)) => Ok(Repo {
-                owner: owner.to_string(),
-                repo: repo.to_string(),
-            }),
-            None => Err("repo needs to be in the form \"owner/repo\"".into()),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct HeadPattern {
-    pub re: Regex,
 }
 
 impl<'de> Deserialize<'de> for MergeType {
@@ -82,6 +51,32 @@ impl<'de> Deserialize<'de> for MergeType {
         }
 
         deserializer.deserialize_str(MergeTypeVisitor)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Repo {
+    pub owner: String,
+    pub repo: String,
+}
+
+impl Display for Repo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}/{}", self.owner, self.repo)
+    }
+}
+
+impl TryFrom<&str> for Repo {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value.split_once("/") {
+            Some((owner, repo)) => Ok(Repo {
+                owner: owner.to_string(),
+                repo: repo.to_string(),
+            }),
+            None => Err("repo needs to be in the form \"owner/repo\"".into()),
+        }
     }
 }
 
@@ -117,6 +112,11 @@ impl<'de> Deserialize<'de> for Repo {
     }
 }
 
+#[derive(Debug)]
+pub struct HeadPattern {
+    pub re: Regex,
+}
+
 impl<'de> Deserialize<'de> for HeadPattern {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -144,4 +144,44 @@ impl<'de> Deserialize<'de> for HeadPattern {
 
         deserializer.deserialize_str(HeadPatternVisitor)
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct RunStats {
+    pub num_merges: u16,
+    pub num_disqualifications: u16,
+    pub num_errors: u16,
+}
+
+impl RunStats {
+    pub fn record_merge(&mut self) {
+        self.num_errors += 1;
+    }
+
+    pub fn record_disqualification(&mut self) {
+        self.num_disqualifications += 1;
+    }
+
+    pub fn record_error(&mut self) {
+        self.num_errors += 1;
+    }
+}
+
+#[derive(Debug)]
+pub enum Qualification {
+    Head(String),
+    User(String),
+    Check { name: String, conclusion: String },
+    State(String),
+}
+
+#[derive(Debug)]
+pub enum Disqualification {
+    Head(String),
+    User(Option<String>),
+    Check {
+        name: String,
+        conclusion: Option<String>,
+    },
+    State(Option<String>),
 }
