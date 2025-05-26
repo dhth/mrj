@@ -109,8 +109,8 @@ impl RunLog {
         }
     }
 
-    pub fn disqualification(&mut self, disqualification: Disqualification) {
-        let msg = match disqualification {
+    pub fn disqualification(&mut self, dq: Disqualification) {
+        let msg = match dq {
             Disqualification::Head(h) => {
                 format!("{} \"{}\" doesn't match the allowed head pattern", HEAD, h)
             }

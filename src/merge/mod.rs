@@ -48,7 +48,7 @@ where
     }
 
     if !config.merge_if_checks_skipped {
-        l.info("I wont merge PRs if checks are skipped");
+        l.info("I won't merge PRs if checks are skipped");
     }
 
     for repo in repos_to_use {
