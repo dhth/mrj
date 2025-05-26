@@ -155,7 +155,7 @@ pub struct RunStats {
 
 impl RunStats {
     pub fn record_merge(&mut self) {
-        self.num_errors += 1;
+        self.num_merges += 1;
     }
 
     pub fn record_disqualification(&mut self) {
