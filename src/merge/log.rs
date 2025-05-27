@@ -1,4 +1,4 @@
-use crate::domain::{Disqualification, Qualification, RunStats};
+use crate::domain::{Disqualification, Failure, PRResult, Qualification, RepoResult, RunStats};
 use anyhow::Context;
 use colored::Colorize;
 use std::fs::OpenOptions;
@@ -15,14 +15,51 @@ pub(super) struct RunLog {
     write_to_file: bool,
     lines: Vec<String>,
     stats: RunStats,
+    dry_run: bool,
 }
 
 impl RunLog {
-    pub(super) fn new(output: bool) -> Self {
+    pub(super) fn new(output: bool, dry_run: bool) -> Self {
         RunLog {
             write_to_file: output,
             lines: vec![],
             stats: RunStats::default(),
+            dry_run,
+        }
+    }
+
+    pub fn add_result(&mut self, result: RepoResult) {
+        self.repo_info(&result.name());
+
+        match result.result {
+            Ok(pr_results) if pr_results.is_empty() => {
+                self.empty_line();
+                self.absence("no PRs");
+            }
+            Ok(pr_results) => pr_results.into_iter().for_each(|r| self.add_pr_result(r)),
+            Err(err) => self.error(err),
+        }
+    }
+
+    fn add_pr_result(&mut self, result: PRResult) {
+        self.pr_info(&format!(
+            r#"
+-> checking PR #{}
+        {}
+        {}"#,
+            result.number, result.title, result.url,
+        ));
+
+        for q in result.qualifications {
+            self.qualification(q);
+        }
+
+        match result.failure {
+            Some(failure) => match failure {
+                Failure::Disqualification(dq) => self.disqualification(dq),
+                Failure::Error(err) => self.error(err),
+            },
+            None => self.merge(),
         }
     }
 
@@ -157,14 +194,20 @@ impl RunLog {
         }
     }
 
-    pub fn merge(&mut self, msg: &str, dry_run: bool) {
+    pub fn merge(&mut self) {
+        let msg = if self.dry_run {
+            "PR matches all criteria, I would've merged it if this weren't a dry run ✅"
+        } else {
+            "PR merged! 🎉 ✅"
+        };
+
         println!("        {}", msg.green());
 
         if self.write_to_file {
             self.lines.push(format!("        {}", msg));
         }
 
-        if !dry_run {
+        if !self.dry_run {
             self.stats.record_merge();
         }
     }

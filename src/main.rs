@@ -46,9 +46,13 @@ async fn main() -> anyhow::Result<()> {
                 }
             })?;
 
-            let client = octocrab::instance()
-                .user_access_token(token)
-                .context("couldn't authorize github client")?;
+            octocrab::initialise(
+                octocrab::Octocrab::builder()
+                    .user_access_token(token)
+                    .build()
+                    .context("couldn't authorize github client")?,
+            );
+            let client = octocrab::instance();
 
             merge_prs(client, config, repos, output, &output_path, dry_run).await?;
         }

@@ -146,6 +146,77 @@ impl<'de> Deserialize<'de> for HeadPattern {
     }
 }
 
+#[derive(Debug)]
+pub struct RepoResult {
+    pub owner: String,
+    pub name: String,
+    pub result: anyhow::Result<Vec<PRResult>>,
+}
+
+impl RepoResult {
+    pub fn new(owner: &str, name: &str) -> Self {
+        Self {
+            owner: owner.to_string(),
+            name: name.to_string(),
+            result: Ok(vec![]),
+        }
+    }
+
+    pub fn add_pr_result(&mut self, result: PRResult) {
+        if let Ok(pr_results) = &mut self.result {
+            pr_results.push(result);
+        }
+    }
+
+    pub fn record_error(mut self, error: anyhow::Error) -> Self {
+        self.result = Err(error);
+        self
+    }
+
+    pub fn name(&self) -> String {
+        format!("{}/{}", self.owner, self.name)
+    }
+}
+
+#[derive(Debug)]
+pub struct PRResult {
+    pub number: u64,
+    pub title: String,
+    pub url: String,
+    pub qualifications: Vec<Qualification>,
+    pub failure: Option<Failure>,
+}
+
+impl PRResult {
+    pub fn new(number: u64, title: &str, url: &str) -> Self {
+        Self {
+            number,
+            title: title.to_string(),
+            url: url.to_string(),
+            qualifications: vec![],
+            failure: None,
+        }
+    }
+
+    pub fn add_qualification(&mut self, q: Qualification) {
+        self.qualifications.push(q);
+    }
+
+    pub fn disqualify(mut self, dq: Disqualification) -> Self {
+        self.failure = Some(Failure::Disqualification(dq));
+        self
+    }
+
+    pub fn record_error(mut self, error: anyhow::Error) -> Self {
+        self.failure = Some(Failure::Error(error));
+        self
+    }
+
+    pub fn merged(&self) -> bool {
+        self.failure.is_none()
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct RunStats {
     pub num_merges: u16,
@@ -167,12 +238,18 @@ impl RunStats {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Qualification {
     Head(String),
     User(String),
     Check { name: String, conclusion: String },
     State(String),
+}
+
+#[derive(Debug)]
+pub enum Failure {
+    Disqualification(Disqualification),
+    Error(anyhow::Error),
 }
 
 #[derive(Debug)]
