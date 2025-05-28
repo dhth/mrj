@@ -86,7 +86,7 @@ Options:
 `mrj` tries to get an authentication token for GitHub in the following order:
 
 - Using the value of environment variable `MRJ_TOKEN`
-- Get it from [gh](https://github.com/cli/cli)
+- Get it from [gh](https://github.com/cli/cli) (if installed)
 
 Make sure `mrj` can get a token from either one of these approaches, and that
 the token has the following permissions for the relevant repos:
