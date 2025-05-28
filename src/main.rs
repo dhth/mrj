@@ -50,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
                 octocrab::Octocrab::builder()
                     .user_access_token(token)
                     .build()
-                    .context("couldn't authorize github client")?,
+                    .context("couldn't build github client")?,
             );
             let client = octocrab::instance();
 
