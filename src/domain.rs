@@ -162,6 +162,8 @@ impl RepoResult {
         }
     }
 
+    // TODO: this can be better
+    // maybe using typestate pattern?
     pub fn add_pr_result(&mut self, result: PRResult) {
         if let Ok(pr_results) = &mut self.result {
             pr_results.push(result);
@@ -184,7 +186,7 @@ pub struct PRResult {
     pub title: String,
     pub url: String,
     pub qualifications: Vec<Qualification>,
-    pub failure: Option<Failure>,
+    pub failure: Option<MergeFailure>,
 }
 
 impl PRResult {
@@ -203,12 +205,12 @@ impl PRResult {
     }
 
     pub fn disqualify(mut self, dq: Disqualification) -> Self {
-        self.failure = Some(Failure::Disqualification(dq));
+        self.failure = Some(MergeFailure::Disqualification(dq));
         self
     }
 
     pub fn record_error(mut self, error: anyhow::Error) -> Self {
-        self.failure = Some(Failure::Error(error));
+        self.failure = Some(MergeFailure::UnexpectedError(error));
         self
     }
 
@@ -247,9 +249,9 @@ pub enum Qualification {
 }
 
 #[derive(Debug)]
-pub enum Failure {
+pub enum MergeFailure {
     Disqualification(Disqualification),
-    Error(anyhow::Error),
+    UnexpectedError(anyhow::Error),
 }
 
 #[derive(Debug)]

@@ -1,4 +1,6 @@
-use crate::domain::{Disqualification, Failure, PRResult, Qualification, RepoResult, RunStats};
+use crate::domain::{
+    Disqualification, MergeFailure, PRResult, Qualification, RepoResult, RunStats,
+};
 use anyhow::Context;
 use colored::Colorize;
 use std::fs::OpenOptions;
@@ -56,8 +58,8 @@ impl RunLog {
 
         match result.failure {
             Some(failure) => match failure {
-                Failure::Disqualification(dq) => self.disqualification(dq),
-                Failure::Error(err) => self.error(err),
+                MergeFailure::Disqualification(dq) => self.disqualification(dq),
+                MergeFailure::UnexpectedError(err) => self.error(err),
             },
             None => self.merge(),
         }
