@@ -70,6 +70,10 @@ where
         l.info("I won't merge PRs if checks are skipped");
     }
 
+    if behaviours.ignore_repos_with_no_prs {
+        l.info("I won't show repositories that have no PRs");
+    }
+
     let config = Arc::new(config);
 
     let semaphore = Arc::new(Semaphore::new(MAX_FETCH_TASKS));
