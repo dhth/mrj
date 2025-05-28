@@ -33,7 +33,7 @@ jobs:
             --path ./.github/mrj.toml
           ./mrj run \
             --config ./.github/mrj.toml \
-            --repos "dhth/mrj"
+            --repos "dhth/mrj" \
             --output \
             --stats \
             --dry-run
