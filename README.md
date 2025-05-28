@@ -59,13 +59,15 @@ Options:
   -r, --repos <STRING,STRING>  Repos to run for (will override repos in config)
   -o, --output                 Whether to write output to a file
       --debug                  Output debug information without doing anything
-  -p, --output-path <PATH>     Output file to write to [default: output.txt]
+      --output-path <FILE>     Whether to write mrj's log of events to a file [default: output.txt]
+  -s, --stats                  Whether to write merge stats to a file
+      --stats-path <FILE>      File to write stats to [default: stats.csv]
   -d, --dry-run                Whether to only print out information without merging any PRs
   -h, --help                   Print help
 ```
 
 ```text
-$ mrj report generate
+$ mrj report generate -h
 Generate a report
 
 Usage: mrj report generate [OPTIONS]
