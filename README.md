@@ -12,10 +12,6 @@
 
 ![usage](https://tools.dhruvs.space/images/mrj/mrj-1.png)
 
-> [!NOTE]
-> mrj is alpha software. Its interface and behaviour might change in the near
-> future.
-
 🤔 Motivation
 ---
 
@@ -191,7 +187,7 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.1.0-alpha.10
+  MRJ_VERSION: v0.1.0
 
 jobs:
   run:
@@ -237,7 +233,7 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.1.0-alpha.10
+  MRJ_VERSION: v0.1.0
 
 jobs:
   run:

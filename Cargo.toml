@@ -1,10 +1,11 @@
 [package]
 name = "mrj"
-version = "0.1.0-alpha.11"
+version = "0.1.0"
 edition = "2024"
 authors = ["Dhruv Thakur"]
 repository = "https://github.com/dhth/mrj"
 description = "mrj merges your open dependency upgrade PRs"
+homepage = "https://tools.dhruvs.space/mrj"
 keywords = [
     "cli",
     "github",
