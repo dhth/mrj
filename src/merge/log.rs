@@ -65,7 +65,6 @@ impl RunLog {
         output_path: P,
         summary_to_file: bool,
         summary_path: P,
-        num_seconds: i64,
     ) -> anyhow::Result<()>
     where
         P: AsRef<Path>,
@@ -100,14 +99,12 @@ PRs merged
 # PRs disqualified    :  {}
 # Repos checked       :  {}
 # Repos with no PRs   :  {}
-# Errors encountered  :  {}
-# Seconds taken       :  {}{}"#,
+# Errors encountered  :  {}{}"#,
             self.summary.prs_merged.len(),
             self.summary.num_disqualifications,
             self.summary.num_repos,
             self.summary.num_repos_with_no_prs,
             self.summary.num_errors,
-            num_seconds,
             prs_merged.unwrap_or_default(),
         );
 
