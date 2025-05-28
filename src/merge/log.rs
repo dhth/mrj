@@ -1,5 +1,5 @@
 use crate::domain::{
-    Disqualification, MergeFailure, PRResult, Qualification, RepoResult, RunStats,
+    Disqualification, MergeFailure, MergedPR, PRResult, Qualification, RepoResult, RunSummary,
 };
 use anyhow::Context;
 use colored::Colorize;
@@ -16,7 +16,7 @@ const STATE: &str = "[ state  ]  ";
 pub(super) struct RunLog {
     write_to_file: bool,
     lines: Vec<String>,
-    stats: RunStats,
+    summary: RunSummary,
     ignore_repos_with_no_prs: bool,
     dry_run: bool,
 }
@@ -26,30 +26,35 @@ impl RunLog {
         RunLog {
             write_to_file: output,
             lines: vec![],
-            stats: RunStats::default(),
+            summary: RunSummary::default(),
             ignore_repos_with_no_prs,
             dry_run,
         }
     }
 
     pub(super) fn add_result(&mut self, result: RepoResult) {
-        self.stats.record_repo();
+        self.summary.record_repo();
 
         if let Ok(pr_results) = &result.results {
             if self.ignore_repos_with_no_prs && pr_results.is_empty() {
-                self.stats.record_repo_with_no_count();
+                self.summary.record_repo_with_no_count();
                 return;
             }
         }
 
         self.repo_info(&result.name());
 
+        let repo = result.name();
         match result.results {
             Ok(pr_results) if pr_results.is_empty() => {
                 self.empty_line();
                 self.absence("no PRs");
             }
-            Ok(pr_results) => pr_results.into_iter().for_each(|r| self.add_pr_result(r)),
+            Ok(pr_results) => {
+                pr_results
+                    .into_iter()
+                    .for_each(|r| self.add_pr_result(r, &repo));
+            }
             Err(err) => self.error(err),
         }
     }
@@ -58,40 +63,74 @@ impl RunLog {
         &mut self,
         output_to_file: bool,
         output_path: P,
-        stats_to_file: bool,
-        stats_path: P,
+        summary_to_file: bool,
+        summary_path: P,
         num_seconds: i64,
     ) -> anyhow::Result<()>
     where
         P: AsRef<Path>,
     {
-        let stats = format!(
+        // let pm = vec![
+        //     MergedPR {
+        //         repo: "bloop/blah".to_string(),
+        //         title: "some title goes here".to_string(),
+        //     },
+        //     MergedPR {
+        //         repo: "bloop/blah".to_string(),
+        //         title: "another pr with quite a loong loong loong title, this is still going"
+        //             .to_string(),
+        //     },
+        // ];
+
+        let prs_merged = if self.summary.prs_merged.is_empty() {
+            None
+        } else {
+            Some(format!(
+                r#"
+PRs merged
+---
+
+{}
+"#,
+                self.summary
+                    .prs_merged
+                    .iter()
+                    .map(|pr| format!("- [{}] {}", pr.repo, pr.title))
+                    .collect::<Vec<String>>()
+                    .join("\n"),
+            ))
+        };
+
+        let summary = format!(
             r#"
-===========================
 
-  Stats
+===========
+  SUMMARY
+===========
 
-  PRs merged          :  {}
-  PRs disqualified    :  {}
-  Repos checked       :  {}
-  Repos with no PRs   :  {}
-  Errors encountered  :  {}
-
-==========================="#,
-            self.stats.num_merges,
-            self.stats.num_disqualifications,
-            self.stats.num_repos,
-            self.stats.num_repos_with_no_prs,
-            self.stats.num_errors
+# PRs merged          :  {}
+# PRs disqualified    :  {}
+# Repos checked       :  {}
+# Repos with no PRs   :  {}
+# Errors encountered  :  {}
+# Seconds taken       :  {}
+{}"#,
+            self.summary.prs_merged.len(),
+            self.summary.num_disqualifications,
+            self.summary.num_repos,
+            self.summary.num_repos_with_no_prs,
+            self.summary.num_errors,
+            num_seconds,
+            prs_merged.unwrap_or_default(),
         );
 
-        println!("{}", &stats.green());
+        println!("{}", &summary.green());
 
         if !output_to_file {
             return Ok(());
         }
 
-        self.lines.push(stats.clone());
+        self.lines.push(summary.clone());
 
         let mut file = OpenOptions::new()
             .create(true)
@@ -103,31 +142,15 @@ impl RunLog {
         file.write_all(self.lines.join("\n").as_bytes())
             .context("couldn't write output to file")?;
 
-        if stats_to_file {
-            let stats = format!(
-                r#"Stat,Value
-PRs merged,{}
-PRs disqualified,{}
-Repos checked,{}
-Repos with no PRs,{}
-Errors encountered,{}
-Took seconds,{}
-"#,
-                self.stats.num_merges,
-                self.stats.num_disqualifications,
-                self.stats.num_repos,
-                self.stats.num_repos_with_no_prs,
-                self.stats.num_errors,
-                num_seconds,
-            );
+        if summary_to_file {
             let mut file = OpenOptions::new()
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open(stats_path)
-                .context("couldn't open a handle to the stats file")?;
+                .open(summary_path)
+                .context("couldn't open a handle to the summary file")?;
 
-            file.write_all(stats.as_bytes())
+            file.write_all(summary.trim_start().as_bytes())
                 .context("couldn't write output to file")?;
         }
 
@@ -167,7 +190,7 @@ Took seconds,{}
         }
     }
 
-    fn add_pr_result(&mut self, result: PRResult) {
+    fn add_pr_result(&mut self, result: PRResult, repo: &str) {
         self.pr_info(&format!(
             r#"
 -> checking PR #{}
@@ -185,7 +208,13 @@ Took seconds,{}
                 MergeFailure::Disqualification(dq) => self.disqualification(dq),
                 MergeFailure::UnexpectedError(err) => self.error(err),
             },
-            None => self.merge(),
+            None => {
+                let merged_pr = MergedPR {
+                    repo: repo.to_string(),
+                    title: result.title,
+                };
+                self.merge(merged_pr);
+            }
         }
     }
 
@@ -284,7 +313,7 @@ Took seconds,{}
             self.lines.push(format!("        {} ❌", msg));
         }
 
-        self.stats.record_disqualification();
+        self.summary.record_disqualification();
     }
 
     fn absence(&mut self, msg: &str) {
@@ -295,7 +324,7 @@ Took seconds,{}
         }
     }
 
-    fn merge(&mut self) {
+    fn merge(&mut self, pr: MergedPR) {
         let msg = if self.dry_run {
             "PR matches all criteria, I would've merged it if this weren't a dry run ✅"
         } else {
@@ -309,7 +338,7 @@ Took seconds,{}
         }
 
         if !self.dry_run {
-            self.stats.record_merge();
+            self.summary.record_merged_pr(pr);
         }
     }
 
@@ -320,6 +349,6 @@ Took seconds,{}
             self.lines.push(format!("        error 😵: {}", error));
         }
 
-        self.stats.record_error();
+        self.summary.record_error();
     }
 }

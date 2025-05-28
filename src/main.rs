@@ -31,8 +31,8 @@ async fn main() -> anyhow::Result<()> {
             repos,
             output,
             output_path,
-            stats,
-            stats_path,
+            summary,
+            summary_path,
             ignore_repos_with_no_prs,
             dry_run,
         } => {
@@ -60,8 +60,8 @@ async fn main() -> anyhow::Result<()> {
             let run_behaviours = RunBehaviours {
                 output,
                 output_path: &output_path,
-                stats,
-                stats_path: &stats_path,
+                summary,
+                summary_path: &summary_path,
                 ignore_repos_with_no_prs,
                 dry_run,
             };
