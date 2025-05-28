@@ -55,15 +55,16 @@ Check for open PRs and merge them
 Usage: mrj run [OPTIONS]
 
 Options:
-  -c, --config <PATH>          Path to mrj's config file [default: mrj.toml]
-  -r, --repos <STRING,STRING>  Repos to run for (will override repos in config)
-  -o, --output                 Whether to write output to a file
-      --debug                  Output debug information without doing anything
-      --output-path <FILE>     Whether to write mrj's log of events to a file [default: output.txt]
-  -s, --summary                Whether to write merge summary to a file
-      --summary-path <FILE>    File to write summary to [default: summary.txt]
-  -d, --dry-run                Whether to only print out information without merging any PRs
-  -h, --help                   Print help
+  -c, --config <PATH>             Path to mrj's config file [default: mrj.toml]
+  -r, --repos <STRING,STRING>     Repos to run for (will override repos in config)
+  -o, --output                    Whether to write output to a file
+      --debug                     Output debug information without doing anything
+      --output-path <FILE>        Whether to write mrj's log of events to a file [default: output.txt]
+  -s, --summary                   Whether to write merge summary to a file
+      --summary-path <FILE>       File to write summary to [default: summary.txt]
+  -i, --ignore-repos-with-no-prs  Whether to ignore printing information for repos with no PRs
+  -d, --dry-run                   Whether to only print out information without merging any PRs
+  -h, --help                      Print help
 ```
 
 ```text
@@ -88,20 +89,12 @@ Options:
 # repos to run for
 # (required)
 repos = [
-    "dhth/act3",
-    "dhth/ecscope",
-    "dhth/ecsv",
-    "dhth/mrj",
-    "dhth/shfl",
-    "dhth/squidge",
-    "dhth/squish",
-    "dhth/tash",
-    "dhth/tbll",
-    "dhth/tomo",
-    "dhth/urll",
+    "owner/repo-1",
+    "owner/repo-2",
+    "owner/repo-3",
 ]
 
-# mrj will only consider repos created by the users in this list
+# mrj will only consider repos created by the authors in this list
 # (required)
 trusted_authors = ["dependabot[bot]"]
 
@@ -121,15 +114,12 @@ head_pattern = "(dependabot|update)"
 # (optional, default: false)
 merge_if_blocked = true
 
-# by default mrj only considers PRs where checks have either passed or are
-# skipped
-# if this setting is ON, mrj will not consider PRs where one or more check has
-# been skipped
+# by default mrj only considers PRs where checks have either passed or are skipped
+# if this setting is OFF, mrj will not merge PRs where one or more checks have been skipped
 # (optional, default: true)
 merge_if_checks_skipped = true
 
-# squash/merge/rebase (make sure the choice is actually enabled in your
-# settings)
+# squash/merge/rebase (make sure the choice is actually enabled in your settings)
 # (required)
 merge_type = "squash"
 ```
@@ -165,7 +155,7 @@ Create a GitHub app for yourself that has the following permissions:
 Install the app in the relevant repositories. Generate a private key for
 yourself.
 
-Create a dedicated repository to use as the "runner" for `mrj`, or choose an
+Create a dedicated repository to use as the "runner" for `mrj` or choose an
 existing one. Store the App ID and the private key as secrets in this
 repository.
 
@@ -187,7 +177,7 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.1.0-alpha.5
+  MRJ_VERSION: v0.1.0-alpha.10
 
 jobs:
   run:
@@ -224,7 +214,7 @@ name: mrj
 
 on:
   schedule:
-    - cron: '0-59/30 21-23 * * *'
+    - cron: '0 21,22 * * *'
   workflow_dispatch:
 
 permissions:
@@ -233,7 +223,7 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.1.0-alpha.5
+  MRJ_VERSION: v0.1.0-alpha.10
 
 jobs:
   run:
@@ -251,17 +241,20 @@ jobs:
         with:
           app-id: ${{ secrets.MRJ_APP_ID }}
           private-key: ${{ secrets.MRJ_APP_PRIVATE_KEY }}
-          owner: <your-username>
+          owner: dhth
       - name: Run mrj
         env:
           MRJ_TOKEN: ${{ steps.generate-token.outputs.token }}
           CLICOLOR_FORCE: 1
           COLORTERM: "truecolor"
         run: |
-          mrj run -o
+          mrj run -os
       - name: Generate report
         run: |
           mrj report generate
+      - name: Get run number
+        id: run-number
+        run: echo "number=$(cat ./.mrj/last-run.txt)" >> "$GITHUB_OUTPUT"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
@@ -273,18 +266,16 @@ jobs:
         uses: actions/deploy-pages@v4
       - name: Commit and push results
         run: |
-          build_num=$(cat ./.mrj/last-run.txt)
-
           git config user.name "github-actions[bot]"
           # https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "add run-${build_num}" || echo "No changes to commit"
+          git commit -m "add run-${{ steps.run-number.outputs.number }}"
           git push
 ```
 
 This will merge PRs and deploy a report to GitHub Pages. It will also push a
-commit to the repo containing the newly generated report.
+commit to the repo containing the newly generated output.
 
 [1]: https://dhth.github.io/mrj-runner/index.html
 [2]: https://github.com/dhth/mrj-runner

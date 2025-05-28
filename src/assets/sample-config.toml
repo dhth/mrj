@@ -8,7 +8,7 @@ repos = [
     "owner/repo-3",
 ]
 
-# mrj will only consider repos created by the users in this list
+# mrj will only consider repos created by the authors in this list
 # (required)
 trusted_authors = ["dependabot[bot]"]
 
@@ -28,14 +28,11 @@ head_pattern = "(dependabot|update)"
 # (optional, default: false)
 merge_if_blocked = true
 
-# by default mrj only considers PRs where checks have either passed or are
-# skipped
-# if this setting is ON, mrj will not consider PRs where one or more check has
-# been skipped
+# by default mrj only considers PRs where checks have either passed or are skipped
+# if this setting is OFF, mrj will not merge PRs where one or more checks have been skipped
 # (optional, default: true)
 merge_if_checks_skipped = true
 
-# squash/merge/rebase (make sure the choice is actually enabled in your
-# settings)
+# squash/merge/rebase (make sure the choice is actually enabled in your settings)
 # (required)
 merge_type = "squash"
