@@ -45,8 +45,11 @@ impl RunLog {
 
     pub(super) fn write_output<P>(
         &mut self,
-        write_to_file: bool,
-        output_file: P,
+        output_to_file: bool,
+        output_path: P,
+        stats_to_file: bool,
+        stats_path: P,
+        num_seconds: i64,
     ) -> anyhow::Result<()>
     where
         P: AsRef<Path>,
@@ -57,9 +60,9 @@ impl RunLog {
 
   Stats
 
-  #PRs merged         : {}
-  #PRs disqualified   : {}
-  #errors encountered : {}
+  PRs merged         : {}
+  PRs disqualified   : {}
+  Errors encountered : {}
 
 ==========================="#,
             self.stats.num_merges, self.stats.num_disqualifications, self.stats.num_errors
@@ -67,21 +70,45 @@ impl RunLog {
 
         println!("{}", &stats.green());
 
-        if !write_to_file {
+        if !output_to_file {
             return Ok(());
         }
 
-        self.lines.push(stats);
+        self.lines.push(stats.clone());
 
         let mut file = OpenOptions::new()
             .create(true)
             .write(true)
             .truncate(true)
-            .open(output_file)
+            .open(output_path)
             .context("couldn't open a handle to the output file")?;
 
         file.write_all(self.lines.join("\n").as_bytes())
             .context("couldn't write output to file")?;
+
+        if stats_to_file {
+            let stats = format!(
+                r#"Stat,Value
+PRs merged,{}
+PRs disqualified,{}
+Errors encountered,{}
+Took seconds,{}
+"#,
+                self.stats.num_merges,
+                self.stats.num_disqualifications,
+                self.stats.num_errors,
+                num_seconds,
+            );
+            let mut file = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(stats_path)
+                .context("couldn't open a handle to the stats file")?;
+
+            file.write_all(stats.as_bytes())
+                .context("couldn't write output to file")?;
+        }
 
         Ok(())
     }

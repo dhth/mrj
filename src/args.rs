@@ -36,14 +36,24 @@ pub enum MrjCommand {
         /// Whether to write output to a file
         #[arg(long = "output", short = 'o')]
         output: bool,
-        /// Output file to write to
+        /// Whether to write mrj's log of events to a file
         #[arg(
             long = "output-path",
-            short = 'p',
-            value_name = "PATH",
-            default_value = "output.txt"
+            value_name = "FILE",
+            default_value = "output.txt",
+            value_parser = validate_output_path,
         )]
         output_path: PathBuf,
+        /// Whether to write merge stats to a file
+        #[arg(long = "stats", short = 's')]
+        stats: bool,
+        /// File to write stats to
+        #[arg(long = "stats-path",
+            value_name = "FILE",
+            default_value = "stats.csv",
+            value_parser = validate_stats_path,
+            )]
+        stats_path: PathBuf,
         /// Whether to only print out information without merging any PRs
         #[arg(long = "dry-run", short = 'd')]
         dry_run: bool,
@@ -107,20 +117,26 @@ impl std::fmt::Display for Args {
                 repos,
                 output,
                 output_path,
+                stats,
+                stats_path,
                 dry_run,
             } => format!(
                 r#"
 command                  : Run
 config file              : {}
 repos (overridden)       : {:?}
-output                   : {}
+write output             : {}
 output file              : {}
+write stats              : {}
+stats file               : {}
 dry run                  : {}
 "#,
                 config_file.to_string_lossy(),
                 repos.iter().map(|r| r.to_string()).collect::<Vec<String>>(),
                 output,
                 output_path.to_string_lossy(),
+                stats,
+                stats_path.to_string_lossy(),
                 dry_run
             ),
             MrjCommand::Config { config_command } => match config_command {
@@ -154,5 +170,21 @@ open report              : {}
         };
 
         f.write_str(&output)
+    }
+}
+
+fn validate_output_path(s: &str) -> Result<PathBuf, String> {
+    if s.ends_with(".txt") {
+        Ok(PathBuf::from(s))
+    } else {
+        Err(String::from("output file must have a .txt extension"))
+    }
+}
+
+fn validate_stats_path(s: &str) -> Result<PathBuf, String> {
+    if s.ends_with(".csv") {
+        Ok(PathBuf::from(s))
+    } else {
+        Err(String::from("stats file must have a .csv extension"))
     }
 }

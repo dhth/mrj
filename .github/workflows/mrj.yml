@@ -1,8 +1,7 @@
 name: mrj
 
 on:
-  push:
-    branches: ["main"]
+  pull_request:
 
 env:
   CARGO_TERM_COLOR: always
@@ -34,4 +33,9 @@ jobs:
             --path ./.github/mrj.toml
           ./mrj run \
             --config ./.github/mrj.toml \
+            --repos "dhth/mrj" \
+            --output \
+            --stats \
             --dry-run
+          ./mrj report generate
+          cat stats.csv
