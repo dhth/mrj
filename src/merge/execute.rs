@@ -9,7 +9,7 @@ use octocrab::{
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 
-pub async fn merge_pr_for_repo(
+pub(super) async fn merge_pr_for_repo(
     semaphore: Arc<Semaphore>,
     client: Arc<Octocrab>,
     config: Arc<Config>,
