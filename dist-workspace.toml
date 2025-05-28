@@ -19,5 +19,5 @@ install-updater = false
 tap = "dhth/homebrew-tap"
 # Publish jobs to run in CI
 publish-jobs = ["homebrew"]
-# Which actions to run on pull requests
-pr-run-mode = "upload"
+# Post-announce jobs to run in CI
+post-announce-jobs = ["./publish-crates"]
