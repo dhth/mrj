@@ -846,6 +846,7 @@ dependencies = [
  "chrono",
  "clap",
  "colored",
+ "futures",
  "octocrab",
  "open",
  "predicates",

@@ -22,6 +22,7 @@ anyhow = "1.0.98"
 chrono = "0.4.41"
 clap = { version = "4.5.38", features = ["derive"] }
 colored = "3"
+futures = "0.3.31"
 octocrab = "0.44.1"
 open = "5.3.2"
 regex = "1.11.1"

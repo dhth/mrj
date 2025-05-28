@@ -6,6 +6,8 @@ use crate::domain::Repo;
 use anyhow::Context;
 use chrono::Utc;
 use execute::merge_pr_for_repo;
+use futures::StreamExt;
+use futures::stream::FuturesUnordered;
 use log::RunLog;
 use octocrab::Octocrab;
 use std::path::Path;
@@ -58,20 +60,20 @@ where
     }
 
     let config = Arc::new(config);
-    let mut tasks = Vec::new();
 
     let semaphore = Arc::new(Semaphore::new(MAX_FETCH_TASKS));
+    let mut futures = FuturesUnordered::new();
     for repo in repos_to_use {
         let semaphore = Arc::clone(&semaphore);
         let client = Arc::clone(&client);
         let config = Arc::clone(&config);
-        tasks.push(tokio::task::spawn(async move {
+        futures.push(tokio::task::spawn(async move {
             merge_pr_for_repo(semaphore, client, config, repo.clone(), dry_run).await
         }));
     }
 
-    for task in tasks {
-        let result = task.await.context("couldn't join merge task")?;
+    while let Some(result) = futures.next().await {
+        let result = result.context("couldn't join merge task")?;
         l.add_result(result);
     }
 
