@@ -26,5 +26,21 @@
                 </pre>
             </div>
         </div>
+        <button id="scrollToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'});"
+          class="hidden fixed bottom-4 left-4 z-50 bg-slate-400 text-slate-900 px-4 py-2 rounded-full shadow-lg hover:bg-lime-500 font-bold transition"
+          aria-label="Go to top">
+          ↑
+        </button>
     </body>
+    <script>
+const scrollToTopButton = document.getElementById("scrollToTop");
+
+window.addEventListener("scroll", function () {
+	if (window.scrollY > 100) {
+		scrollToTopButton.classList.remove("hidden");
+	} else {
+		scrollToTopButton.classList.add("hidden");
+	}
+});
+    </script>
 </html>
