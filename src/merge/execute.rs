@@ -62,10 +62,11 @@ pub async fn merge_pr_for_repo(
             dry_run,
         )
         .await;
-        let merged = pr_result.merged();
+        let no_failure = pr_result.failure.is_none();
         result.add_pr_result(pr_result);
 
-        if !dry_run && merged {
+        if !dry_run && no_failure {
+            // PR was merged
             break;
         }
     }

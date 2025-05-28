@@ -213,10 +213,6 @@ impl PRResult {
         self.failure = Some(MergeFailure::UnexpectedError(error));
         self
     }
-
-    pub fn merged(&self) -> bool {
-        self.failure.is_none()
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
