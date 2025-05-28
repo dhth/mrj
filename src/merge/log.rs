@@ -65,16 +65,16 @@ impl RunLog {
         }
     }
 
-    pub fn banner(&mut self, dry_run: bool) {
+    pub fn banner(&mut self) {
         println!("{}", BANNER.green().bold());
-        if dry_run {
+        if self.dry_run {
             println!("{}", "                         dry run".yellow());
         }
         println!("\n");
 
         if self.write_to_file {
             self.lines.push(BANNER.to_string());
-            if dry_run {
+            if self.dry_run {
                 self.lines
                     .push("                         dry run".to_string());
             }

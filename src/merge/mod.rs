@@ -37,7 +37,7 @@ where
         return Ok(());
     }
 
-    l.banner(dry_run);
+    l.banner();
 
     let start = Utc::now();
     l.info(&format!("The time right now is {}", start));
