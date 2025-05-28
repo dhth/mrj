@@ -70,18 +70,6 @@ impl RunLog {
     where
         P: AsRef<Path>,
     {
-        // let pm = vec![
-        //     MergedPR {
-        //         repo: "bloop/blah".to_string(),
-        //         title: "some title goes here".to_string(),
-        //     },
-        //     MergedPR {
-        //         repo: "bloop/blah".to_string(),
-        //         title: "another pr with quite a loong loong loong title, this is still going"
-        //             .to_string(),
-        //     },
-        // ];
-
         let prs_merged = if self.summary.prs_merged.is_empty() {
             None
         } else {
