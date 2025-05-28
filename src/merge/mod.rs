@@ -21,6 +21,7 @@ pub struct RunBehaviours<P: AsRef<Path>> {
     pub output_path: P,
     pub stats: bool,
     pub stats_path: P,
+    pub ignore_repos_with_no_prs: bool,
     pub dry_run: bool,
 }
 
@@ -33,7 +34,11 @@ pub async fn merge_prs<P>(
 where
     P: AsRef<Path>,
 {
-    let mut l = RunLog::new(behaviours.output, behaviours.dry_run);
+    let mut l = RunLog::new(
+        behaviours.output,
+        behaviours.ignore_repos_with_no_prs,
+        behaviours.dry_run,
+    );
 
     let repos_to_use = if repos_override.is_empty() {
         config.repos.clone()

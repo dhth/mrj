@@ -33,6 +33,7 @@ async fn main() -> anyhow::Result<()> {
             output_path,
             stats,
             stats_path,
+            ignore_repos_with_no_prs,
             dry_run,
         } => {
             let config = get_config(config_file)?;
@@ -61,6 +62,7 @@ async fn main() -> anyhow::Result<()> {
                 output_path: &output_path,
                 stats,
                 stats_path: &stats_path,
+                ignore_repos_with_no_prs,
                 dry_run,
             };
             merge_prs(client, config, repos, run_behaviours).await?;

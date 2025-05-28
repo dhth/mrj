@@ -17,23 +17,34 @@ pub(super) struct RunLog {
     write_to_file: bool,
     lines: Vec<String>,
     stats: RunStats,
+    ignore_repos_with_no_prs: bool,
     dry_run: bool,
 }
 
 impl RunLog {
-    pub(super) fn new(output: bool, dry_run: bool) -> Self {
+    pub(super) fn new(output: bool, ignore_repos_with_no_prs: bool, dry_run: bool) -> Self {
         RunLog {
             write_to_file: output,
             lines: vec![],
             stats: RunStats::default(),
+            ignore_repos_with_no_prs,
             dry_run,
         }
     }
 
     pub(super) fn add_result(&mut self, result: RepoResult) {
+        self.stats.record_repo();
+
+        if let Ok(pr_results) = &result.results {
+            if self.ignore_repos_with_no_prs && pr_results.is_empty() {
+                self.stats.record_repo_with_no_count();
+                return;
+            }
+        }
+
         self.repo_info(&result.name());
 
-        match result.result {
+        match result.results {
             Ok(pr_results) if pr_results.is_empty() => {
                 self.empty_line();
                 self.absence("no PRs");
@@ -60,12 +71,18 @@ impl RunLog {
 
   Stats
 
-  PRs merged         : {}
-  PRs disqualified   : {}
-  Errors encountered : {}
+  PRs merged          :  {}
+  PRs disqualified    :  {}
+  Repos checked       :  {}
+  Repos with no PRs   :  {}
+  Errors encountered  :  {}
 
 ==========================="#,
-            self.stats.num_merges, self.stats.num_disqualifications, self.stats.num_errors
+            self.stats.num_merges,
+            self.stats.num_disqualifications,
+            self.stats.num_repos,
+            self.stats.num_repos_with_no_prs,
+            self.stats.num_errors
         );
 
         println!("{}", &stats.green());
@@ -91,11 +108,15 @@ impl RunLog {
                 r#"Stat,Value
 PRs merged,{}
 PRs disqualified,{}
+Repos checked,{}
+Repos with no PRs,{}
 Errors encountered,{}
 Took seconds,{}
 "#,
                 self.stats.num_merges,
                 self.stats.num_disqualifications,
+                self.stats.num_repos,
+                self.stats.num_repos_with_no_prs,
                 self.stats.num_errors,
                 num_seconds,
             );
