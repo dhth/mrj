@@ -106,7 +106,6 @@ where
         behaviours.output_path,
         behaviours.summary,
         behaviours.summary_path,
-        num_seconds,
     )
     .context("couldn't write output to file")?;
 
