@@ -75,11 +75,11 @@ impl RunLog {
         } else {
             Some(format!(
                 r#"
+
 PRs merged
 ---
 
-{}
-"#,
+{}"#,
                 self.summary
                     .prs_merged
                     .iter()
@@ -101,8 +101,7 @@ PRs merged
 # Repos checked       :  {}
 # Repos with no PRs   :  {}
 # Errors encountered  :  {}
-# Seconds taken       :  {}
-{}"#,
+# Seconds taken       :  {}{}"#,
             self.summary.prs_merged.len(),
             self.summary.num_disqualifications,
             self.summary.num_repos,

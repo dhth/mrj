@@ -1,4 +1,5 @@
 mod args;
+mod auth;
 mod config;
 mod domain;
 mod merge;
@@ -7,13 +8,12 @@ mod report;
 use anyhow::Context;
 use args::Args;
 use args::{ConfigCommand, MrjCommand, ReportCommand};
+use auth::get_token;
 use clap::Parser;
 use config::get_config;
 use merge::{RunBehaviours, merge_prs};
 use report::generate_report;
-use std::env::VarError;
 
-const TOKEN_ENV_VAR: &str = "MRJ_TOKEN";
 const SAMPLE_CONFIG: &str = include_str!("./assets/sample-config.toml");
 
 #[tokio::main]
@@ -42,12 +42,7 @@ async fn main() -> anyhow::Result<()> {
                 anyhow::bail!("no repos to run for");
             }
 
-            let token = std::env::var(TOKEN_ENV_VAR).map_err(|err| match err {
-                VarError::NotPresent => anyhow::anyhow!("{} is not set", TOKEN_ENV_VAR),
-                VarError::NotUnicode(_) => {
-                    anyhow::anyhow!("{} is not valid unicode", TOKEN_ENV_VAR)
-                }
-            })?;
+            let token = get_token()?;
 
             octocrab::initialise(
                 octocrab::Octocrab::builder()
