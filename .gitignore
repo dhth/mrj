@@ -2,4 +2,4 @@
 dist
 .mrj
 output.txt
-stats.csv
+summary.txt

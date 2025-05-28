@@ -35,7 +35,7 @@ jobs:
             --config ./.github/mrj.toml \
             --repos "dhth/mrj" \
             --output \
-            --stats \
+            --summary \
             --dry-run
           ./mrj report generate
-          cat stats.csv
+          cat summary.txt

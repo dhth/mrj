@@ -1,7 +1,7 @@
 use octocrab::params::pulls::MergeMethod;
 use regex::Regex;
 use serde::{
-    Deserialize, Deserializer, Serialize,
+    Deserialize, Deserializer,
     de::{self, Visitor},
 };
 use std::fmt::{self, Display};
@@ -215,26 +215,22 @@ impl PRResult {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct RunStats {
+#[derive(Debug, Default)]
+pub struct RunSummary {
     pub num_repos: usize,
     pub num_repos_with_no_prs: usize,
-    pub num_merges: u16,
     pub num_disqualifications: u16,
     pub num_errors: u16,
+    pub prs_merged: Vec<MergedPR>,
 }
 
-impl RunStats {
+impl RunSummary {
     pub fn record_repo(&mut self) {
         self.num_repos += 1;
     }
 
     pub fn record_repo_with_no_count(&mut self) {
         self.num_repos_with_no_prs += 1;
-    }
-
-    pub fn record_merge(&mut self) {
-        self.num_merges += 1;
     }
 
     pub fn record_disqualification(&mut self) {
@@ -244,6 +240,16 @@ impl RunStats {
     pub fn record_error(&mut self) {
         self.num_errors += 1;
     }
+
+    pub fn record_merged_pr(&mut self, pr: MergedPR) {
+        self.prs_merged.push(pr);
+    }
+}
+
+#[derive(Debug)]
+pub struct MergedPR {
+    pub repo: String,
+    pub title: String,
 }
 
 #[derive(Debug)]

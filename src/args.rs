@@ -41,19 +41,19 @@ pub enum MrjCommand {
             long = "output-path",
             value_name = "FILE",
             default_value = "output.txt",
-            value_parser = validate_output_path,
+            value_parser = validate_txt_path,
         )]
         output_path: PathBuf,
-        /// Whether to write merge stats to a file
-        #[arg(long = "stats", short = 's')]
-        stats: bool,
-        /// File to write stats to
-        #[arg(long = "stats-path",
+        /// Whether to write merge summary to a file
+        #[arg(long = "summary", short = 's')]
+        summary: bool,
+        /// File to write summary to
+        #[arg(long = "summary-path",
             value_name = "FILE",
-            default_value = "stats.csv",
-            value_parser = validate_stats_path,
+            default_value = "summary.txt",
+            value_parser = validate_txt_path,
             )]
-        stats_path: PathBuf,
+        summary_path: PathBuf,
         /// Whether to ignore printing information for repos with no PRs
         #[arg(long = "ignore-repos-with-no-prs", short = 'i')]
         ignore_repos_with_no_prs: bool,
@@ -120,8 +120,8 @@ impl std::fmt::Display for Args {
                 repos,
                 output,
                 output_path,
-                stats,
-                stats_path,
+                summary,
+                summary_path,
                 ignore_repos_with_no_prs,
                 dry_run,
             } => format!(
@@ -131,8 +131,8 @@ config file              : {}
 repos (overridden)       : {:?}
 write output             : {}
 output file              : {}
-write stats              : {}
-stats file               : {}
+write summary              : {}
+summary file               : {}
 ignore repos with no prs : {}
 dry run                  : {}
 "#,
@@ -140,8 +140,8 @@ dry run                  : {}
                 repos.iter().map(|r| r.to_string()).collect::<Vec<String>>(),
                 output,
                 output_path.to_string_lossy(),
-                stats,
-                stats_path.to_string_lossy(),
+                summary,
+                summary_path.to_string_lossy(),
                 ignore_repos_with_no_prs,
                 dry_run
             ),
@@ -179,18 +179,10 @@ open report              : {}
     }
 }
 
-fn validate_output_path(s: &str) -> Result<PathBuf, String> {
+fn validate_txt_path(s: &str) -> Result<PathBuf, String> {
     if s.ends_with(".txt") {
         Ok(PathBuf::from(s))
     } else {
-        Err(String::from("output file must have a .txt extension"))
-    }
-}
-
-fn validate_stats_path(s: &str) -> Result<PathBuf, String> {
-    if s.ends_with(".csv") {
-        Ok(PathBuf::from(s))
-    } else {
-        Err(String::from("stats file must have a .csv extension"))
+        Err(String::from("file must have a .txt extension"))
     }
 }

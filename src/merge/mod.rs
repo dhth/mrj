@@ -19,8 +19,8 @@ const MAX_FETCH_TASKS: usize = 50;
 pub struct RunBehaviours<P: AsRef<Path>> {
     pub output: bool,
     pub output_path: P,
-    pub stats: bool,
-    pub stats_path: P,
+    pub summary: bool,
+    pub summary_path: P,
     pub ignore_repos_with_no_prs: bool,
     pub dry_run: bool,
 }
@@ -100,8 +100,8 @@ where
     l.write_output(
         behaviours.output,
         behaviours.output_path,
-        behaviours.stats,
-        behaviours.stats_path,
+        behaviours.summary,
+        behaviours.summary_path,
         num_seconds,
     )
     .context("couldn't write output to file")?;
