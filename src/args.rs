@@ -54,6 +54,9 @@ pub enum MrjCommand {
             value_parser = validate_stats_path,
             )]
         stats_path: PathBuf,
+        /// Whether to ignore printing information for repos with no PRs
+        #[arg(long = "ignore-repos-with-no-prs", short = 'i')]
+        ignore_repos_with_no_prs: bool,
         /// Whether to only print out information without merging any PRs
         #[arg(long = "dry-run", short = 'd')]
         dry_run: bool,
@@ -119,6 +122,7 @@ impl std::fmt::Display for Args {
                 output_path,
                 stats,
                 stats_path,
+                ignore_repos_with_no_prs,
                 dry_run,
             } => format!(
                 r#"
@@ -129,6 +133,7 @@ write output             : {}
 output file              : {}
 write stats              : {}
 stats file               : {}
+ignore repos with no prs : {}
 dry run                  : {}
 "#,
                 config_file.to_string_lossy(),
@@ -137,6 +142,7 @@ dry run                  : {}
                 output_path.to_string_lossy(),
                 stats,
                 stats_path.to_string_lossy(),
+                ignore_repos_with_no_prs,
                 dry_run
             ),
             MrjCommand::Config { config_command } => match config_command {

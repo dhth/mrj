@@ -150,7 +150,7 @@ impl<'de> Deserialize<'de> for HeadPattern {
 pub struct RepoResult {
     pub owner: String,
     pub name: String,
-    pub result: anyhow::Result<Vec<PRResult>>,
+    pub results: anyhow::Result<Vec<PRResult>>,
 }
 
 impl RepoResult {
@@ -158,20 +158,20 @@ impl RepoResult {
         Self {
             owner: owner.to_string(),
             name: name.to_string(),
-            result: Ok(vec![]),
+            results: Ok(vec![]),
         }
     }
 
     // TODO: this can be better
     // maybe using typestate pattern?
     pub fn add_pr_result(&mut self, result: PRResult) {
-        if let Ok(pr_results) = &mut self.result {
+        if let Ok(pr_results) = &mut self.results {
             pr_results.push(result);
         }
     }
 
     pub fn record_error(mut self, error: anyhow::Error) -> Self {
-        self.result = Err(error);
+        self.results = Err(error);
         self
     }
 
@@ -217,12 +217,22 @@ impl PRResult {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct RunStats {
+    pub num_repos: usize,
+    pub num_repos_with_no_prs: usize,
     pub num_merges: u16,
     pub num_disqualifications: u16,
     pub num_errors: u16,
 }
 
 impl RunStats {
+    pub fn record_repo(&mut self) {
+        self.num_repos += 1;
+    }
+
+    pub fn record_repo_with_no_count(&mut self) {
+        self.num_repos_with_no_prs += 1;
+    }
+
     pub fn record_merge(&mut self) {
         self.num_merges += 1;
     }
