@@ -62,7 +62,7 @@ impl RunLog {
 
   PRs merged         : {}
   PRs disqualified   : {}
-  errors encountered : {}
+  Errors encountered : {}
 
 ==========================="#,
             self.stats.num_merges, self.stats.num_disqualifications, self.stats.num_errors
