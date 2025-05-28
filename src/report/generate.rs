@@ -74,7 +74,7 @@ where
     Ok(())
 }
 
-pub fn get_last_run_number<P>(path: P) -> anyhow::Result<u16>
+fn get_last_run_number<P>(path: P) -> anyhow::Result<u16>
 where
     P: AsRef<Path>,
 {

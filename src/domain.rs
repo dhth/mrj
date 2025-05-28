@@ -146,7 +146,76 @@ impl<'de> Deserialize<'de> for HeadPattern {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug)]
+pub struct RepoResult {
+    pub owner: String,
+    pub name: String,
+    pub result: anyhow::Result<Vec<PRResult>>,
+}
+
+impl RepoResult {
+    pub fn new(owner: &str, name: &str) -> Self {
+        Self {
+            owner: owner.to_string(),
+            name: name.to_string(),
+            result: Ok(vec![]),
+        }
+    }
+
+    // TODO: this can be better
+    // maybe using typestate pattern?
+    pub fn add_pr_result(&mut self, result: PRResult) {
+        if let Ok(pr_results) = &mut self.result {
+            pr_results.push(result);
+        }
+    }
+
+    pub fn record_error(mut self, error: anyhow::Error) -> Self {
+        self.result = Err(error);
+        self
+    }
+
+    pub fn name(&self) -> String {
+        format!("{}/{}", self.owner, self.name)
+    }
+}
+
+#[derive(Debug)]
+pub struct PRResult {
+    pub number: u64,
+    pub title: String,
+    pub url: String,
+    pub qualifications: Vec<Qualification>,
+    pub failure: Option<MergeFailure>,
+}
+
+impl PRResult {
+    pub fn new(number: u64, title: &str, url: &str) -> Self {
+        Self {
+            number,
+            title: title.to_string(),
+            url: url.to_string(),
+            qualifications: vec![],
+            failure: None,
+        }
+    }
+
+    pub fn add_qualification(&mut self, q: Qualification) {
+        self.qualifications.push(q);
+    }
+
+    pub fn disqualify(mut self, dq: Disqualification) -> Self {
+        self.failure = Some(MergeFailure::Disqualification(dq));
+        self
+    }
+
+    pub fn record_error(mut self, error: anyhow::Error) -> Self {
+        self.failure = Some(MergeFailure::UnexpectedError(error));
+        self
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct RunStats {
     pub num_merges: u16,
     pub num_disqualifications: u16,
@@ -173,6 +242,12 @@ pub enum Qualification {
     User(String),
     Check { name: String, conclusion: String },
     State(String),
+}
+
+#[derive(Debug)]
+pub enum MergeFailure {
+    Disqualification(Disqualification),
+    UnexpectedError(anyhow::Error),
 }
 
 #[derive(Debug)]
