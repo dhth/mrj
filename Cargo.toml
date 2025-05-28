@@ -6,6 +6,7 @@ authors = ["Dhruv Thakur"]
 repository = "https://github.com/dhth/mrj"
 description = "mrj merges your open dependency upgrade PRs"
 homepage = "https://tools.dhruvs.space/mrj"
+license = "MIT"
 keywords = [
     "cli",
     "github",
