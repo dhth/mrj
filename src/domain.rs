@@ -219,7 +219,7 @@ impl PRResult {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct RunStats {
     pub num_merges: u16,
     pub num_disqualifications: u16,
@@ -240,7 +240,7 @@ impl RunStats {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum Qualification {
     Head(String),
     User(String),
