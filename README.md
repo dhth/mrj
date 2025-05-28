@@ -80,6 +80,20 @@ Options:
   -h, --help                Print help
 ```
 
+🔑 Authentication
+---
+
+`mrj` tries to get an authentication token for GitHub in the following order:
+
+- Using the value of environment variable `MRJ_TOKEN`
+- Get it from [gh](https://github.com/cli/cli)
+
+Make sure `mrj` can get a token from either one of these approaches, and that
+the token has the following permissions for the relevant repos:
+
+- Read access to checks, metadata, and pull requests
+- Read and write access to code
+
 🎛️ Config
 ---
 
@@ -149,7 +163,7 @@ PRs that satisy your requirements.
 
 Create a GitHub app for yourself that has the following permissions:
 
-- Read access to metadata and pull requests
+- Read access to checks, metadata, and pull requests
 - Read and write access to code
 
 Install the app in the relevant repositories. Generate a private key for
