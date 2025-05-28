@@ -44,6 +44,7 @@ test:
   cargo nextest run
 
 all:
+  cargo check --all-targets
   cargo fmt --all
   cargo clippy --all-targets
   cargo nextest run

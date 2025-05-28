@@ -16,18 +16,24 @@ use tokio::sync::Semaphore;
 
 const MAX_FETCH_TASKS: usize = 50;
 
+pub struct RunBehaviours<P: AsRef<Path>> {
+    pub output: bool,
+    pub output_path: P,
+    pub stats: bool,
+    pub stats_path: P,
+    pub dry_run: bool,
+}
+
 pub async fn merge_prs<P>(
     client: Arc<Octocrab>,
     config: Config,
     repos_override: Vec<Repo>,
-    output: bool,
-    output_file: P,
-    dry_run: bool,
+    behaviours: RunBehaviours<P>,
 ) -> anyhow::Result<()>
 where
     P: AsRef<Path>,
 {
-    let mut l = RunLog::new(output, dry_run);
+    let mut l = RunLog::new(behaviours.output, behaviours.dry_run);
 
     let repos_to_use = if repos_override.is_empty() {
         config.repos.clone()
@@ -68,7 +74,7 @@ where
         let client = Arc::clone(&client);
         let config = Arc::clone(&config);
         futures.push(tokio::task::spawn(async move {
-            merge_pr_for_repo(semaphore, client, config, repo.clone(), dry_run).await
+            merge_pr_for_repo(semaphore, client, config, repo.clone(), behaviours.dry_run).await
         }));
     }
 
@@ -86,8 +92,14 @@ where
         end_ts, num_seconds
     ));
 
-    l.write_output(output, output_file)
-        .context("couldn't write output to file")?;
+    l.write_output(
+        behaviours.output,
+        behaviours.output_path,
+        behaviours.stats,
+        behaviours.stats_path,
+        num_seconds,
+    )
+    .context("couldn't write output to file")?;
 
     Ok(())
 }

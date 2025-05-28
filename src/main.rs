@@ -9,7 +9,7 @@ use args::Args;
 use args::{ConfigCommand, MrjCommand, ReportCommand};
 use clap::Parser;
 use config::get_config;
-use merge::merge_prs;
+use merge::{RunBehaviours, merge_prs};
 use report::generate_report;
 use std::env::VarError;
 
@@ -31,6 +31,8 @@ async fn main() -> anyhow::Result<()> {
             repos,
             output,
             output_path,
+            stats,
+            stats_path,
             dry_run,
         } => {
             let config = get_config(config_file)?;
@@ -54,7 +56,14 @@ async fn main() -> anyhow::Result<()> {
             );
             let client = octocrab::instance();
 
-            merge_prs(client, config, repos, output, &output_path, dry_run).await?;
+            let run_behaviours = RunBehaviours {
+                output,
+                output_path: &output_path,
+                stats,
+                stats_path: &stats_path,
+                dry_run,
+            };
+            merge_prs(client, config, repos, run_behaviours).await?;
         }
         MrjCommand::Config { config_command } => match config_command {
             ConfigCommand::Validate { config_file } => {
