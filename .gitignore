@@ -3,3 +3,7 @@ dist
 .mrj
 output.txt
 summary.txt
+# Added by goreleaser init:
+dist/
+.intentionally-empty-file.o
+target/
