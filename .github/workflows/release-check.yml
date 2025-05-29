@@ -20,11 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Install cross
+        uses: jaxxstorm/action-install-gh-release@v2.1.0
+        with:
+          repo: cross-rs/cross
+          tag: v0.2.5
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.5.0'
       - name: Release check
         uses: goreleaser/goreleaser-action@v6
         with:
           version: '~> v2'
-          args: check
+          args: build
 
   publish-crates-check:
     runs-on: ubuntu-latest
