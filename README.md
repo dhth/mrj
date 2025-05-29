@@ -2,6 +2,9 @@
   <h1 align="center">mrj</h1>
   <p align="center">
     <a href="https://github.com/dhth/mrj/actions/workflows/build.yml"><img alt="GitHub release" src="https://img.shields.io/github/actions/workflow/status/dhth/mrj/build.yml?style=flat-square"></a>
+    <a href="https://crates.io/crates/mrj"><img alt="GitHub release" src="https://img.shields.io/crates/v/mrj?style=flat-square"></a>
+    <a href="https://github.com/dhth/mrj/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/release/dhth/mrj.svg?style=flat-square"></a>
+    <a href="https://github.com/dhth/mrj/releases"><img alt="Commits since latest release" src="https://img.shields.io/github/commits-since/dhth/mrj/latest?style=flat-square"></a>
   </p>
 </p>
 
@@ -23,6 +26,25 @@ anything that fit my needs, I wrote `mrj`.
 
 `mrj` now takes care of merging dependency PRs for my projects. It runs on a
 schedule on GitHub Actions [here][2].
+
+💾 Installation
+---
+
+**homebrew**:
+
+```sh
+brew install dhth/tap/mrj
+```
+
+**cargo**:
+
+```sh
+cargo install mrj
+```
+
+Or get the binaries directly from a Github [release][3]. Read more about
+verifying the authenticity of released artifacts
+[here](#-verifying-release-artifacts).
 
 ⚡️ Usage
 ---
@@ -287,5 +309,44 @@ jobs:
 This will merge PRs and deploy a report to GitHub Pages. It will also push a
 commit to the repo containing the newly generated output.
 
+🔐 Verifying release artifacts
+---
+
+In case you get the `mrj` binary directly from a [release][1], you may want
+to verify its authenticity. Checksums are applied to all released artifacts, and
+the resulting checksum file is attested using [Github Attestations][2].
+
+Steps to verify (replace `A.B.C` in the commands below with the version you
+want):
+
+1. Download the sha256 checksum file for your platform from the release:
+
+   ```shell
+   curl -sSLO https://github.com/dhth/mrj/releases/download/vA.B.C/mrj-x86_64-unknown-linux-gnu.tar.xz.sha256
+   ```
+
+2. Verify the integrity of the checksum file using [gh][3].
+
+   ```shell
+   gh attestation verify mrj-x86_64-unknown-linux-gnu.tar.xz.sha256 --repo dhth/mrj
+   ```
+
+3. Download the compressed archive you want, and validate its checksum:
+
+   ```shell
+   curl -sSLO https://github.com/dhth/mrj/releases/download/vA.B.C/mrj-x86_64-unknown-linux-gnu.tar.xz
+   sha256sum --ignore-missing -c mrj-x86_64-unknown-linux-gnu.tar.xz.sha256
+   ```
+
+3. If checksum validation goes through, uncompress the archive:
+
+   ```shell
+   tar -xzf mrj-x86_64-unknown-linux-gnu.tar.xz
+   cd mrj-x86_64-unknown-linux-gnu
+   ./mrj -h
+   # profit!
+   ```
+
 [1]: https://dhth.github.io/mrj-runner/index.html
 [2]: https://github.com/dhth/mrj-runner
+[3]: https://github.com/dhth/mrj/releases
