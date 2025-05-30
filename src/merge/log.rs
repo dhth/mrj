@@ -1,5 +1,5 @@
 use crate::domain::{
-    Disqualification, MergeFailure, MergedPR, PRResult, Qualification, RepoResult, RunSummary,
+    Disqualification, MergeResult, MergedPR, Qualification, RepoResult, RunSummary,
 };
 use anyhow::Context;
 use colored::Colorize;
@@ -32,30 +32,33 @@ impl RunLog {
         }
     }
 
-    pub(super) fn add_result(&mut self, result: RepoResult) {
+    pub(super) fn add_repo_result(&mut self, result: RepoResult) {
         self.summary.record_repo();
 
-        if let Ok(pr_results) = &result.results {
-            if self.ignore_repos_with_no_prs && pr_results.is_empty() {
-                self.summary.record_repo_with_no_count();
-                return;
-            }
-        }
+        match &result {
+            RepoResult::Errored(repo_check) => self.error(repo_check.state.reason()),
+            RepoResult::Finished(repo_check) => {
+                if repo_check.results().is_empty() {
+                    self.summary.record_repo_with_no_count();
+                    if self.ignore_repos_with_no_prs {
+                        return;
+                    }
+                }
 
-        self.repo_info(&result.name());
+                let repo = &result.name();
+                self.repo_info(repo);
 
-        let repo = result.name();
-        match result.results {
-            Ok(pr_results) if pr_results.is_empty() => {
-                self.empty_line();
-                self.absence("no PRs");
+                if repo_check.results().is_empty() {
+                    self.empty_line();
+                    self.absence("no PRs");
+                    return;
+                }
+
+                repo_check
+                    .results()
+                    .iter()
+                    .for_each(|r| self.add_merge_result(r, repo));
             }
-            Ok(pr_results) => {
-                pr_results
-                    .into_iter()
-                    .for_each(|r| self.add_pr_result(r, &repo));
-            }
-            Err(err) => self.error(err),
         }
     }
 
@@ -174,28 +177,32 @@ PRs merged
         }
     }
 
-    fn add_pr_result(&mut self, result: PRResult, repo: &str) {
+    fn add_merge_result(&mut self, result: &MergeResult, repo: &str) {
         self.pr_info(&format!(
             r#"
 -> checking PR #{}
         {}
         {}"#,
-            result.number, result.title, result.url,
+            result.pr_number(),
+            result.pr_title(),
+            result.pr_url(),
         ));
 
-        for q in result.qualifications {
+        for q in result.qualifications() {
             self.qualification(q);
         }
 
-        match result.failure {
-            Some(failure) => match failure {
-                MergeFailure::Disqualification(dq) => self.disqualification(dq),
-                MergeFailure::UnexpectedError(err) => self.error(err),
-            },
-            None => {
+        match result {
+            MergeResult::Disqualified(pr_check) => {
+                self.disqualification(pr_check.state.reason());
+            }
+            MergeResult::Errored(pr_check) => {
+                self.error(pr_check.state.reason());
+            }
+            MergeResult::Qualified(_) => {
                 let merged_pr = MergedPR {
                     repo: repo.to_string(),
-                    title: result.title,
+                    title: result.pr_title().to_string(),
                 };
                 self.merge(merged_pr);
             }
@@ -236,7 +243,7 @@ PRs merged
         }
     }
 
-    fn qualification(&mut self, q: Qualification) {
+    fn qualification(&mut self, q: &Qualification) {
         let msg = match q {
             Qualification::Head(h) => {
                 format!("{} \"{}\" matches the allowed head pattern", HEAD, h)
@@ -260,7 +267,7 @@ PRs merged
         }
     }
 
-    fn disqualification(&mut self, dq: Disqualification) {
+    fn disqualification(&mut self, dq: &Disqualification) {
         let msg = match dq {
             Disqualification::Head(h) => {
                 format!("{} \"{}\" doesn't match the allowed head pattern", HEAD, h)
@@ -326,7 +333,7 @@ PRs merged
         }
     }
 
-    fn error(&mut self, error: anyhow::Error) {
+    fn error(&mut self, error: &anyhow::Error) {
         println!("{}", format!("        error 😵: {}", error).red());
 
         if self.write_to_file {

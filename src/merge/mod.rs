@@ -89,7 +89,7 @@ where
 
     while let Some(result) = futures.next().await {
         let result = result.context("couldn't join merge task")?;
-        l.add_result(result);
+        l.add_repo_result(result);
     }
 
     let end_ts = Utc::now();

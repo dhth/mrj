@@ -147,71 +147,219 @@ impl<'de> Deserialize<'de> for HeadPattern {
 }
 
 #[derive(Debug)]
-pub struct RepoResult {
-    pub owner: String,
-    pub name: String,
-    pub results: anyhow::Result<Vec<PRResult>>,
+pub enum RepoResult {
+    Finished(RepoCheck<RepoCheckFinished>),
+    Errored(RepoCheck<RepoCheckErrored>),
 }
 
 impl RepoResult {
-    pub fn new(owner: &str, name: &str) -> Self {
-        Self {
-            owner: owner.to_string(),
-            name: name.to_string(),
-            results: Ok(vec![]),
-        }
-    }
-
-    // TODO: this can be better
-    // maybe using typestate pattern?
-    pub fn add_pr_result(&mut self, result: PRResult) {
-        if let Ok(pr_results) = &mut self.results {
-            pr_results.push(result);
-        }
-    }
-
-    pub fn record_error(mut self, error: anyhow::Error) -> Self {
-        self.results = Err(error);
-        self
-    }
-
     pub fn name(&self) -> String {
-        format!("{}/{}", self.owner, self.name)
+        let (o, r) = match self {
+            RepoResult::Finished(r) => (&r.owner, &r.name),
+            RepoResult::Errored(r) => (&r.owner, &r.name),
+        };
+
+        format!("{}/{}", o, r)
+    }
+}
+
+pub trait RepoCheckState: private::Sealed {}
+
+#[derive(Debug)]
+pub struct RepoCheckInProgress(Vec<MergeResult>);
+impl private::Sealed for RepoCheckInProgress {}
+impl RepoCheckState for RepoCheckInProgress {}
+
+#[derive(Debug)]
+pub struct RepoCheckErrored(anyhow::Error);
+impl private::Sealed for RepoCheckErrored {}
+impl RepoCheckState for RepoCheckErrored {}
+impl RepoCheckErrored {
+    pub fn reason(&self) -> &anyhow::Error {
+        &self.0
     }
 }
 
 #[derive(Debug)]
-pub struct PRResult {
-    pub number: u64,
-    pub title: String,
-    pub url: String,
-    pub qualifications: Vec<Qualification>,
-    pub failure: Option<MergeFailure>,
+pub struct RepoCheckFinished(Vec<MergeResult>);
+impl private::Sealed for RepoCheckFinished {}
+impl RepoCheckState for RepoCheckFinished {}
+
+#[derive(Debug)]
+pub struct RepoCheck<S: RepoCheckState> {
+    pub owner: String,
+    pub name: String,
+    pub state: S,
 }
 
-impl PRResult {
+impl RepoCheck<RepoCheckInProgress> {
+    pub fn new(owner: &str, name: &str) -> Self {
+        Self {
+            owner: owner.to_string(),
+            name: name.to_string(),
+            state: RepoCheckInProgress(vec![]),
+        }
+    }
+
+    pub fn add_merge_result(&mut self, result: MergeResult) {
+        self.state.0.push(result);
+    }
+
+    pub fn record_error(self, error: anyhow::Error) -> RepoCheck<RepoCheckErrored> {
+        RepoCheck {
+            owner: self.owner,
+            name: self.name,
+            state: RepoCheckErrored(error),
+        }
+    }
+
+    pub fn finish(self) -> RepoCheck<RepoCheckFinished> {
+        RepoCheck {
+            owner: self.owner,
+            name: self.name,
+            state: RepoCheckFinished(self.state.0),
+        }
+    }
+}
+
+impl RepoCheck<RepoCheckFinished> {
+    pub fn results(&self) -> &Vec<MergeResult> {
+        &self.state.0
+    }
+}
+
+#[derive(Debug)]
+pub struct PRCheck<S: PRCheckState> {
+    number: u64,
+    title: String,
+    url: String,
+    qualifications: Vec<Qualification>,
+    pub state: S,
+}
+
+#[derive(Debug)]
+pub enum MergeResult {
+    Qualified(PRCheck<PRCheckFinished>),
+    Disqualified(PRCheck<PRDisqualified>),
+    Errored(PRCheck<PRCheckErrored>),
+}
+
+impl MergeResult {
+    pub fn is_failure(&self) -> bool {
+        !matches!(self, MergeResult::Qualified(_))
+    }
+
+    pub fn pr_number(&self) -> u64 {
+        match self {
+            MergeResult::Qualified(r) => r.number,
+            MergeResult::Disqualified(r) => r.number,
+            MergeResult::Errored(r) => r.number,
+        }
+    }
+
+    pub fn pr_title(&self) -> &str {
+        match self {
+            MergeResult::Qualified(r) => &r.title,
+            MergeResult::Disqualified(r) => &r.title,
+            MergeResult::Errored(r) => &r.title,
+        }
+    }
+
+    pub fn pr_url(&self) -> &str {
+        match self {
+            MergeResult::Qualified(r) => &r.url,
+            MergeResult::Disqualified(r) => &r.url,
+            MergeResult::Errored(r) => &r.url,
+        }
+    }
+
+    pub fn qualifications(&self) -> &Vec<Qualification> {
+        match self {
+            MergeResult::Qualified(r) => &r.qualifications,
+            MergeResult::Disqualified(r) => &r.qualifications,
+            MergeResult::Errored(r) => &r.qualifications,
+        }
+    }
+}
+
+pub trait PRCheckState: private::Sealed {}
+
+#[derive(Debug)]
+pub struct PRCheckInProgress;
+impl private::Sealed for PRCheckInProgress {}
+impl PRCheckState for PRCheckInProgress {}
+
+#[derive(Debug)]
+pub struct PRDisqualified(Disqualification);
+impl private::Sealed for PRDisqualified {}
+impl PRCheckState for PRDisqualified {}
+
+impl PRDisqualified {
+    pub fn reason(&self) -> &Disqualification {
+        &self.0
+    }
+}
+
+#[derive(Debug)]
+pub struct PRCheckErrored(anyhow::Error);
+impl private::Sealed for PRCheckErrored {}
+impl PRCheckState for PRCheckErrored {}
+impl PRCheckErrored {
+    pub fn reason(&self) -> &anyhow::Error {
+        &self.0
+    }
+}
+
+#[derive(Debug)]
+pub struct PRCheckFinished;
+impl private::Sealed for PRCheckFinished {}
+impl PRCheckState for PRCheckFinished {}
+
+impl PRCheck<PRCheckInProgress> {
     pub fn new(number: u64, title: &str, url: &str) -> Self {
         Self {
             number,
             title: title.to_string(),
             url: url.to_string(),
             qualifications: vec![],
-            failure: None,
+            state: PRCheckInProgress,
         }
     }
+}
 
+impl PRCheck<PRCheckInProgress> {
     pub fn add_qualification(&mut self, q: Qualification) {
         self.qualifications.push(q);
     }
 
-    pub fn disqualify(mut self, dq: Disqualification) -> Self {
-        self.failure = Some(MergeFailure::Disqualification(dq));
-        self
+    pub fn disqualify(self, dq: Disqualification) -> PRCheck<PRDisqualified> {
+        PRCheck {
+            number: self.number,
+            title: self.title,
+            url: self.url,
+            qualifications: self.qualifications,
+            state: PRDisqualified(dq),
+        }
     }
 
-    pub fn record_error(mut self, error: anyhow::Error) -> Self {
-        self.failure = Some(MergeFailure::UnexpectedError(error));
-        self
+    pub fn record_error(self, error: anyhow::Error) -> PRCheck<PRCheckErrored> {
+        PRCheck {
+            number: self.number,
+            title: self.title,
+            url: self.url,
+            qualifications: self.qualifications,
+            state: PRCheckErrored(error),
+        }
+    }
+
+    pub fn finish(self) -> PRCheck<PRCheckFinished> {
+        PRCheck {
+            number: self.number,
+            title: self.title,
+            url: self.url,
+            qualifications: self.qualifications,
+            state: PRCheckFinished,
+        }
     }
 }
 
@@ -261,12 +409,6 @@ pub enum Qualification {
 }
 
 #[derive(Debug)]
-pub enum MergeFailure {
-    Disqualification(Disqualification),
-    UnexpectedError(anyhow::Error),
-}
-
-#[derive(Debug)]
 pub enum Disqualification {
     Head(String),
     User(Option<String>),
@@ -275,4 +417,8 @@ pub enum Disqualification {
         conclusion: Option<String>,
     },
     State(Option<String>),
+}
+
+mod private {
+    pub trait Sealed {}
 }
