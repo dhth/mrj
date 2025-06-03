@@ -15,9 +15,8 @@ const FAVICON_BYTES: &[u8] = include_bytes!("./assets/static/favicon.png");
 const BUILD_NUM_PLACEHOLDER: &str = "{{BUILD_NUM}}";
 const CONTENT_PLACEHOLDER: &str = "{{CONTENT}}";
 const RUN_LIST_PLACEHOLDER: &str = "{{RUN_LIST}}";
-const MAX_RUNS_TO_KEEP: u16 = 20;
 
-pub fn generate_report<P>(output_file: P, open_report: bool) -> anyhow::Result<()>
+pub fn generate_report<P>(output_file: P, open_report: bool, num_runs: u8) -> anyhow::Result<()>
 where
     P: AsRef<Path>,
 {
@@ -38,9 +37,13 @@ where
     fs::copy(output_file, new_run_file)
         .context("couldn't copy latest run to mrj's \"runs\" directory")?;
 
-    keep_last_n_outputs(&runs_dir, MAX_RUNS_TO_KEEP)?;
+    keep_last_n_outputs(&runs_dir, num_runs)?;
 
-    if dist_dir.exists() {
+    if dist_dir.is_dir()
+        && dist_dir
+            .try_exists()
+            .context("couldn't check if \"dist\" dir exists")?
+    {
         fs::remove_dir_all(&dist_dir).context("couldn't delete the existing \"dist\" dir")?;
     }
 
@@ -93,7 +96,7 @@ where
     Ok(run_number)
 }
 
-fn keep_last_n_outputs<P>(dir: P, n: u16) -> anyhow::Result<()>
+fn keep_last_n_outputs<P>(dir: P, n: u8) -> anyhow::Result<()>
 where
     P: AsRef<Path>,
 {
