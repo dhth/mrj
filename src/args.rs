@@ -105,6 +105,15 @@ pub enum ReportCommand {
         /// Whether to open report in the browser
         #[arg(long = "open", short = 'o')]
         open_report: bool,
+        /// Maximum number of runs to keep in the report (allowed range: [1, 100])
+        #[arg(
+            long = "num-runs",
+            short = 'n',
+            value_name="NUMBER",
+            default_value_t=10,
+            value_parser = clap::value_parser!(u8).range(1..=100),
+            )]
+        num_runs: u8,
     },
 }
 
@@ -163,14 +172,17 @@ command                  : Show sample config
                 ReportCommand::Generate {
                     output_path,
                     open_report,
+                    num_runs,
                 } => format!(
                     r#"
 command                  : Generate report
 output file              : {}
 open report              : {}
+num runs                 : {}
 "#,
                     output_path.to_string_lossy(),
                     open_report,
+                    num_runs,
                 ),
             },
         };

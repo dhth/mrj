@@ -73,7 +73,8 @@ async fn main() -> anyhow::Result<()> {
             ReportCommand::Generate {
                 output_path,
                 open_report,
-            } => generate_report(&output_path, open_report)?,
+                num_runs,
+            } => generate_report(&output_path, open_report, num_runs)?,
         },
     }
 
