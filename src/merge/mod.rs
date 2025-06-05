@@ -22,6 +22,7 @@ pub struct RunBehaviours<P: AsRef<Path>> {
     pub summary: bool,
     pub summary_path: P,
     pub ignore_repos_with_no_prs: bool,
+    pub show_prs_from_untrusted_authors: bool,
     pub dry_run: bool,
 }
 
@@ -37,6 +38,7 @@ where
     let mut l = RunLog::new(
         behaviours.output,
         behaviours.ignore_repos_with_no_prs,
+        behaviours.show_prs_from_untrusted_authors,
         behaviours.dry_run,
     );
 
@@ -72,6 +74,10 @@ where
 
     if behaviours.ignore_repos_with_no_prs {
         l.info("I won't show repositories that have no PRs");
+    }
+
+    if behaviours.show_prs_from_untrusted_authors {
+        l.info("I won't show PRs from untrusted authors");
     }
 
     let config = Arc::new(config);
