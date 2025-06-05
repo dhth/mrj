@@ -77,7 +77,7 @@ where
     }
 
     if behaviours.show_prs_from_untrusted_authors {
-        l.info("I won't show PRs from untrusted authors");
+        l.info("I will show PRs from untrusted authors");
     }
 
     let config = Arc::new(config);
