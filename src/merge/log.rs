@@ -48,15 +48,14 @@ impl RunLog {
                 let filtered_results = repo_check
                     .results()
                     .iter()
-                    .filter(|result| match result {
-                        #[allow(clippy::match_like_matches_macro)]
-                        MergeResult::Disqualified(pr_check) => match pr_check.state.reason() {
-                            Disqualification::User(_) if !self.show_prs_from_untrusted_authors => {
-                                false
-                            }
-                            _ => true,
-                        },
-                        _ => true,
+                    .filter(|result| {
+                        !matches!(result,
+                        MergeResult::Disqualified(pr_check) if
+                        matches!(
+                            pr_check.state.reason(),
+                            Disqualification::User(_)
+                        ) && !self.show_prs_from_untrusted_authors
+                        )
                     })
                     .collect::<Vec<_>>();
 
