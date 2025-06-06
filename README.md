@@ -73,16 +73,28 @@ Check for open PRs and merge them
 Usage: mrj run [OPTIONS]
 
 Options:
-  -c, --config <PATH>             Path to mrj's config file [default: mrj.toml]
-  -r, --repos <STRING,STRING>     Repos to run for (will override repos in config)
-  -o, --output                    Whether to write output to a file
-      --debug                     Output debug information without doing anything
-      --output-path <FILE>        Whether to write mrj's log of events to a file [default: output.txt]
-  -s, --summary                   Whether to write merge summary to a file
-      --summary-path <FILE>       File to write summary to [default: summary.txt]
-  -i, --ignore-repos-with-no-prs  Whether to ignore printing information for repos with no PRs
-  -d, --dry-run                   Whether to only print out information without merging any PRs
-  -h, --help                      Print help
+  -c, --config <PATH>
+          Path to mrj's config file [default: mrj.toml]
+  -r, --repos <STRING,STRING>
+          Repos to run for (will override repos in config)
+  -o, --output
+          Whether to write output to a file
+      --debug
+          Output debug information without doing anything
+      --output-path <FILE>
+          Whether to write mrj's log of events to a file [default: output.txt]
+  -s, --summary
+          Whether to write merge summary to a file
+      --summary-path <FILE>
+          File to write summary to [default: summary.txt]
+  -n, --show-repos-with-no-prs
+          Whether to show information for repos with no PRs
+  -u, --show-prs-from-untrusted-authors
+          Whether to show information for PRs from untrusted authors
+  -d, --dry-run
+          Whether to only print out information without merging any PRs
+  -h, --help
+          Print help
 ```
 
 ```text
@@ -94,6 +106,7 @@ Usage: mrj report generate [OPTIONS]
 Options:
   -p, --output-path <PATH>  File containing the output of "mrj run" [default: output.txt]
   -o, --open                Whether to open report in the browser
+  -n, --num-runs <NUMBER>   Maximum number of runs to keep in the report (allowed range: [1, 100]) [default: 10]
       --debug               Output debug information without doing anything
   -h, --help                Print help
 ```
