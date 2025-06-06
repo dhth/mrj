@@ -17,7 +17,7 @@ pub(super) struct RunLog {
     write_to_file: bool,
     lines: Vec<String>,
     summary: RunSummary,
-    ignore_repos_with_no_prs: bool,
+    show_repos_with_no_prs: bool,
     show_prs_from_untrusted_authors: bool,
     dry_run: bool,
 }
@@ -25,7 +25,7 @@ pub(super) struct RunLog {
 impl RunLog {
     pub(super) fn new(
         output: bool,
-        ignore_repos_with_no_prs: bool,
+        show_repos_with_no_prs: bool,
         show_prs_from_untrusted_authors: bool,
         dry_run: bool,
     ) -> Self {
@@ -33,7 +33,7 @@ impl RunLog {
             write_to_file: output,
             lines: vec![],
             summary: RunSummary::default(),
-            ignore_repos_with_no_prs,
+            show_repos_with_no_prs,
             show_prs_from_untrusted_authors,
             dry_run,
         }
@@ -61,7 +61,7 @@ impl RunLog {
 
                 if filtered_results.is_empty() {
                     self.summary.record_repo_with_no_prs();
-                    if self.ignore_repos_with_no_prs {
+                    if !self.show_repos_with_no_prs {
                         return;
                     }
                 }
