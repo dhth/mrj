@@ -21,7 +21,7 @@ pub struct RunBehaviours<P: AsRef<Path>> {
     pub output_path: P,
     pub summary: bool,
     pub summary_path: P,
-    pub ignore_repos_with_no_prs: bool,
+    pub show_repos_with_no_prs: bool,
     pub show_prs_from_untrusted_authors: bool,
     pub dry_run: bool,
 }
@@ -37,7 +37,7 @@ where
 {
     let mut l = RunLog::new(
         behaviours.output,
-        behaviours.ignore_repos_with_no_prs,
+        behaviours.show_repos_with_no_prs,
         behaviours.show_prs_from_untrusted_authors,
         behaviours.dry_run,
     );
@@ -72,8 +72,8 @@ where
         l.info("I won't merge PRs if checks are skipped");
     }
 
-    if behaviours.ignore_repos_with_no_prs {
-        l.info("I won't show repositories that have no PRs");
+    if behaviours.show_repos_with_no_prs {
+        l.info("I will show repositories that have no PRs");
     }
 
     if behaviours.show_prs_from_untrusted_authors {

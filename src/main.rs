@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
             output_path,
             summary,
             summary_path,
-            ignore_repos_with_no_prs,
+            show_repos_with_no_prs,
             show_prs_from_untrusted_authors,
             dry_run,
         } => {
@@ -58,7 +58,7 @@ async fn main() -> anyhow::Result<()> {
                 output_path: &output_path,
                 summary,
                 summary_path: &summary_path,
-                ignore_repos_with_no_prs,
+                show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
                 dry_run,
             };

@@ -54,9 +54,9 @@ pub enum MrjCommand {
             value_parser = validate_txt_path,
             )]
         summary_path: PathBuf,
-        /// Whether to ignore printing information for repos with no PRs
-        #[arg(long = "ignore-repos-with-no-prs", short = 'i')]
-        ignore_repos_with_no_prs: bool,
+        /// Whether to show information for repos with no PRs
+        #[arg(long = "show-repos-with-no-prs", short = 'n')]
+        show_repos_with_no_prs: bool,
         /// Whether to show information for PRs from untrusted authors
         #[arg(long = "show-prs-from-untrusted-authors", short = 'u')]
         show_prs_from_untrusted_authors: bool,
@@ -134,7 +134,7 @@ impl std::fmt::Display for Args {
                 output_path,
                 summary,
                 summary_path,
-                ignore_repos_with_no_prs,
+                show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
                 dry_run,
             } => format!(
@@ -146,7 +146,7 @@ write output                      : {}
 output file                       : {}
 write summary                     : {}
 summary file                      : {}
-ignore repos with no prs          : {}
+show repos with no prs            : {}
 show prs from untrusted authors   : {}
 dry run                           : {}
 "#,
@@ -156,7 +156,7 @@ dry run                           : {}
                 output_path.to_string_lossy(),
                 summary,
                 summary_path.to_string_lossy(),
-                ignore_repos_with_no_prs,
+                show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
                 dry_run
             ),
