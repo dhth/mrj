@@ -49,14 +49,19 @@ impl RunLog {
                     .results()
                     .iter()
                     .filter(|result| match result {
-                        MergeResult::Disqualified(pr_check) =>
-                            !matches!(pr_check.state.reason(), Disqualification::User(_) if !self.show_prs_from_untrusted_authors),
+                        #[allow(clippy::match_like_matches_macro)]
+                        MergeResult::Disqualified(pr_check) => match pr_check.state.reason() {
+                            Disqualification::User(_) if !self.show_prs_from_untrusted_authors => {
+                                false
+                            }
+                            _ => true,
+                        },
                         _ => true,
                     })
                     .collect::<Vec<_>>();
 
                 if filtered_results.is_empty() {
-                    self.summary.record_repo_with_no_count();
+                    self.summary.record_repo_with_no_prs();
                     if self.ignore_repos_with_no_prs {
                         return;
                     }
@@ -114,11 +119,11 @@ PRs merged
   SUMMARY
 ===========
 
-# PRs merged          :  {}
-# PRs disqualified    :  {}
-# Repos checked       :  {}
-# Repos with no PRs   :  {}
-# Errors encountered  :  {}{}"#,
+# PRs merged                  :  {}
+# PRs disqualified            :  {}
+# Repos checked               :  {}
+# Repos with no relevant PRs  :  {}
+# Errors encountered          :  {}{}"#,
             self.summary.prs_merged.len(),
             self.summary.num_disqualifications,
             self.summary.num_repos,

@@ -57,7 +57,7 @@ pub enum MrjCommand {
         /// Whether to ignore printing information for repos with no PRs
         #[arg(long = "ignore-repos-with-no-prs", short = 'i')]
         ignore_repos_with_no_prs: bool,
-        /// Whether to show information for repos from untrusted authors
+        /// Whether to show information for PRs from untrusted authors
         #[arg(long = "show-prs-from-untrusted-authors", short = 'u')]
         show_prs_from_untrusted_authors: bool,
         /// Whether to only print out information without merging any PRs
