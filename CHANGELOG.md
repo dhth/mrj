@@ -11,4 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow changing number of runs to keep in report
 
+### Changed
+
+- Ignore PRs from untrusted authors by default
+
 [unreleased]: https://github.com/dhth/mrj/compare/v0.1.0...HEAD
