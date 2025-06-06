@@ -57,6 +57,9 @@ pub enum MrjCommand {
         /// Whether to ignore printing information for repos with no PRs
         #[arg(long = "ignore-repos-with-no-prs", short = 'i')]
         ignore_repos_with_no_prs: bool,
+        /// Whether to show information for PRs from untrusted authors
+        #[arg(long = "show-prs-from-untrusted-authors", short = 'u')]
+        show_prs_from_untrusted_authors: bool,
         /// Whether to only print out information without merging any PRs
         #[arg(long = "dry-run", short = 'd')]
         dry_run: bool,
@@ -132,18 +135,20 @@ impl std::fmt::Display for Args {
                 summary,
                 summary_path,
                 ignore_repos_with_no_prs,
+                show_prs_from_untrusted_authors,
                 dry_run,
             } => format!(
                 r#"
-command                  : Run
-config file              : {}
-repos (overridden)       : {:?}
-write output             : {}
-output file              : {}
-write summary              : {}
-summary file               : {}
-ignore repos with no prs : {}
-dry run                  : {}
+command                           : Run
+config file                       : {}
+repos (overridden)                : {:?}
+write output                      : {}
+output file                       : {}
+write summary                     : {}
+summary file                      : {}
+ignore repos with no prs          : {}
+show prs from untrusted authors   : {}
+dry run                           : {}
 "#,
                 config_file.to_string_lossy(),
                 repos.iter().map(|r| r.to_string()).collect::<Vec<String>>(),
@@ -152,6 +157,7 @@ dry run                  : {}
                 summary,
                 summary_path.to_string_lossy(),
                 ignore_repos_with_no_prs,
+                show_prs_from_untrusted_authors,
                 dry_run
             ),
             MrjCommand::Config { config_command } => match config_command {

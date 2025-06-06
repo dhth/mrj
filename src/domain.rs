@@ -377,7 +377,7 @@ impl RunSummary {
         self.num_repos += 1;
     }
 
-    pub fn record_repo_with_no_count(&mut self) {
+    pub fn record_repo_with_no_prs(&mut self) {
         self.num_repos_with_no_prs += 1;
     }
 

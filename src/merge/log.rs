@@ -18,16 +18,23 @@ pub(super) struct RunLog {
     lines: Vec<String>,
     summary: RunSummary,
     ignore_repos_with_no_prs: bool,
+    show_prs_from_untrusted_authors: bool,
     dry_run: bool,
 }
 
 impl RunLog {
-    pub(super) fn new(output: bool, ignore_repos_with_no_prs: bool, dry_run: bool) -> Self {
+    pub(super) fn new(
+        output: bool,
+        ignore_repos_with_no_prs: bool,
+        show_prs_from_untrusted_authors: bool,
+        dry_run: bool,
+    ) -> Self {
         RunLog {
             write_to_file: output,
             lines: vec![],
             summary: RunSummary::default(),
             ignore_repos_with_no_prs,
+            show_prs_from_untrusted_authors,
             dry_run,
         }
     }
@@ -38,8 +45,22 @@ impl RunLog {
         match &result {
             RepoResult::Errored(repo_check) => self.error(repo_check.state.reason()),
             RepoResult::Finished(repo_check) => {
-                if repo_check.results().is_empty() {
-                    self.summary.record_repo_with_no_count();
+                let filtered_results = repo_check
+                    .results()
+                    .iter()
+                    .filter(|result| {
+                        !matches!(result,
+                        MergeResult::Disqualified(pr_check) if
+                        matches!(
+                            pr_check.state.reason(),
+                            Disqualification::User(_)
+                        ) && !self.show_prs_from_untrusted_authors
+                        )
+                    })
+                    .collect::<Vec<_>>();
+
+                if filtered_results.is_empty() {
+                    self.summary.record_repo_with_no_prs();
                     if self.ignore_repos_with_no_prs {
                         return;
                     }
@@ -48,14 +69,13 @@ impl RunLog {
                 let repo = &result.name();
                 self.repo_info(repo);
 
-                if repo_check.results().is_empty() {
+                if filtered_results.is_empty() {
                     self.empty_line();
                     self.absence("no PRs");
                     return;
                 }
 
-                repo_check
-                    .results()
+                filtered_results
                     .iter()
                     .for_each(|r| self.add_merge_result(r, repo));
             }
@@ -98,11 +118,11 @@ PRs merged
   SUMMARY
 ===========
 
-# PRs merged          :  {}
-# PRs disqualified    :  {}
-# Repos checked       :  {}
-# Repos with no PRs   :  {}
-# Errors encountered  :  {}{}"#,
+# PRs merged                  :  {}
+# PRs disqualified            :  {}
+# Repos checked               :  {}
+# Repos with no relevant PRs  :  {}
+# Errors encountered          :  {}{}"#,
             self.summary.prs_merged.len(),
             self.summary.num_disqualifications,
             self.summary.num_repos,
