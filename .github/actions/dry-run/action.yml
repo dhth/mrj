@@ -1,0 +1,47 @@
+name: dry-run
+description: 'Runs mrj on current PR'
+
+inputs:
+  mrj_app_id:
+    description: 'mrj app id'
+    required: true
+  mrj_app_private_key:
+    description: 'mrj app private key'
+    required: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+    - name: Build
+      shell: bash
+      run: cargo build
+    - name: Generate GH token
+      id: generate-token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ inputs.mrj_app_id }}
+        private-key: ${{ inputs.mrj_app_private_key }}
+        owner: dhth
+    - name: Run mrj
+      shell: bash
+      env:
+        MRJ_TOKEN: ${{ steps.generate-token.outputs.token }}
+        CLICOLOR_FORCE: 1
+        COLORTERM: "truecolor"
+      run: |
+        mv ./target/debug/mrj .
+        ./mrj config validate \
+          --path ./.github/mrj.toml
+        ./mrj run \
+          --config ./.github/mrj.toml \
+          --repos "dhth/mrj" \
+          --output \
+          --summary \
+          --dry-run
+        ./mrj report generate
+        cat summary.txt
