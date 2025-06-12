@@ -29,10 +29,10 @@ jobs:
               - clippy.toml
               - dist-workspace.toml
               - rust-toolchain.toml
-              - ".github/actions/**.yml"
+              - ".github/actions/**/*.yml"
               - ".github/workflows/pr.yml"
             workflows:
-              - ".github/**.yml"
+              - ".github/**/*.yml"
             yml:
               - "**.yml"
               - "**.yaml"
