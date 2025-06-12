@@ -208,6 +208,21 @@ PRs merged
             result.pr_url(),
         ));
 
+        match (result.pr_created_at(), result.pr_updated_at()) {
+            (None, None) => {}
+            (None, Some(_)) => {}
+            (Some(c), None) => {
+                self.pr_info(&format!("        Created: {}", c.to_rfc2822()));
+            }
+            (Some(c), Some(u)) if c == u => {
+                self.pr_info(&format!("        Created: {}", c.to_rfc2822()))
+            }
+            (Some(c), Some(u)) => {
+                self.pr_info(&format!("        Created: {}", c.to_rfc2822()));
+                self.pr_info(&format!("        Updated: {}", u.to_rfc2822()));
+            }
+        };
+
         for q in result.qualifications() {
             self.qualification(q);
         }

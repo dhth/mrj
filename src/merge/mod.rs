@@ -2,7 +2,7 @@ mod execute;
 mod log;
 
 use crate::config::Config;
-use crate::domain::Repo;
+use crate::domain::{GhApiQueryParam, Repo};
 use anyhow::Context;
 use chrono::Utc;
 use execute::merge_pr_for_repo;
@@ -79,6 +79,12 @@ where
     if behaviours.show_prs_from_untrusted_authors {
         l.info("I will show PRs from untrusted authors");
     }
+
+    l.info(&format!(
+        r#"I'm sorting PRs based on "{}" in the "{}" direction"#,
+        config.sort_by.readable_repr(),
+        config.sort_direction.readable_repr()
+    ));
 
     let config = Arc::new(config);
 
