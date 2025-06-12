@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">mrj</h1>
   <p align="center">
-    <a href="https://github.com/dhth/mrj/actions/workflows/build.yml"><img alt="GitHub release" src="https://img.shields.io/github/actions/workflow/status/dhth/mrj/build.yml?style=flat-square"></a>
+    <a href="https://github.com/dhth/mrj/actions/workflows/main.yml"><img alt="GitHub release" src="https://img.shields.io/github/actions/workflow/status/dhth/mrj/main.yml?style=flat-square"></a>
     <a href="https://crates.io/crates/mrj"><img alt="GitHub release" src="https://img.shields.io/crates/v/mrj?style=flat-square"></a>
     <a href="https://github.com/dhth/mrj/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/release/dhth/mrj.svg?style=flat-square"></a>
     <a href="https://github.com/dhth/mrj/releases"><img alt="Commits since latest release" src="https://img.shields.io/github/commits-since/dhth/mrj/latest?style=flat-square"></a>
