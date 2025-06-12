@@ -81,7 +81,7 @@ where
     }
 
     l.info(&format!(
-        r#"I am sorting PRs based on "{}" in the "{}" direction"#,
+        r#"I'm sorting PRs based on "{}" in the "{}" direction"#,
         config.sort_by.readable_repr(),
         config.sort_direction.readable_repr()
     ));

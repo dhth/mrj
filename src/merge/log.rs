@@ -208,13 +208,20 @@ PRs merged
             result.pr_url(),
         ));
 
-        if let Some(pr_created_at) = result.pr_created_at() {
-            self.pr_info(&format!("        Created: {}", pr_created_at.to_rfc2822(),));
-        }
-
-        if let Some(pr_updated_at) = result.pr_updated_at() {
-            self.pr_info(&format!("        Updated: {}", pr_updated_at.to_rfc2822(),));
-        }
+        match (result.pr_created_at(), result.pr_updated_at()) {
+            (None, None) => {}
+            (None, Some(_)) => {}
+            (Some(c), None) => {
+                self.pr_info(&format!("        Created: {}", c.to_rfc2822()));
+            }
+            (Some(c), Some(u)) if c == u => {
+                self.pr_info(&format!("        Created: {}", c.to_rfc2822()))
+            }
+            (Some(c), Some(u)) => {
+                self.pr_info(&format!("        Created: {}", c.to_rfc2822()));
+                self.pr_info(&format!("        Updated: {}", u.to_rfc2822()));
+            }
+        };
 
         for q in result.qualifications() {
             self.qualification(q);
