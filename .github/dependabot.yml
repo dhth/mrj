@@ -8,7 +8,6 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "build"
-      include: "scope"
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
@@ -16,5 +15,4 @@ updates:
     labels:
       - "dependencies"
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: "ci"
