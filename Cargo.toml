@@ -35,6 +35,7 @@ toml = { version = "0.8.22", features = ["parse"] }
 [dev-dependencies]
 assert_cmd = "2.0.17"
 predicates = "3.1.3"
+pretty_assertions = "1.4.1"
 
 # The profile that 'dist' will build with
 [profile.dist]

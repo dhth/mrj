@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::domain::{
-    Disqualification as DQ, MergeResult, PRCheck, Qualification as Q, Repo, RepoCheck, RepoResult,
+    Disqualification as DQ, GhApiQueryParam, MergeResult, PRCheck, Qualification as Q, Repo,
+    RepoCheck, RepoResult,
 };
 use anyhow::Context;
 use octocrab::Octocrab;
@@ -35,7 +36,12 @@ pub(super) async fn merge_pr_for_repo(
 
     let pulls = client.pulls(&repo.owner, &repo.repo);
 
-    let mut page_builder = pulls.list().state(State::Open).per_page(100);
+    let mut page_builder = pulls
+        .list()
+        .state(State::Open)
+        .sort(config.sort_by.to_gh_api())
+        .direction(config.sort_direction.to_gh_api())
+        .per_page(100);
 
     if let Some(base_branch) = &config.base_branch {
         page_builder = page_builder.base(base_branch);
@@ -64,10 +70,10 @@ pub(super) async fn merge_pr_for_repo(
             dry_run,
         )
         .await;
-        let no_failure = merge_result.is_failure();
+        let no_failure = merge_result.no_failure();
         repo_check.add_merge_result(merge_result);
 
-        if !dry_run && no_failure {
+        if no_failure {
             // PR was merged
             break;
         }
@@ -84,15 +90,7 @@ async fn merge_pr(
     config: &Config,
     dry_run: bool,
 ) -> MergeResult {
-    let mut pr_check = PRCheck::new(
-        pull_request.number,
-        &pull_request.title.clone().unwrap_or_default(),
-        &pull_request
-            .html_url
-            .as_ref()
-            .map(|url| url.to_string())
-            .unwrap_or_default(),
-    );
+    let mut pr_check = PRCheck::from(pull_request);
 
     if let Some(head_pattern) = &config.head_pattern {
         let head_ref = pull_request.head.ref_field.clone();

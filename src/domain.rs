@@ -1,4 +1,7 @@
-use octocrab::params::pulls::MergeMethod;
+use chrono::{DateTime, Utc};
+use octocrab::models::pulls::PullRequest;
+use octocrab::params::Direction;
+use octocrab::params::pulls::{MergeMethod, Sort};
 use regex::Regex;
 use serde::{
     Deserialize, Deserializer,
@@ -146,6 +149,64 @@ impl<'de> Deserialize<'de> for HeadPattern {
     }
 }
 
+pub trait GhApiQueryParam<T> {
+    fn to_gh_api(&self) -> T;
+    fn readable_repr(&self) -> &str;
+}
+
+#[derive(Debug, serde::Deserialize, PartialEq)]
+#[serde(rename_all = "kebab-case")]
+pub enum SortBy {
+    Created,
+    Updated,
+    Popularity,
+    LongRunning,
+}
+
+impl GhApiQueryParam<Sort> for SortBy {
+    fn to_gh_api(&self) -> Sort {
+        match self {
+            SortBy::Created => Sort::Created,
+            SortBy::Updated => Sort::Updated,
+            SortBy::Popularity => Sort::Popularity,
+            SortBy::LongRunning => Sort::LongRunning,
+        }
+    }
+
+    fn readable_repr(&self) -> &str {
+        match self {
+            SortBy::Created => "creation date",
+            SortBy::Updated => "last updated date",
+            SortBy::Popularity => "popularity",
+            SortBy::LongRunning => "long running status",
+        }
+    }
+}
+
+#[derive(Debug, serde::Deserialize, PartialEq)]
+pub enum SortDirection {
+    #[serde(rename = "asc")]
+    Ascending,
+    #[serde(rename = "desc")]
+    Descending,
+}
+
+impl GhApiQueryParam<Direction> for SortDirection {
+    fn to_gh_api(&self) -> Direction {
+        match self {
+            SortDirection::Ascending => Direction::Ascending,
+            SortDirection::Descending => Direction::Descending,
+        }
+    }
+
+    fn readable_repr(&self) -> &str {
+        match self {
+            SortDirection::Ascending => "ascending",
+            SortDirection::Descending => "descending",
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum RepoResult {
     Finished(RepoCheck<RepoCheckFinished>),
@@ -233,6 +294,8 @@ pub struct PRCheck<S: PRCheckState> {
     number: u64,
     title: String,
     url: String,
+    pr_created_at: Option<DateTime<Utc>>,
+    pr_updated_at: Option<DateTime<Utc>>,
     qualifications: Vec<Qualification>,
     pub state: S,
 }
@@ -245,8 +308,8 @@ pub enum MergeResult {
 }
 
 impl MergeResult {
-    pub fn is_failure(&self) -> bool {
-        !matches!(self, MergeResult::Qualified(_))
+    pub fn no_failure(&self) -> bool {
+        matches!(self, MergeResult::Qualified(_))
     }
 
     pub fn pr_number(&self) -> u64 {
@@ -270,6 +333,22 @@ impl MergeResult {
             MergeResult::Qualified(r) => &r.url,
             MergeResult::Disqualified(r) => &r.url,
             MergeResult::Errored(r) => &r.url,
+        }
+    }
+
+    pub fn pr_created_at(&self) -> Option<DateTime<Utc>> {
+        match self {
+            MergeResult::Qualified(r) => r.pr_created_at,
+            MergeResult::Disqualified(r) => r.pr_created_at,
+            MergeResult::Errored(r) => r.pr_created_at,
+        }
+    }
+
+    pub fn pr_updated_at(&self) -> Option<DateTime<Utc>> {
+        match self {
+            MergeResult::Qualified(r) => r.pr_updated_at,
+            MergeResult::Disqualified(r) => r.pr_updated_at,
+            MergeResult::Errored(r) => r.pr_updated_at,
         }
     }
 
@@ -315,12 +394,18 @@ pub struct PRCheckFinished;
 impl private::Sealed for PRCheckFinished {}
 impl PRCheckState for PRCheckFinished {}
 
-impl PRCheck<PRCheckInProgress> {
-    pub fn new(number: u64, title: &str, url: &str) -> Self {
+impl From<&PullRequest> for PRCheck<PRCheckInProgress> {
+    fn from(pr: &PullRequest) -> Self {
         Self {
-            number,
-            title: title.to_string(),
-            url: url.to_string(),
+            number: pr.number,
+            title: pr.title.clone().unwrap_or_default(),
+            url: pr
+                .html_url
+                .as_ref()
+                .map(|url| url.to_string())
+                .unwrap_or_default(),
+            pr_created_at: pr.created_at,
+            pr_updated_at: pr.updated_at,
             qualifications: vec![],
             state: PRCheckInProgress,
         }
@@ -337,6 +422,8 @@ impl PRCheck<PRCheckInProgress> {
             number: self.number,
             title: self.title,
             url: self.url,
+            pr_created_at: self.pr_created_at,
+            pr_updated_at: self.pr_updated_at,
             qualifications: self.qualifications,
             state: PRDisqualified(dq),
         }
@@ -347,6 +434,8 @@ impl PRCheck<PRCheckInProgress> {
             number: self.number,
             title: self.title,
             url: self.url,
+            pr_created_at: self.pr_created_at,
+            pr_updated_at: self.pr_updated_at,
             qualifications: self.qualifications,
             state: PRCheckErrored(error),
         }
@@ -357,6 +446,8 @@ impl PRCheck<PRCheckInProgress> {
             number: self.number,
             title: self.title,
             url: self.url,
+            pr_created_at: self.pr_created_at,
+            pr_updated_at: self.pr_updated_at,
             qualifications: self.qualifications,
             state: PRCheckFinished,
         }

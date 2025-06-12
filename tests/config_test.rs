@@ -38,6 +38,17 @@ fn parsing_valid_config_with_mandatory_props_only_works() {
 }
 
 #[test]
+fn sample_config_is_valid() {
+    // GIVEN
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+    cmd.args(["config", "validate", "-p", "src/assets/sample-config.toml"]);
+
+    // WHEN
+    // THEN
+    cmd.assert().success().stdout(contains("config looks good"));
+}
+
+#[test]
 fn printing_sample_config_works() {
     // GIVEN
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();

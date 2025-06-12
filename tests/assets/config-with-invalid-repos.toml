@@ -9,3 +9,4 @@ head_pattern = "(dependabot|update)"
 merge_if_blocked = true
 merge_if_checks_skipped = true
 merge_type = "squash"
+sort_by = "created"

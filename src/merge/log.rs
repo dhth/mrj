@@ -208,6 +208,14 @@ PRs merged
             result.pr_url(),
         ));
 
+        if let Some(pr_created_at) = result.pr_created_at() {
+            self.pr_info(&format!("        Created: {}", pr_created_at.to_rfc2822(),));
+        }
+
+        if let Some(pr_updated_at) = result.pr_updated_at() {
+            self.pr_info(&format!("        Updated: {}", pr_updated_at.to_rfc2822(),));
+        }
+
         for q in result.qualifications() {
             self.qualification(q);
         }
