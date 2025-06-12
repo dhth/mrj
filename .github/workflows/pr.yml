@@ -29,13 +29,13 @@ jobs:
               - clippy.toml
               - dist-workspace.toml
               - rust-toolchain.toml
+              - ".github/actions/**.yml"
               - ".github/workflows/pr.yml"
             workflows:
-              - ".github/workflows/**.yml"
+              - ".github/**.yml"
             yml:
               - "**.yml"
               - "**.yaml"
-              - ".github/workflows/pr.yml"
 
   build:
     needs: changes

@@ -27,6 +27,7 @@ runs:
         app-id: ${{ inputs.mrj_app_id }}
         private-key: ${{ inputs.mrj_app_private_key }}
         owner: dhth
+        repositories: mrj
     - name: Run mrj
       shell: bash
       env:
@@ -44,4 +45,3 @@ runs:
           --summary \
           --dry-run
         ./mrj report generate
-        cat summary.txt
