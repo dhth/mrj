@@ -17,7 +17,7 @@ pub(super) async fn merge_pr_for_repo(
     client: Arc<Octocrab>,
     config: Arc<Config>,
     repo: Repo,
-    dry_run: bool,
+    execute: bool,
 ) -> RepoResult {
     let mut repo_check = RepoCheck::new(&repo.owner, &repo.repo);
 
@@ -67,7 +67,7 @@ pub(super) async fn merge_pr_for_repo(
             pull_request,
             client.as_ref(),
             config.as_ref(),
-            dry_run,
+            execute,
         )
         .await;
         let no_failure = merge_result.no_failure();
@@ -88,7 +88,7 @@ async fn merge_pr(
     pull_request: &PullRequest,
     client: &Octocrab,
     config: &Config,
-    dry_run: bool,
+    execute: bool,
 ) -> MergeResult {
     let mut pr_check = PRCheck::from(pull_request);
 
@@ -197,7 +197,7 @@ async fn merge_pr(
         }
     }
 
-    if !dry_run {
+    if execute {
         if let Err(err) = client
             .pulls(owner, repo)
             .merge(pr.number)

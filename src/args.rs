@@ -60,9 +60,9 @@ pub enum MrjCommand {
         /// Whether to show information for PRs from untrusted authors
         #[arg(long = "show-prs-from-untrusted-authors", short = 'u')]
         show_prs_from_untrusted_authors: bool,
-        /// Whether to only print out information without merging any PRs
-        #[arg(long = "dry-run", short = 'd')]
-        dry_run: bool,
+        /// Whether to actually merge PRs; mrj operates in "dry-run mode" by default
+        #[arg(long = "execute", short = 'e')]
+        execute: bool,
     },
     /// Interact with mrj's config
     Config {
@@ -136,7 +136,7 @@ impl std::fmt::Display for Args {
                 summary_path,
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
-                dry_run,
+                execute,
             } => format!(
                 r#"
 command                           : Run
@@ -148,7 +148,7 @@ write summary                     : {}
 summary file                      : {}
 show repos with no prs            : {}
 show prs from untrusted authors   : {}
-dry run                           : {}
+execute                           : {}
 "#,
                 config_file.to_string_lossy(),
                 repos.iter().map(|r| r.to_string()).collect::<Vec<String>>(),
@@ -158,7 +158,7 @@ dry run                           : {}
                 summary_path.to_string_lossy(),
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
-                dry_run
+                execute
             ),
             MrjCommand::Config { config_command } => match config_command {
                 ConfigCommand::Validate { config_file } => format!(

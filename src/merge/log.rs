@@ -19,7 +19,7 @@ pub(super) struct RunLog {
     summary: RunSummary,
     show_repos_with_no_prs: bool,
     show_prs_from_untrusted_authors: bool,
-    dry_run: bool,
+    execute: bool,
 }
 
 impl RunLog {
@@ -27,7 +27,7 @@ impl RunLog {
         output: bool,
         show_repos_with_no_prs: bool,
         show_prs_from_untrusted_authors: bool,
-        dry_run: bool,
+        execute: bool,
     ) -> Self {
         RunLog {
             write_to_file: output,
@@ -35,7 +35,7 @@ impl RunLog {
             summary: RunSummary::default(),
             show_repos_with_no_prs,
             show_prs_from_untrusted_authors,
-            dry_run,
+            execute,
         }
     }
 
@@ -166,14 +166,14 @@ PRs merged
 
     pub(super) fn banner(&mut self) {
         println!("{}", BANNER.green().bold());
-        if self.dry_run {
+        if !self.execute {
             println!("{}", "                         dry run".yellow());
         }
         println!("\n");
 
         if self.write_to_file {
             self.lines.push(BANNER.to_string());
-            if self.dry_run {
+            if !self.execute {
                 self.lines
                     .push("                         dry run".to_string());
             }
@@ -351,10 +351,10 @@ PRs merged
     }
 
     fn merge(&mut self, pr: MergedPR) {
-        let msg = if self.dry_run {
-            "PR matches all criteria, I would've merged it if this weren't a dry run ✅"
-        } else {
+        let msg = if self.execute {
             "PR merged! 🎉 ✅"
+        } else {
+            "PR matches all criteria, I would've merged it if this weren't a dry run ✅"
         };
 
         println!("        {}", msg.green());
@@ -363,7 +363,7 @@ PRs merged
             self.lines.push(format!("        {}", msg));
         }
 
-        if !self.dry_run {
+        if self.execute {
             self.summary.record_merged_pr(pr);
         }
     }

@@ -65,12 +65,7 @@ fn fails_if_overridden_repos_are_invalid() {
 fn fails_if_no_repos_provided() {
     // GIVEN
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
-    cmd.args([
-        "run",
-        "--dry-run",
-        "-c",
-        "tests/assets/valid-config-with-no-repos.toml",
-    ]);
+    cmd.args(["run", "-c", "tests/assets/valid-config-with-no-repos.toml"]);
 
     // WHEN
     // THEN
