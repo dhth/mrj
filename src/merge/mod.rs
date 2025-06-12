@@ -23,7 +23,7 @@ pub struct RunBehaviours<P: AsRef<Path>> {
     pub summary_path: P,
     pub show_repos_with_no_prs: bool,
     pub show_prs_from_untrusted_authors: bool,
-    pub dry_run: bool,
+    pub execute: bool,
 }
 
 pub async fn merge_prs<P>(
@@ -39,7 +39,7 @@ where
         behaviours.output,
         behaviours.show_repos_with_no_prs,
         behaviours.show_prs_from_untrusted_authors,
-        behaviours.dry_run,
+        behaviours.execute,
     );
 
     let repos_to_use = if repos_override.is_empty() {
@@ -95,7 +95,7 @@ where
         let client = Arc::clone(&client);
         let config = Arc::clone(&config);
         futures.push(tokio::task::spawn(async move {
-            merge_pr_for_repo(semaphore, client, config, repo.clone(), behaviours.dry_run).await
+            merge_pr_for_repo(semaphore, client, config, repo.clone(), behaviours.execute).await
         }));
     }
 

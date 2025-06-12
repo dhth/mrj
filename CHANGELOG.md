@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow configuring sort by and sort direction for pull requests
 
+### Changed
+
+- Operate in dry-run mode by default
+
 ## [v0.2.0] - Jun 06, 2025
 
 ### Added

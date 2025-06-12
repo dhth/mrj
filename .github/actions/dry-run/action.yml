@@ -42,6 +42,5 @@ runs:
           --config ./.github/mrj.toml \
           --repos "dhth/mrj" \
           --output \
-          --summary \
-          --dry-run
+          --summary
         ./mrj report generate
