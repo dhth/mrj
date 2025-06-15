@@ -1,12 +1,22 @@
 repos = [
     "dhth/act3",
     "dhth/bmm",
+    "dhth/chronotes",
+    "dhth/commits",
+    "dhth/cueitup",
+    "dhth/dstll",
     "dhth/ecscope",
     "dhth/ecsv",
+    "dhth/ghx",
     "dhth/hours",
+    "dhth/kplay",
     "dhth/mrj",
+    "dhth/mult",
     "dhth/omm",
+    "dhth/outtasync",
     "dhth/prs",
+    "dhth/punchout",
+    "dhth/schemas",
     "dhth/shfl",
     "dhth/squidge",
     "dhth/squish",
@@ -15,9 +25,7 @@ repos = [
     "dhth/tomo",
     "dhth/urll",
 ]
-trusted_authors = ["dependabot[bot]"]
+trusted_authors = ["dependabot[bot]", "github-actions[bot]"]
 base_branch = "main"
 head_pattern = "(dependabot|update)"
-merge_if_blocked = true
-merge_if_checks_skipped = true
 merge_type = "squash"
