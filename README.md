@@ -13,7 +13,7 @@
 > Want to see a demo before you read the rest of the documentation?
 > View `mrj` in action [here][1].
 
-![usage](https://tools.dhruvs.space/images/mrj/mrj-1.png)
+![usage](https://tools.dhruvs.space/images/mrj/v0-3-0/mrj.png)
 
 🤔 Motivation
 ---
@@ -203,7 +203,8 @@ mrj report generate --open
 
 This will generate a report that looks like this:
 
-![report](https://tools.dhruvs.space/images/mrj/report-1.png)
+![list](https://tools.dhruvs.space/images/mrj/v0-3-0/mrj-list.png)
+![report](https://tools.dhruvs.space/images/mrj/v0-3-0/mrj-report.png)
 
 ⏱️ Running on a schedule via Github Actions
 ---
