@@ -91,8 +91,8 @@ Options:
           Whether to show information for repos with no PRs
   -u, --show-prs-from-untrusted-authors
           Whether to show information for PRs from untrusted authors
-  -d, --dry-run
-          Whether to only print out information without merging any PRs
+  -e, --execute
+          Whether to actually merge PRs; mrj operates in "dry-run mode" by default
   -h, --help
           Print help
 ```
