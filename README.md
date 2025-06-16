@@ -131,6 +131,8 @@ the token has the following permissions for the relevant repos:
 `mrj` needs a config file to run. Here's a sample config.
 
 ```toml
+# mrj.toml
+
 # repos to run for
 # (required)
 repos = [
@@ -164,9 +166,26 @@ merge_if_blocked = true
 # (optional, default: true)
 merge_if_checks_skipped = true
 
-# squash/merge/rebase (make sure the choice is actually enabled in your settings)
+# how to merge the pull request
+# can be one of: [squash, merge, rebase]
+# make sure the choice is actually enabled in your settings
 # (required)
 merge_type = "squash"
+
+# what to sort pull requests by
+# can be one of: created, updated, popularity, long-running
+# "popularity" will sort by the number of comments
+# "long-running" will sort by date created and will limit the results to pull
+# requests that have been open for more than a month and have had activity within
+# the past month
+#
+# (optional; default: created)
+sort_by = "created"
+
+# the direction of the sort
+# can be one of: [asc, desc]
+# (optional; default: asc)
+sort_direction = "asc"
 ```
 
 📃 Generating a Report
@@ -222,7 +241,7 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.1.0
+  MRJ_VERSION: v0.3.0
 
 jobs:
   run:
@@ -247,7 +266,7 @@ jobs:
           CLICOLOR_FORCE: 1
           COLORTERM: "truecolor"
         run: |
-          mrj run
+          mrj run -e
 ```
 
 If you also want to generate reports that can be deployed on GitHub Pages, use
@@ -268,7 +287,7 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.1.0
+  MRJ_VERSION: v0.3.0
 
 jobs:
   run:
@@ -293,7 +312,7 @@ jobs:
           CLICOLOR_FORCE: 1
           COLORTERM: "truecolor"
         run: |
-          mrj run -os
+          mrj run -eos
       - name: Generate report
         run: |
           mrj report generate
