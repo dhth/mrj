@@ -1,3 +1,4 @@
+use super::behaviours::RunBehaviours;
 use crate::domain::{
     Disqualification, MergeResult, MergedPR, Qualification, RepoResult, RunSummary,
 };
@@ -5,7 +6,6 @@ use anyhow::Context;
 use colored::Colorize;
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::path::Path;
 
 const BANNER: &str = include_str!("assets/banner.txt");
 const AUTHOR: &str = "[ author ]  ";
@@ -14,28 +14,17 @@ const CHECK: &str = "[ check  ]  ";
 const STATE: &str = "[ state  ]  ";
 
 pub(super) struct RunLog {
-    write_to_file: bool,
+    behaviours: RunBehaviours,
     lines: Vec<String>,
     summary: RunSummary,
-    show_repos_with_no_prs: bool,
-    show_prs_from_untrusted_authors: bool,
-    execute: bool,
 }
 
 impl RunLog {
-    pub(super) fn new(
-        output: bool,
-        show_repos_with_no_prs: bool,
-        show_prs_from_untrusted_authors: bool,
-        execute: bool,
-    ) -> Self {
+    pub(super) fn new(behaviours: &RunBehaviours) -> Self {
         RunLog {
-            write_to_file: output,
+            behaviours: behaviours.clone(),
             lines: vec![],
             summary: RunSummary::default(),
-            show_repos_with_no_prs,
-            show_prs_from_untrusted_authors,
-            execute,
         }
     }
 
@@ -48,20 +37,27 @@ impl RunLog {
                 let filtered_results = repo_check
                     .results()
                     .iter()
-                    .filter(|result| {
-                        !matches!(result,
-                        MergeResult::Disqualified(pr_check) if
-                        matches!(
-                            pr_check.state.reason(),
+                    .filter(|result| match result {
+                        MergeResult::Disqualified(pr_check) => match pr_check.state.reason() {
                             Disqualification::User(_)
-                        ) && !self.show_prs_from_untrusted_authors
-                        )
+                                if !self.behaviours.show_prs_from_untrusted_authors =>
+                            {
+                                false
+                            }
+                            Disqualification::Head(_)
+                                if !self.behaviours.show_prs_with_unmatched_head =>
+                            {
+                                false
+                            }
+                            _ => true,
+                        },
+                        _ => true,
                     })
                     .collect::<Vec<_>>();
 
                 if filtered_results.is_empty() {
                     self.summary.record_repo_with_no_prs();
-                    if !self.show_repos_with_no_prs {
+                    if !self.behaviours.show_repos_with_no_prs {
                         return;
                     }
                 }
@@ -82,16 +78,7 @@ impl RunLog {
         }
     }
 
-    pub(super) fn write_output<P>(
-        &mut self,
-        output_to_file: bool,
-        output_path: P,
-        summary_to_file: bool,
-        summary_path: P,
-    ) -> anyhow::Result<()>
-    where
-        P: AsRef<Path>,
-    {
+    pub(super) fn write_output(&mut self) -> anyhow::Result<()> {
         let prs_merged = if self.summary.prs_merged.is_empty() {
             None
         } else {
@@ -133,7 +120,7 @@ PRs merged
 
         println!("{}", &summary.green());
 
-        if !output_to_file {
+        if !self.behaviours.output {
             return Ok(());
         }
 
@@ -143,18 +130,18 @@ PRs merged
             .create(true)
             .write(true)
             .truncate(true)
-            .open(output_path)
+            .open(self.behaviours.output_path.as_path())
             .context("couldn't open a handle to the output file")?;
 
         file.write_all(self.lines.join("\n").as_bytes())
             .context("couldn't write output to file")?;
 
-        if summary_to_file {
+        if self.behaviours.summary {
             let mut file = OpenOptions::new()
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open(summary_path)
+                .open(self.behaviours.summary_path.as_path())
                 .context("couldn't open a handle to the summary file")?;
 
             file.write_all(summary.trim_start().as_bytes())
@@ -166,14 +153,14 @@ PRs merged
 
     pub(super) fn banner(&mut self) {
         println!("{}", BANNER.green().bold());
-        if !self.execute {
+        if !self.behaviours.execute {
             println!("{}", "                         dry run".yellow());
         }
         println!("\n");
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push(BANNER.to_string());
-            if !self.execute {
+            if !self.behaviours.execute {
                 self.lines
                     .push("                         dry run".to_string());
             }
@@ -184,7 +171,7 @@ PRs merged
     pub(super) fn info(&mut self, message: &str) {
         println!("[INFO] {}", message);
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push(format!("[INFO] {}", message));
         }
     }
@@ -192,7 +179,7 @@ PRs merged
     pub(super) fn empty_line(&mut self) {
         println!();
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push("".to_string());
         }
     }
@@ -258,7 +245,7 @@ PRs merged
             .cyan()
         );
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push(format!(
                 r#"
 
@@ -273,7 +260,7 @@ PRs merged
     fn pr_info(&mut self, msg: &str) {
         println!("{}", msg.purple());
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push(msg.to_string());
         }
     }
@@ -297,7 +284,7 @@ PRs merged
 
         println!("        {}", msg.blue());
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push(format!("        {}", msg));
         }
     }
@@ -335,7 +322,7 @@ PRs merged
 
         println!("        {} ❌", msg.yellow());
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push(format!("        {} ❌", msg));
         }
 
@@ -345,13 +332,13 @@ PRs merged
     fn absence(&mut self, msg: &str) {
         println!("        {}", msg.yellow());
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push(format!("        {}", msg));
         }
     }
 
     fn merge(&mut self, pr: MergedPR) {
-        let msg = if self.execute {
+        let msg = if self.behaviours.execute {
             "PR merged! 🎉 ✅"
         } else {
             "PR matches all criteria, I would've merged it if this weren't a dry run ✅"
@@ -359,11 +346,11 @@ PRs merged
 
         println!("        {}", msg.green());
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push(format!("        {}", msg));
         }
 
-        if self.execute {
+        if self.behaviours.execute {
             self.summary.record_merged_pr(pr);
         }
     }
@@ -371,7 +358,7 @@ PRs merged
     fn error(&mut self, error: &anyhow::Error) {
         println!("{}", format!("        error 😵: {}", error).red());
 
-        if self.write_to_file {
+        if self.behaviours.output {
             self.lines.push(format!("        error 😵: {}", error));
         }
 
