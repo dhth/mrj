@@ -102,6 +102,26 @@ PRs merged
             ))
         };
 
+        let disqualifications_summary =
+            if self.b.summarize_disqualifications && !self.summary.disqualifications.is_empty() {
+                Some(format!(
+                    r#"
+
+Disqualifications
+---
+
+{}"#,
+                    self.summary
+                        .disqualifications
+                        .iter()
+                        .map(|d| format!("- {}", d))
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                ))
+            } else {
+                None
+            };
+
         let summary = format!(
             r#"
 
@@ -113,13 +133,14 @@ PRs merged
 # PRs disqualified            :  {}
 # Repos checked               :  {}
 # Repos with no relevant PRs  :  {}
-# Errors encountered          :  {}{}"#,
+# Errors encountered          :  {}{}{}"#,
             self.summary.prs_merged.len(),
-            self.summary.num_disqualifications,
+            self.summary.disqualifications.len(),
             self.summary.num_repos,
             self.summary.num_repos_with_no_prs,
             self.summary.num_errors,
             prs_merged.unwrap_or_default(),
+            disqualifications_summary.unwrap_or_default(),
         );
 
         let output = if self.b.plain_stdout {
@@ -130,28 +151,26 @@ PRs merged
 
         let _ = writeln!(self.w, "{}", output);
 
-        if !self.b.output {
-            return Ok(());
-        }
+        if let Some(output_path) = &self.b.output_path {
+            self.lines.push(summary.clone());
 
-        self.lines.push(summary.clone());
-
-        let mut file = OpenOptions::new()
-            .create(true)
-            .write(true)
-            .truncate(true)
-            .open(self.b.output_path.as_path())
-            .context("couldn't open a handle to the output file")?;
-
-        file.write_all(self.lines.join("\n").as_bytes())
-            .context("couldn't write output to file")?;
-
-        if self.b.summary {
             let mut file = OpenOptions::new()
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open(self.b.summary_path.as_path())
+                .open(output_path.as_path())
+                .context("couldn't open a handle to the output file")?;
+
+            file.write_all(self.lines.join("\n").as_bytes())
+                .context("couldn't write output to file")?;
+        }
+
+        if let Some(summary_path) = &self.b.summary_path {
+            let mut file = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(summary_path.as_path())
                 .context("couldn't open a handle to the summary file")?;
 
             file.write_all(summary.trim_start().as_bytes())
@@ -183,7 +202,7 @@ PRs merged
 
         let _ = writeln!(self.w);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push(BANNER.to_string());
             if !self.b.execute {
                 self.lines.push(dry_run_line);
@@ -195,7 +214,7 @@ PRs merged
     pub(super) fn info(&mut self, message: &str) {
         let _ = writeln!(self.w, "[INFO] {}", message);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push(format!("[INFO] {}", message));
         }
     }
@@ -203,7 +222,7 @@ PRs merged
     pub(super) fn empty_line(&mut self) {
         let _ = writeln!(self.w);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push("".to_string());
         }
     }
@@ -240,7 +259,7 @@ PRs merged
 
         match result {
             MergeResult::Disqualified(pr_check) => {
-                self.disqualification(pr_check.state.reason());
+                self.disqualification(&pr_check.url, pr_check.state.reason());
             }
             MergeResult::Errored(pr_check) => {
                 self.error(pr_check.state.reason());
@@ -273,7 +292,7 @@ PRs merged
 
         let _ = writeln!(self.w, "{}", output);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push(line);
         }
     }
@@ -287,7 +306,7 @@ PRs merged
 
         let _ = writeln!(self.w, "{}", output);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push(msg.to_string());
         }
     }
@@ -317,12 +336,12 @@ PRs merged
 
         let _ = writeln!(self.w, "        {}", output);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push(format!("        {}", msg));
         }
     }
 
-    fn disqualification(&mut self, dq: &Disqualification) {
+    fn disqualification(&mut self, pr_url: &str, dq: &Disqualification) {
         let msg = match dq {
             Disqualification::Head(h) => {
                 format!("{} \"{}\" doesn't match the allowed head pattern", HEAD, h)
@@ -361,11 +380,11 @@ PRs merged
 
         let _ = writeln!(self.w, "        {} ❌", output);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push(format!("        {} ❌", msg));
         }
 
-        self.summary.record_disqualification();
+        self.summary.record_disqualification(pr_url, dq);
     }
 
     fn absence(&mut self, msg: &str) {
@@ -377,7 +396,7 @@ PRs merged
 
         let _ = writeln!(self.w, "        {}", output);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push(format!("        {}", msg));
         }
     }
@@ -397,7 +416,7 @@ PRs merged
 
         let _ = writeln!(self.w, "        {}", output);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push(format!("        {}", msg));
         }
 
@@ -416,7 +435,7 @@ PRs merged
 
         let _ = writeln!(self.w, "{}", output);
 
-        if self.b.output {
+        if self.b.output_path.is_some() {
             self.lines.push(line);
         }
 
@@ -432,7 +451,6 @@ mod tests {
     };
     use chrono::{DateTime, TimeZone, Utc};
     use pretty_assertions::assert_eq;
-    use std::path::PathBuf;
 
     const OWNER: &str = "dhth";
     const REPO: &str = "mrj";
@@ -445,7 +463,7 @@ mod tests {
     fn failed_repo_result_is_printed_correctly() {
         // GIVEN
         let mut buffer = vec![];
-        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -477,7 +495,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -497,17 +515,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let behaviours = RunBehaviours {
-            output: false,
-            output_path: PathBuf::new(),
-            summary: false,
-            summary_path: PathBuf::new(),
-            show_repos_with_no_prs: false,
-            show_prs_from_untrusted_authors: false,
-            show_prs_with_unmatched_head: true,
-            execute: false,
-            plain_stdout: true,
-        };
+        let behaviours = RunBehaviours::default().show_prs_with_unmatched_head();
         let mut l = RunLog::new(&mut buffer, &behaviours);
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
@@ -545,7 +553,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -565,17 +573,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let behaviours = RunBehaviours {
-            output: false,
-            output_path: PathBuf::new(),
-            summary: false,
-            summary_path: PathBuf::new(),
-            show_repos_with_no_prs: false,
-            show_prs_from_untrusted_authors: true,
-            show_prs_with_unmatched_head: false,
-            execute: false,
-            plain_stdout: true,
-        };
+        let behaviours = RunBehaviours::default().show_prs_from_untrusted_authors();
         let mut l = RunLog::new(&mut buffer, &behaviours);
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
@@ -614,7 +612,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -634,17 +632,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let behaviours = RunBehaviours {
-            output: false,
-            output_path: PathBuf::new(),
-            summary: false,
-            summary_path: PathBuf::new(),
-            show_repos_with_no_prs: false,
-            show_prs_from_untrusted_authors: true,
-            show_prs_with_unmatched_head: false,
-            execute: false,
-            plain_stdout: true,
-        };
+        let behaviours = RunBehaviours::default().show_prs_from_untrusted_authors();
         let mut l = RunLog::new(&mut buffer, &behaviours);
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
@@ -683,7 +671,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -727,7 +715,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -769,7 +757,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -811,7 +799,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -843,7 +831,7 @@ mod tests {
         [ check  ]   "build (macos-latest)" concluded with desired status: "success"
         [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
         [ check  ]   "test" concluded with desired status: "success"
-        [ state  ]   "Dirty" is undesirable ❌
+        [ state  ]   "dirty" is undesirable ❌
 "#
         );
     }
@@ -853,7 +841,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -887,6 +875,188 @@ mod tests {
         [ check  ]   "test" concluded with desired status: "success"
         [ state  ]   "clean" is desirable
         PR matches all criteria, I would've merged it if this weren't a dry run ✅
+"#
+        );
+    }
+
+    #[test]
+    fn printing_summary_works() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![
+                merge_result_disqualified_unmatched_head(),
+                merge_result_disqualified_unknown_author(),
+                merge_result_disqualified_untrusted_author(),
+                merge_result_disqualified_check_with_unknown_conclusion(),
+                merge_result_disqualified_failed_check(),
+                merge_result_disqualified_unknown_state(),
+                merge_result_disqualified_dirty_state(),
+                merge_result_qualified(),
+            ]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+        l.write_output().expect("output should've been written");
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+
+        let (_, summary) = out
+            .split_once(
+                r#"
+===========
+  SUMMARY
+===========
+"#,
+            )
+            .expect("output should've been split by the summary header");
+
+        assert_eq!(
+            summary,
+            r#"
+# PRs merged                  :  0
+# PRs disqualified            :  4
+# Repos checked               :  1
+# Repos with no relevant PRs  :  0
+# Errors encountered          :  0
+"#
+        );
+    }
+
+    #[test]
+    fn summary_includes_disqualifications_when_requested() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let behaviours = RunBehaviours::default().summarize_disqualifications();
+
+        let mut l = RunLog::new(&mut buffer, &behaviours);
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![
+                merge_result_disqualified_unmatched_head(),
+                merge_result_disqualified_unknown_author(),
+                merge_result_disqualified_untrusted_author(),
+                merge_result_disqualified_check_with_unknown_conclusion(),
+                merge_result_disqualified_failed_check(),
+                merge_result_disqualified_unknown_state(),
+                merge_result_disqualified_dirty_state(),
+                merge_result_qualified(),
+            ]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+        l.write_output().expect("output should've been written");
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+
+        let (_, summary) = out
+            .split_once(
+                r#"
+===========
+  SUMMARY
+===========
+"#,
+            )
+            .expect("output should've been split by the summary header");
+
+        assert_eq!(
+            summary,
+            r#"
+# PRs merged                  :  0
+# PRs disqualified            :  4
+# Repos checked               :  1
+# Repos with no relevant PRs  :  0
+# Errors encountered          :  0
+
+Disqualifications
+---
+
+- https://github.com/dhth/mrj/pull/1: check "lint" concluded with unknown status
+- https://github.com/dhth/mrj/pull/1: check "lint" concluded with undesirable status "failure"
+- https://github.com/dhth/mrj/pull/1: state is unknown
+- https://github.com/dhth/mrj/pull/1: state "dirty" is undesirable
+"#
+        );
+    }
+
+    #[test]
+    fn summary_includes_dq_that_are_ignored_by_default_if_requested() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let behaviours = RunBehaviours::default()
+            .show_prs_with_unmatched_head()
+            .show_prs_from_untrusted_authors()
+            .summarize_disqualifications();
+
+        let mut l = RunLog::new(&mut buffer, &behaviours);
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![
+                merge_result_disqualified_unmatched_head(),
+                merge_result_disqualified_unknown_author(),
+                merge_result_disqualified_untrusted_author(),
+                merge_result_disqualified_check_with_unknown_conclusion(),
+                merge_result_disqualified_failed_check(),
+                merge_result_disqualified_unknown_state(),
+                merge_result_disqualified_dirty_state(),
+                merge_result_qualified(),
+            ]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+        l.write_output().expect("output should've been written");
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+
+        let (_, summary) = out
+            .split_once(
+                r#"
+===========
+  SUMMARY
+===========
+"#,
+            )
+            .expect("output should've been split by the summary header");
+
+        assert_eq!(
+            summary,
+            r#"
+# PRs merged                  :  0
+# PRs disqualified            :  7
+# Repos checked               :  1
+# Repos with no relevant PRs  :  0
+# Errors encountered          :  0
+
+Disqualifications
+---
+
+- https://github.com/dhth/mrj/pull/1: head didn't match
+- https://github.com/dhth/mrj/pull/1: github returned empty author
+- https://github.com/dhth/mrj/pull/1: author "untrusted-dependabot[bot]" is not in the list of trusted authors
+- https://github.com/dhth/mrj/pull/1: check "lint" concluded with unknown status
+- https://github.com/dhth/mrj/pull/1: check "lint" concluded with undesirable status "failure"
+- https://github.com/dhth/mrj/pull/1: state is unknown
+- https://github.com/dhth/mrj/pull/1: state "dirty" is undesirable
 "#
         );
     }
@@ -1039,7 +1209,7 @@ mod tests {
                     conclusion: "success".to_string(),
                 },
             ],
-            state: PRDisqualified(Disqualification::State(Some("Dirty".to_string()))),
+            state: PRDisqualified(Disqualification::State(Some("dirty".to_string()))),
         })
     }
 
@@ -1069,20 +1239,6 @@ mod tests {
             ],
             state: PRCheckFinished,
         })
-    }
-
-    fn default_behaviours_for_test() -> RunBehaviours {
-        RunBehaviours {
-            output: false,
-            output_path: PathBuf::new(),
-            summary: false,
-            summary_path: PathBuf::new(),
-            show_repos_with_no_prs: false,
-            show_prs_from_untrusted_authors: false,
-            show_prs_with_unmatched_head: false,
-            execute: false,
-            plain_stdout: true,
-        }
     }
 
     fn created_at() -> DateTime<Utc> {

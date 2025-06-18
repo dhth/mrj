@@ -166,7 +166,7 @@ async fn merge_pr(
             Some(non_successful_conclusion) => {
                 return MergeResult::Disqualified(pr_check.disqualify(DQ::Check {
                     name: check.name.clone(),
-                    conclusion: Some(non_successful_conclusion.to_string()),
+                    conclusion: Some(non_successful_conclusion.to_lowercase()),
                 }));
             }
             None => {

@@ -458,7 +458,7 @@ impl PRCheck<PRCheckInProgress> {
 pub struct RunSummary {
     pub num_repos: usize,
     pub num_repos_with_no_prs: usize,
-    pub num_disqualifications: u16,
+    pub disqualifications: Vec<String>,
     pub num_errors: u16,
     pub prs_merged: Vec<MergedPR>,
 }
@@ -472,8 +472,27 @@ impl RunSummary {
         self.num_repos_with_no_prs += 1;
     }
 
-    pub fn record_disqualification(&mut self) {
-        self.num_disqualifications += 1;
+    pub fn record_disqualification(&mut self, pr_url: &str, disqualification: &Disqualification) {
+        let disqualification_summary = match disqualification {
+            Disqualification::Head(_) => "head didn't match".to_string(),
+            Disqualification::Author(author) => match author {
+                Some(a) => format!(r#"author "{}" is not in the list of trusted authors"#, a),
+                None => "github returned empty author".to_string(),
+            },
+            Disqualification::Check { name, conclusion } => match conclusion {
+                Some(c) => format!(
+                    r#"check "{}" concluded with undesirable status "{}""#,
+                    name, c
+                ),
+                None => format!(r#"check "{}" concluded with unknown status"#, name),
+            },
+            Disqualification::State(state) => match state {
+                Some(s) => format!(r#"state "{}" is undesirable"#, s),
+                None => "state is unknown".to_string(),
+            },
+        };
+        self.disqualifications
+            .push(format!("{}: {}", pr_url, disqualification_summary));
     }
 
     pub fn record_error(&mut self) {

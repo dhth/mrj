@@ -34,8 +34,8 @@ pub enum MrjCommand {
             )]
         repos: Vec<Repo>,
         /// Whether to write output to a file
-        #[arg(long = "output", short = 'o')]
-        output: bool,
+        #[arg(long = "output-to-file", short = 'o')]
+        output_to_file: bool,
         /// Whether to write mrj's log of events to a file
         #[arg(
             long = "output-path",
@@ -54,6 +54,9 @@ pub enum MrjCommand {
             value_parser = validate_txt_path,
             )]
         summary_path: PathBuf,
+        /// Whether to show disqualifications in the summary
+        #[arg(long = "summarize-disqualifications", short = 'd')]
+        summarize_disqualifications: bool,
         /// Whether to show information for repos with no PRs
         #[arg(long = "show-repos-with-no-prs", short = 'n')]
         show_repos_with_no_prs: bool,
@@ -136,10 +139,11 @@ impl std::fmt::Display for Args {
             MrjCommand::Run {
                 config_file,
                 repos,
-                output,
+                output_to_file: output,
                 output_path,
                 summary,
                 summary_path,
+                summarize_disqualifications,
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
                 show_prs_with_unmatched_head,
@@ -150,10 +154,11 @@ impl std::fmt::Display for Args {
 command                           : Run
 config file                       : {}
 repos (overridden)                : {:?}
-write output                      : {}
+output to file                    : {}
 output file                       : {}
 write summary                     : {}
 summary file                      : {}
+summarize disqualifications       : {}
 show repos with no prs            : {}
 show prs from untrusted authors   : {}
 show prs with unmatched head      : {}
@@ -166,6 +171,7 @@ plain stdout                      : {}
                 output_path.to_string_lossy(),
                 summary,
                 summary_path.to_string_lossy(),
+                summarize_disqualifications,
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
                 show_prs_with_unmatched_head,
