@@ -143,17 +143,17 @@ impl std::fmt::Display for Args {
                 execute,
             } => format!(
                 r#"
-command                                   : Run
-config file                               : {}
-repos (overridden)                        : {:?}
-write output                              : {}
-output file                               : {}
-write summary                             : {}
-summary file                              : {}
-show repos with no prs                    : {}
-show prs from untrusted authors           : {}
-show prs with undesirable head            : {}
-execute                                   : {}
+command                           : Run
+config file                       : {}
+repos (overridden)                : {:?}
+write output                      : {}
+output file                       : {}
+write summary                     : {}
+summary file                      : {}
+show repos with no prs            : {}
+show prs from untrusted authors   : {}
+show prs with unmatched head      : {}
+execute                           : {}
 "#,
                 config_file.to_string_lossy(),
                 repos.iter().map(|r| r.to_string()).collect::<Vec<String>>(),
