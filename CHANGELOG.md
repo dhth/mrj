@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Allow listing disqualifications in summary
+- List disqualifications in summary
 - Allow printing to stdout without color
 
 ### Changed
