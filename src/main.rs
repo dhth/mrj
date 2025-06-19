@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
             output_path,
             summary,
             summary_path,
-            summarize_disqualifications,
+            skip_disqualifications_in_summary,
             show_repos_with_no_prs,
             show_prs_from_untrusted_authors,
             show_prs_with_unmatched_head,
@@ -67,7 +67,7 @@ async fn main() -> anyhow::Result<()> {
             let run_behaviours = RunBehaviours {
                 output_path: output_path_to_use,
                 summary_path: summary_path_to_use,
-                summarize_disqualifications,
+                skip_disqualifications_in_summary,
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
                 show_prs_with_unmatched_head,

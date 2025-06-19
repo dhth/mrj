@@ -54,14 +54,14 @@ pub enum MrjCommand {
             value_parser = validate_txt_path,
             )]
         summary_path: PathBuf,
-        /// Whether to show disqualifications in the summary
-        #[arg(long = "summarize-disqualifications", short = 'd')]
-        summarize_disqualifications: bool,
+        /// Whether to skip listing disqualifications in the summary
+        #[arg(long = "skip-disqualifications-in-summary", short = 'D')]
+        skip_disqualifications_in_summary: bool,
         /// Whether to show information for repos with no PRs
-        #[arg(long = "show-repos-with-no-prs", short = 'n')]
+        #[arg(long = "show-repos-with-no-prs", short = 'N')]
         show_repos_with_no_prs: bool,
         /// Whether to show information for PRs from untrusted authors
-        #[arg(long = "show-prs-from-untrusted-authors", short = 'u')]
+        #[arg(long = "show-prs-from-untrusted-authors", short = 'U')]
         show_prs_from_untrusted_authors: bool,
         /// Whether to show information for PRs where head doesn't match configured pattern
         #[arg(long = "show-unmatched-head-prs", short = 'H')]
@@ -143,7 +143,7 @@ impl std::fmt::Display for Args {
                 output_path,
                 summary,
                 summary_path,
-                summarize_disqualifications,
+                skip_disqualifications_in_summary,
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
                 show_prs_with_unmatched_head,
@@ -158,7 +158,7 @@ output to file                    : {}
 output file                       : {}
 write summary                     : {}
 summary file                      : {}
-summarize disqualifications       : {}
+skip disqualifications in summary : {}
 show repos with no prs            : {}
 show prs from untrusted authors   : {}
 show prs with unmatched head      : {}
@@ -171,7 +171,7 @@ plain stdout                      : {}
                 output_path.to_string_lossy(),
                 summary,
                 summary_path.to_string_lossy(),
-                summarize_disqualifications,
+                skip_disqualifications_in_summary,
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
                 show_prs_with_unmatched_head,

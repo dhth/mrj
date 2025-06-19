@@ -102,33 +102,34 @@ PRs merged
             ))
         };
 
-        let disqualifications_summary =
-            if self.b.summarize_disqualifications && !self.summary.disqualifications.is_empty() {
-                let longest_url_len = self
-                    .summary
-                    .disqualifications
-                    .iter()
-                    .map(|(p, _)| p.len())
-                    .max()
-                    .unwrap_or(80);
+        let disqualifications_summary = if !self.b.skip_disqualifications_in_summary
+            && !self.summary.disqualifications.is_empty()
+        {
+            let longest_url_len = self
+                .summary
+                .disqualifications
+                .iter()
+                .map(|(p, _)| p.len())
+                .max()
+                .unwrap_or(80);
 
-                Some(format!(
-                    r#"
+            Some(format!(
+                r#"
 
 Disqualifications
 ---
 
 {}"#,
-                    self.summary
-                        .disqualifications
-                        .iter()
-                        .map(|(u, d)| format!("- {:<longest_url_len$}        {}", u, d))
-                        .collect::<Vec<_>>()
-                        .join("\n")
-                ))
-            } else {
-                None
-            };
+                self.summary
+                    .disqualifications
+                    .iter()
+                    .map(|(u, d)| format!("- {:<longest_url_len$}        {}", u, d))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            ))
+        } else {
+            None
+        };
 
         let summary = format!(
             r#"
@@ -935,16 +936,24 @@ mod tests {
 # Repos checked               :  1
 # Repos with no relevant PRs  :  0
 # Errors encountered          :  0
+
+Disqualifications
+---
+
+- https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
+- https://github.com/dhth/mrj/pull/1        check lint: failure
+- https://github.com/dhth/mrj/pull/1        state: unknown
+- https://github.com/dhth/mrj/pull/1        state: dirty
 "#
         );
     }
 
     #[test]
-    fn summary_includes_disqualifications_when_requested() {
+    fn disqualifications_can_be_skipped_in_summary_when_requested() {
         // GIVEN
         let mut buffer = vec![];
 
-        let behaviours = RunBehaviours::default().summarize_disqualifications();
+        let behaviours = RunBehaviours::default().skip_disqualifications_in_summary();
 
         let mut l = RunLog::new(&mut buffer, &behaviours);
         let repo_check = RepoCheck {
@@ -989,14 +998,6 @@ mod tests {
 # Repos checked               :  1
 # Repos with no relevant PRs  :  0
 # Errors encountered          :  0
-
-Disqualifications
----
-
-- https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
-- https://github.com/dhth/mrj/pull/1        check lint: failure
-- https://github.com/dhth/mrj/pull/1        state: unknown
-- https://github.com/dhth/mrj/pull/1        state: dirty
 "#
         );
     }
@@ -1008,8 +1009,7 @@ Disqualifications
 
         let behaviours = RunBehaviours::default()
             .show_prs_with_unmatched_head()
-            .show_prs_from_untrusted_authors()
-            .summarize_disqualifications();
+            .show_prs_from_untrusted_authors();
 
         let mut l = RunLog::new(&mut buffer, &behaviours);
         let repo_check = RepoCheck {
@@ -1074,7 +1074,7 @@ Disqualifications
         // GIVEN
         let mut buffer = vec![];
 
-        let behaviours = RunBehaviours::default().summarize_disqualifications();
+        let behaviours = RunBehaviours::default().skip_disqualifications_in_summary();
 
         let mut l = RunLog::new(&mut buffer, &behaviours);
         let repo_check = RepoCheck {
@@ -1119,9 +1119,7 @@ Disqualifications
         // GIVEN
         let mut buffer = vec![];
 
-        let behaviours = RunBehaviours::default()
-            .show_prs_with_unmatched_head()
-            .summarize_disqualifications();
+        let behaviours = RunBehaviours::default().show_prs_with_unmatched_head();
 
         let mut l = RunLog::new(&mut buffer, &behaviours);
         let repo_check = RepoCheck {
