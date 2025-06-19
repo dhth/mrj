@@ -29,10 +29,11 @@ async fn main() -> anyhow::Result<()> {
         MrjCommand::Run {
             config_file,
             repos,
-            output,
+            output_to_file,
             output_path,
             summary,
             summary_path,
+            summarize_disqualifications,
             show_repos_with_no_prs,
             show_prs_from_untrusted_authors,
             show_prs_with_unmatched_head,
@@ -55,11 +56,18 @@ async fn main() -> anyhow::Result<()> {
             );
             let client = octocrab::instance();
 
+            let output_path_to_use = if output_to_file {
+                Some(output_path)
+            } else {
+                None
+            };
+
+            let summary_path_to_use = if summary { Some(summary_path) } else { None };
+
             let run_behaviours = RunBehaviours {
-                output,
-                output_path,
-                summary,
-                summary_path,
+                output_path: output_path_to_use,
+                summary_path: summary_path_to_use,
+                summarize_disqualifications,
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
                 show_prs_with_unmatched_head,
