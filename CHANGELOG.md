@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Allow listing disqualifications in summary
+- Allow printing to stdout without color
+
 ### Changed
 
-- Defaults to skipping PRs where head doesn't match the configured pattern
+- Default to skipping PRs where head doesn't match the configured pattern
 
 ## [v0.3.0] - Jun 16, 2025
 
