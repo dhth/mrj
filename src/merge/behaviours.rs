@@ -4,7 +4,7 @@ use std::path::PathBuf;
 pub struct RunBehaviours {
     pub output_path: Option<PathBuf>,
     pub summary_path: Option<PathBuf>,
-    pub summarize_disqualifications: bool,
+    pub skip_disqualifications_in_summary: bool,
     pub show_repos_with_no_prs: bool,
     pub show_prs_from_untrusted_authors: bool,
     pub show_prs_with_unmatched_head: bool,
@@ -18,7 +18,7 @@ impl RunBehaviours {
         Self {
             output_path: None,
             summary_path: None,
-            summarize_disqualifications: false,
+            skip_disqualifications_in_summary: false,
             show_repos_with_no_prs: false,
             show_prs_from_untrusted_authors: false,
             show_prs_with_unmatched_head: false,
@@ -37,8 +37,8 @@ impl RunBehaviours {
         self
     }
 
-    pub(super) fn summarize_disqualifications(mut self) -> Self {
-        self.summarize_disqualifications = true;
+    pub(super) fn skip_disqualifications_in_summary(mut self) -> Self {
+        self.skip_disqualifications_in_summary = true;
         self
     }
 }
