@@ -1,3 +1,4 @@
+use super::behaviours::RunBehaviours;
 use crate::domain::{
     Disqualification, MergeResult, MergedPR, Qualification, RepoResult, RunSummary,
 };
@@ -5,7 +6,6 @@ use anyhow::Context;
 use colored::Colorize;
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::path::Path;
 
 const BANNER: &str = include_str!("assets/banner.txt");
 const AUTHOR: &str = "[ author ]  ";
@@ -13,29 +13,20 @@ const HEAD: &str = "[ head   ]  ";
 const CHECK: &str = "[ check  ]  ";
 const STATE: &str = "[ state  ]  ";
 
-pub(super) struct RunLog {
-    write_to_file: bool,
+pub(super) struct RunLog<W: Write> {
+    w: W,
+    b: RunBehaviours,
     lines: Vec<String>,
     summary: RunSummary,
-    show_repos_with_no_prs: bool,
-    show_prs_from_untrusted_authors: bool,
-    execute: bool,
 }
 
-impl RunLog {
-    pub(super) fn new(
-        output: bool,
-        show_repos_with_no_prs: bool,
-        show_prs_from_untrusted_authors: bool,
-        execute: bool,
-    ) -> Self {
+impl<W: Write> RunLog<W> {
+    pub(super) fn new(writer: W, behaviours: &RunBehaviours) -> Self {
         RunLog {
-            write_to_file: output,
+            w: writer,
+            b: behaviours.clone(),
             lines: vec![],
             summary: RunSummary::default(),
-            show_repos_with_no_prs,
-            show_prs_from_untrusted_authors,
-            execute,
         }
     }
 
@@ -43,25 +34,34 @@ impl RunLog {
         self.summary.record_repo();
 
         match &result {
-            RepoResult::Errored(repo_check) => self.error(repo_check.state.reason()),
+            RepoResult::Errored(repo_check) => {
+                self.repo_info(&result.name());
+                self.empty_line();
+                self.error(repo_check.state.reason());
+            }
             RepoResult::Finished(repo_check) => {
                 let filtered_results = repo_check
                     .results()
                     .iter()
-                    .filter(|result| {
-                        !matches!(result,
-                        MergeResult::Disqualified(pr_check) if
-                        matches!(
-                            pr_check.state.reason(),
-                            Disqualification::User(_)
-                        ) && !self.show_prs_from_untrusted_authors
-                        )
+                    .filter(|result| match result {
+                        MergeResult::Disqualified(pr_check) => match pr_check.state.reason() {
+                            Disqualification::Author(_)
+                                if !self.b.show_prs_from_untrusted_authors =>
+                            {
+                                false
+                            }
+                            Disqualification::Head(_) if !self.b.show_prs_with_unmatched_head => {
+                                false
+                            }
+                            _ => true,
+                        },
+                        _ => true,
                     })
                     .collect::<Vec<_>>();
 
                 if filtered_results.is_empty() {
                     self.summary.record_repo_with_no_prs();
-                    if !self.show_repos_with_no_prs {
+                    if !self.b.show_repos_with_no_prs {
                         return;
                     }
                 }
@@ -82,16 +82,7 @@ impl RunLog {
         }
     }
 
-    pub(super) fn write_output<P>(
-        &mut self,
-        output_to_file: bool,
-        output_path: P,
-        summary_to_file: bool,
-        summary_path: P,
-    ) -> anyhow::Result<()>
-    where
-        P: AsRef<Path>,
-    {
+    pub(super) fn write_output(&mut self) -> anyhow::Result<()> {
         let prs_merged = if self.summary.prs_merged.is_empty() {
             None
         } else {
@@ -131,9 +122,15 @@ PRs merged
             prs_merged.unwrap_or_default(),
         );
 
-        println!("{}", &summary.green());
+        let output = if self.b.plain_stdout {
+            &summary
+        } else {
+            &summary.green().to_string()
+        };
 
-        if !output_to_file {
+        let _ = writeln!(self.w, "{}", output);
+
+        if !self.b.output {
             return Ok(());
         }
 
@@ -143,18 +140,18 @@ PRs merged
             .create(true)
             .write(true)
             .truncate(true)
-            .open(output_path)
+            .open(self.b.output_path.as_path())
             .context("couldn't open a handle to the output file")?;
 
         file.write_all(self.lines.join("\n").as_bytes())
             .context("couldn't write output to file")?;
 
-        if summary_to_file {
+        if self.b.summary {
             let mut file = OpenOptions::new()
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open(summary_path)
+                .open(self.b.summary_path.as_path())
                 .context("couldn't open a handle to the summary file")?;
 
             file.write_all(summary.trim_start().as_bytes())
@@ -165,34 +162,48 @@ PRs merged
     }
 
     pub(super) fn banner(&mut self) {
-        println!("{}", BANNER.green().bold());
-        if !self.execute {
-            println!("{}", "                         dry run".yellow());
-        }
-        println!("\n");
+        let banner_output = if self.b.plain_stdout {
+            BANNER
+        } else {
+            &BANNER.green().bold().to_string()
+        };
 
-        if self.write_to_file {
+        let _ = writeln!(self.w, "{}", banner_output);
+
+        let dry_run_line = "                         dry run".to_string();
+        let dry_run_output = if self.b.plain_stdout {
+            &dry_run_line
+        } else {
+            &dry_run_line.yellow().to_string()
+        };
+
+        if !self.b.execute {
+            let _ = writeln!(self.w, "{}", dry_run_output);
+        }
+
+        let _ = writeln!(self.w);
+
+        if self.b.output {
             self.lines.push(BANNER.to_string());
-            if !self.execute {
-                self.lines
-                    .push("                         dry run".to_string());
+            if !self.b.execute {
+                self.lines.push(dry_run_line);
             }
-            self.lines.push("\n".to_string());
+            self.lines.push("".to_string());
         }
     }
 
     pub(super) fn info(&mut self, message: &str) {
-        println!("[INFO] {}", message);
+        let _ = writeln!(self.w, "[INFO] {}", message);
 
-        if self.write_to_file {
+        if self.b.output {
             self.lines.push(format!("[INFO] {}", message));
         }
     }
 
     pub(super) fn empty_line(&mut self) {
-        println!();
+        let _ = writeln!(self.w);
 
-        if self.write_to_file {
+        if self.b.output {
             self.lines.push("".to_string());
         }
     }
@@ -245,35 +256,38 @@ PRs merged
     }
 
     fn repo_info(&mut self, name: &str) {
-        println!(
-            "{}",
-            format!(
-                r#"
+        let line = format!(
+            r#"
 
 =============
   {}
 ============="#,
-                name
-            )
-            .cyan()
+            name
         );
 
-        if self.write_to_file {
-            self.lines.push(format!(
-                r#"
+        let output = if self.b.plain_stdout {
+            &line
+        } else {
+            &line.cyan().to_string()
+        };
 
-=============
-  {}
-============="#,
-                name
-            ));
+        let _ = writeln!(self.w, "{}", output);
+
+        if self.b.output {
+            self.lines.push(line);
         }
     }
 
     fn pr_info(&mut self, msg: &str) {
-        println!("{}", msg.purple());
+        let output = if self.b.plain_stdout {
+            msg
+        } else {
+            &msg.purple().to_string()
+        };
 
-        if self.write_to_file {
+        let _ = writeln!(self.w, "{}", output);
+
+        if self.b.output {
             self.lines.push(msg.to_string());
         }
     }
@@ -283,7 +297,7 @@ PRs merged
             Qualification::Head(h) => {
                 format!("{} \"{}\" matches the allowed head pattern", HEAD, h)
             }
-            Qualification::User(a) => {
+            Qualification::Author(a) => {
                 format!("{} \"{}\" is in the list of trusted authors", AUTHOR, a)
             }
             Qualification::Check { name, conclusion } => {
@@ -295,9 +309,15 @@ PRs merged
             Qualification::State(s) => format!("{} \"{}\" is desirable", STATE, s),
         };
 
-        println!("        {}", msg.blue());
+        let output = if self.b.plain_stdout {
+            &msg
+        } else {
+            &msg.blue().to_string()
+        };
 
-        if self.write_to_file {
+        let _ = writeln!(self.w, "        {}", output);
+
+        if self.b.output {
             self.lines.push(format!("        {}", msg));
         }
     }
@@ -307,7 +327,7 @@ PRs merged
             Disqualification::Head(h) => {
                 format!("{} \"{}\" doesn't match the allowed head pattern", HEAD, h)
             }
-            Disqualification::User(maybe_author) => match maybe_author {
+            Disqualification::Author(maybe_author) => match maybe_author {
                 Some(a) => format!("{} \"{}\" is not in the list of trusted authors", AUTHOR, a),
                 None => format!(
                     "{} Github sent an empty user; skipping as I can't make any assumptions here",
@@ -333,9 +353,15 @@ PRs merged
             },
         };
 
-        println!("        {} ❌", msg.yellow());
+        let output = if self.b.plain_stdout {
+            &msg
+        } else {
+            &msg.yellow().to_string()
+        };
 
-        if self.write_to_file {
+        let _ = writeln!(self.w, "        {} ❌", output);
+
+        if self.b.output {
             self.lines.push(format!("        {} ❌", msg));
         }
 
@@ -343,38 +369,727 @@ PRs merged
     }
 
     fn absence(&mut self, msg: &str) {
-        println!("        {}", msg.yellow());
+        let output = if self.b.plain_stdout {
+            msg
+        } else {
+            &msg.yellow().to_string()
+        };
 
-        if self.write_to_file {
+        let _ = writeln!(self.w, "        {}", output);
+
+        if self.b.output {
             self.lines.push(format!("        {}", msg));
         }
     }
 
     fn merge(&mut self, pr: MergedPR) {
-        let msg = if self.execute {
+        let msg = if self.b.execute {
             "PR merged! 🎉 ✅"
         } else {
             "PR matches all criteria, I would've merged it if this weren't a dry run ✅"
         };
 
-        println!("        {}", msg.green());
+        let output = if self.b.plain_stdout {
+            msg
+        } else {
+            &msg.green().to_string()
+        };
 
-        if self.write_to_file {
+        let _ = writeln!(self.w, "        {}", output);
+
+        if self.b.output {
             self.lines.push(format!("        {}", msg));
         }
 
-        if self.execute {
+        if self.b.execute {
             self.summary.record_merged_pr(pr);
         }
     }
 
     fn error(&mut self, error: &anyhow::Error) {
-        println!("{}", format!("        error 😵: {}", error).red());
+        let line = format!("        error 😵: {}", error);
+        let output = if self.b.plain_stdout {
+            &line
+        } else {
+            &line.red().to_string()
+        };
 
-        if self.write_to_file {
-            self.lines.push(format!("        error 😵: {}", error));
+        let _ = writeln!(self.w, "{}", output);
+
+        if self.b.output {
+            self.lines.push(line);
         }
 
         self.summary.record_error();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::{
+        PRCheck, PRCheckFinished, PRDisqualified, RepoCheck, RepoCheckErrored, RepoCheckFinished,
+    };
+    use chrono::{DateTime, TimeZone, Utc};
+    use pretty_assertions::assert_eq;
+    use std::path::PathBuf;
+
+    const OWNER: &str = "dhth";
+    const REPO: &str = "mrj";
+    const PR_TITLE: &str = "build: bump clap from 4.5.39 to 4.5.40";
+    const PR_URL: &str = "https://github.com/dhth/mrj/pull/1";
+    const PR_HEAD: &str = "dependabot/cargo/clap-4.5.40";
+    const PR_AUTHOR: &str = "dependabot[bot]";
+
+    #[test]
+    fn failed_repo_result_is_printed_correctly() {
+        // GIVEN
+        let mut buffer = vec![];
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckErrored(anyhow::anyhow!("something went wrong")),
+        };
+        let repo_result = RepoResult::Errored(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+        error 😵: something went wrong
+"#
+        );
+    }
+
+    #[test]
+    fn pr_with_unmatched_head_is_ignored_by_default() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_disqualified_unmatched_head()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        assert_eq!(buffer.len(), 0);
+    }
+
+    #[test]
+    fn pr_with_unmatched_head_is_printed_if_requested() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let behaviours = RunBehaviours {
+            output: false,
+            output_path: PathBuf::new(),
+            summary: false,
+            summary_path: PathBuf::new(),
+            show_repos_with_no_prs: false,
+            show_prs_from_untrusted_authors: false,
+            show_prs_with_unmatched_head: true,
+            execute: false,
+            plain_stdout: true,
+        };
+        let mut l = RunLog::new(&mut buffer, &behaviours);
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_disqualified_unmatched_head()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+-> checking PR #1
+        build: bump clap from 4.5.39 to 4.5.40
+        https://github.com/dhth/mrj/pull/1
+        Created: Mon, 1 Jan 2024 01:01:01 +0000
+        Updated: Tue, 2 Jan 2024 01:01:01 +0000
+        [ head   ]   "improve tests" doesn't match the allowed head pattern ❌
+"#
+        );
+    }
+
+    #[test]
+    fn pr_with_unknown_author_is_ignored_by_default() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_disqualified_untrusted_author()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        assert_eq!(buffer.len(), 0);
+    }
+
+    #[test]
+    fn pr_with_unknown_author_is_printed_if_requested() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let behaviours = RunBehaviours {
+            output: false,
+            output_path: PathBuf::new(),
+            summary: false,
+            summary_path: PathBuf::new(),
+            show_repos_with_no_prs: false,
+            show_prs_from_untrusted_authors: true,
+            show_prs_with_unmatched_head: false,
+            execute: false,
+            plain_stdout: true,
+        };
+        let mut l = RunLog::new(&mut buffer, &behaviours);
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_disqualified_unknown_author()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+-> checking PR #1
+        build: bump clap from 4.5.39 to 4.5.40
+        https://github.com/dhth/mrj/pull/1
+        Created: Mon, 1 Jan 2024 01:01:01 +0000
+        Updated: Tue, 2 Jan 2024 01:01:01 +0000
+        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+        [ author ]   Github sent an empty user; skipping as I can't make any assumptions here ❌
+"#
+        );
+    }
+
+    #[test]
+    fn pr_with_untrusted_author_is_ignored_by_default() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_disqualified_untrusted_author()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        assert_eq!(buffer.len(), 0);
+    }
+
+    #[test]
+    fn pr_with_untrusted_author_is_printed_if_requested() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let behaviours = RunBehaviours {
+            output: false,
+            output_path: PathBuf::new(),
+            summary: false,
+            summary_path: PathBuf::new(),
+            show_repos_with_no_prs: false,
+            show_prs_from_untrusted_authors: true,
+            show_prs_with_unmatched_head: false,
+            execute: false,
+            plain_stdout: true,
+        };
+        let mut l = RunLog::new(&mut buffer, &behaviours);
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_disqualified_untrusted_author()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+-> checking PR #1
+        build: bump clap from 4.5.39 to 4.5.40
+        https://github.com/dhth/mrj/pull/1
+        Created: Mon, 1 Jan 2024 01:01:01 +0000
+        Updated: Tue, 2 Jan 2024 01:01:01 +0000
+        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+        [ author ]   "untrusted-dependabot[bot]" is not in the list of trusted authors ❌
+"#
+        );
+    }
+
+    #[test]
+    fn pr_with_empty_check_conclusion_is_printed_correctly() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![
+                merge_result_disqualified_check_with_unknown_conclusion(),
+            ]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+-> checking PR #1
+        build: bump clap from 4.5.39 to 4.5.40
+        https://github.com/dhth/mrj/pull/1
+        Created: Mon, 1 Jan 2024 01:01:01 +0000
+        Updated: Tue, 2 Jan 2024 01:01:01 +0000
+        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+        [ author ]   "dependabot[bot]" is in the list of trusted authors
+        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+        [ check  ]   "test" concluded with desired status: "success"
+        [ check  ]   Github returned with an empty conclusion for the check lint; skipping as I can't make any assumptions here ❌
+"#
+        );
+    }
+
+    #[test]
+    fn pr_with_a_failed_check_is_printed_correctly() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_disqualified_failed_check()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+-> checking PR #1
+        build: bump clap from 4.5.39 to 4.5.40
+        https://github.com/dhth/mrj/pull/1
+        Created: Mon, 1 Jan 2024 01:01:01 +0000
+        Updated: Tue, 2 Jan 2024 01:01:01 +0000
+        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+        [ author ]   "dependabot[bot]" is in the list of trusted authors
+        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+        [ check  ]   "test" concluded with desired status: "success"
+        [ check  ]   "lint" concluded with undesired status: "failure" ❌
+"#
+        );
+    }
+
+    #[test]
+    fn pr_with_unknown_state_is_printed_correctly() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_disqualified_unknown_state()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+-> checking PR #1
+        build: bump clap from 4.5.39 to 4.5.40
+        https://github.com/dhth/mrj/pull/1
+        Created: Mon, 1 Jan 2024 01:01:01 +0000
+        Updated: Tue, 2 Jan 2024 01:01:01 +0000
+        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+        [ author ]   "dependabot[bot]" is in the list of trusted authors
+        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+        [ check  ]   "test" concluded with desired status: "success"
+        [ state  ]   Github returned with an empty mergeable state; skipping as I can't make any assumptions here ❌
+"#
+        );
+    }
+
+    #[test]
+    fn pr_with_an_undesirable_state_is_printed_correctly() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_disqualified_dirty_state()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+-> checking PR #1
+        build: bump clap from 4.5.39 to 4.5.40
+        https://github.com/dhth/mrj/pull/1
+        Created: Mon, 1 Jan 2024 01:01:01 +0000
+        Updated: Tue, 2 Jan 2024 01:01:01 +0000
+        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+        [ author ]   "dependabot[bot]" is in the list of trusted authors
+        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+        [ check  ]   "test" concluded with desired status: "success"
+        [ state  ]   "Dirty" is undesirable ❌
+"#
+        );
+    }
+
+    #[test]
+    fn pr_with_a_finished_check_is_printed_correctly() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_qualified()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+-> checking PR #1
+        build: bump clap from 4.5.39 to 4.5.40
+        https://github.com/dhth/mrj/pull/1
+        Created: Mon, 1 Jan 2024 01:01:01 +0000
+        Updated: Tue, 2 Jan 2024 01:01:01 +0000
+        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+        [ author ]   "dependabot[bot]" is in the list of trusted authors
+        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+        [ check  ]   "test" concluded with desired status: "success"
+        [ state  ]   "clean" is desirable
+        PR matches all criteria, I would've merged it if this weren't a dry run ✅
+"#
+        );
+    }
+
+    fn merge_result_disqualified_unmatched_head() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: Some(created_at()),
+            pr_updated_at: Some(updated_at()),
+            qualifications: vec![],
+            state: PRDisqualified(Disqualification::Head("improve tests".to_string())),
+        })
+    }
+
+    fn merge_result_disqualified_unknown_author() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: Some(created_at()),
+            pr_updated_at: Some(updated_at()),
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRDisqualified(Disqualification::Author(None)),
+        })
+    }
+
+    fn merge_result_disqualified_untrusted_author() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: Some(created_at()),
+            pr_updated_at: Some(updated_at()),
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRDisqualified(Disqualification::Author(Some(
+                "untrusted-dependabot[bot]".to_string(),
+            ))),
+        })
+    }
+
+    fn merge_result_disqualified_check_with_unknown_conclusion() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: Some(created_at()),
+            pr_updated_at: Some(updated_at()),
+            qualifications: vec![
+                Qualification::Head(PR_HEAD.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
+                Qualification::Check {
+                    name: "build (macos-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "build (ubuntu-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "test".to_string(),
+                    conclusion: "success".to_string(),
+                },
+            ],
+            state: PRDisqualified(Disqualification::Check {
+                name: "lint".to_string(),
+                conclusion: None,
+            }),
+        })
+    }
+
+    fn merge_result_disqualified_failed_check() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: Some(created_at()),
+            pr_updated_at: Some(updated_at()),
+            qualifications: vec![
+                Qualification::Head(PR_HEAD.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
+                Qualification::Check {
+                    name: "build (macos-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "build (ubuntu-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "test".to_string(),
+                    conclusion: "success".to_string(),
+                },
+            ],
+            state: PRDisqualified(Disqualification::Check {
+                name: "lint".to_string(),
+                conclusion: Some("failure".to_string()),
+            }),
+        })
+    }
+
+    fn merge_result_disqualified_unknown_state() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: Some(created_at()),
+            pr_updated_at: Some(updated_at()),
+            qualifications: vec![
+                Qualification::Head(PR_HEAD.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
+                Qualification::Check {
+                    name: "build (macos-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "build (ubuntu-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "test".to_string(),
+                    conclusion: "success".to_string(),
+                },
+            ],
+            state: PRDisqualified(Disqualification::State(None)),
+        })
+    }
+
+    fn merge_result_disqualified_dirty_state() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: Some(created_at()),
+            pr_updated_at: Some(updated_at()),
+            qualifications: vec![
+                Qualification::Head(PR_HEAD.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
+                Qualification::Check {
+                    name: "build (macos-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "build (ubuntu-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "test".to_string(),
+                    conclusion: "success".to_string(),
+                },
+            ],
+            state: PRDisqualified(Disqualification::State(Some("Dirty".to_string()))),
+        })
+    }
+
+    fn merge_result_qualified() -> MergeResult {
+        MergeResult::Qualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: Some(created_at()),
+            pr_updated_at: Some(updated_at()),
+            qualifications: vec![
+                Qualification::Head(PR_HEAD.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
+                Qualification::Check {
+                    name: "build (macos-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "build (ubuntu-latest)".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::Check {
+                    name: "test".to_string(),
+                    conclusion: "success".to_string(),
+                },
+                Qualification::State("clean".to_string()),
+            ],
+            state: PRCheckFinished,
+        })
+    }
+
+    fn default_behaviours_for_test() -> RunBehaviours {
+        RunBehaviours {
+            output: false,
+            output_path: PathBuf::new(),
+            summary: false,
+            summary_path: PathBuf::new(),
+            show_repos_with_no_prs: false,
+            show_prs_from_untrusted_authors: false,
+            show_prs_with_unmatched_head: false,
+            execute: false,
+            plain_stdout: true,
+        }
+    }
+
+    fn created_at() -> DateTime<Utc> {
+        Utc.with_ymd_and_hms(2024, 1, 1, 1, 1, 1).unwrap()
+    }
+
+    fn updated_at() -> DateTime<Utc> {
+        Utc.with_ymd_and_hms(2024, 1, 2, 1, 1, 1).unwrap()
     }
 }

@@ -1,46 +1,29 @@
+mod behaviours;
 mod execute;
 mod log;
 
 use crate::config::Config;
 use crate::domain::{GhApiQueryParam, Repo};
 use anyhow::Context;
+pub use behaviours::RunBehaviours;
 use chrono::Utc;
 use execute::merge_pr_for_repo;
 use futures::StreamExt;
 use futures::stream::FuturesUnordered;
 use log::RunLog;
 use octocrab::Octocrab;
-use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 
 const MAX_FETCH_TASKS: usize = 50;
 
-pub struct RunBehaviours<P: AsRef<Path>> {
-    pub output: bool,
-    pub output_path: P,
-    pub summary: bool,
-    pub summary_path: P,
-    pub show_repos_with_no_prs: bool,
-    pub show_prs_from_untrusted_authors: bool,
-    pub execute: bool,
-}
-
-pub async fn merge_prs<P>(
+pub async fn merge_prs(
     client: Arc<Octocrab>,
     config: Config,
     repos_override: Vec<Repo>,
-    behaviours: RunBehaviours<P>,
-) -> anyhow::Result<()>
-where
-    P: AsRef<Path>,
-{
-    let mut l = RunLog::new(
-        behaviours.output,
-        behaviours.show_repos_with_no_prs,
-        behaviours.show_prs_from_untrusted_authors,
-        behaviours.execute,
-    );
+    behaviours: RunBehaviours,
+) -> anyhow::Result<()> {
+    let mut l = RunLog::new(std::io::stdout(), &behaviours);
 
     let repos_to_use = if repos_override.is_empty() {
         config.repos.clone()
@@ -80,6 +63,10 @@ where
         l.info("I will show PRs from untrusted authors");
     }
 
+    if behaviours.show_prs_with_unmatched_head && config.head_pattern.is_some() {
+        l.info("I will show PRs from where head doesn't match configured head pattern");
+    }
+
     l.info(&format!(
         r#"I'm sorting PRs based on "{}" in the "{}" direction"#,
         config.sort_by.readable_repr(),
@@ -113,13 +100,7 @@ where
         end_ts, num_seconds
     ));
 
-    l.write_output(
-        behaviours.output,
-        behaviours.output_path,
-        behaviours.summary,
-        behaviours.summary_path,
-    )
-    .context("couldn't write output to file")?;
+    l.write_output().context("couldn't write output to file")?;
 
     Ok(())
 }

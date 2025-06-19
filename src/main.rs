@@ -35,7 +35,9 @@ async fn main() -> anyhow::Result<()> {
             summary_path,
             show_repos_with_no_prs,
             show_prs_from_untrusted_authors,
+            show_prs_with_unmatched_head,
             execute,
+            plain_stdout,
         } => {
             let config = get_config(config_file)?;
 
@@ -55,12 +57,14 @@ async fn main() -> anyhow::Result<()> {
 
             let run_behaviours = RunBehaviours {
                 output,
-                output_path: &output_path,
+                output_path,
                 summary,
-                summary_path: &summary_path,
+                summary_path,
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
+                show_prs_with_unmatched_head,
                 execute,
+                plain_stdout,
             };
             merge_prs(client, config, repos, run_behaviours).await?;
         }

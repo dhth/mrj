@@ -60,9 +60,15 @@ pub enum MrjCommand {
         /// Whether to show information for PRs from untrusted authors
         #[arg(long = "show-prs-from-untrusted-authors", short = 'u')]
         show_prs_from_untrusted_authors: bool,
+        /// Whether to show information for PRs where head doesn't match configured pattern
+        #[arg(long = "show-unmatched-head-prs", short = 'H')]
+        show_prs_with_unmatched_head: bool,
         /// Whether to actually merge PRs; mrj operates in "dry-run mode" by default
         #[arg(long = "execute", short = 'e')]
         execute: bool,
+        /// Whether to use output text to stdout without color
+        #[arg(long = "plain", short = 'p')]
+        plain_stdout: bool,
     },
     /// Interact with mrj's config
     Config {
@@ -136,7 +142,9 @@ impl std::fmt::Display for Args {
                 summary_path,
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
+                show_prs_with_unmatched_head,
                 execute,
+                plain_stdout,
             } => format!(
                 r#"
 command                           : Run
@@ -148,7 +156,9 @@ write summary                     : {}
 summary file                      : {}
 show repos with no prs            : {}
 show prs from untrusted authors   : {}
+show prs with unmatched head      : {}
 execute                           : {}
+plain stdout                      : {}
 "#,
                 config_file.to_string_lossy(),
                 repos.iter().map(|r| r.to_string()).collect::<Vec<String>>(),
@@ -158,7 +168,9 @@ execute                           : {}
                 summary_path.to_string_lossy(),
                 show_repos_with_no_prs,
                 show_prs_from_untrusted_authors,
-                execute
+                show_prs_with_unmatched_head,
+                execute,
+                plain_stdout,
             ),
             MrjCommand::Config { config_command } => match config_command {
                 ConfigCommand::Validate { config_file } => format!(
