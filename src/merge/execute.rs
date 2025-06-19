@@ -103,15 +103,15 @@ async fn merge_pr(
 
     match &pull_request.user {
         Some(trusted_user) if config.trusted_authors.contains(&trusted_user.login) => {
-            pr_check.add_qualification(Q::User(trusted_user.login.clone()));
+            pr_check.add_qualification(Q::Author(trusted_user.login.clone()));
         }
         Some(other_user) => {
             return MergeResult::Disqualified(
-                pr_check.disqualify(DQ::User(Some(other_user.login.clone()))),
+                pr_check.disqualify(DQ::Author(Some(other_user.login.clone()))),
             );
         }
         None => {
-            return MergeResult::Disqualified(pr_check.disqualify(DQ::User(None)));
+            return MergeResult::Disqualified(pr_check.disqualify(DQ::Author(None)));
         }
     }
 

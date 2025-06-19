@@ -494,7 +494,7 @@ pub struct MergedPR {
 #[derive(Debug)]
 pub enum Qualification {
     Head(String),
-    User(String),
+    Author(String),
     Check { name: String, conclusion: String },
     State(String),
 }
@@ -502,7 +502,7 @@ pub enum Qualification {
 #[derive(Debug)]
 pub enum Disqualification {
     Head(String),
-    User(Option<String>),
+    Author(Option<String>),
     Check {
         name: String,
         conclusion: Option<String>,

@@ -41,7 +41,7 @@ impl<W: Write> RunLog<W> {
                     .iter()
                     .filter(|result| match result {
                         MergeResult::Disqualified(pr_check) => match pr_check.state.reason() {
-                            Disqualification::User(_)
+                            Disqualification::Author(_)
                                 if !self.b.show_prs_from_untrusted_authors =>
                             {
                                 false
@@ -293,7 +293,7 @@ PRs merged
             Qualification::Head(h) => {
                 format!("{} \"{}\" matches the allowed head pattern", HEAD, h)
             }
-            Qualification::User(a) => {
+            Qualification::Author(a) => {
                 format!("{} \"{}\" is in the list of trusted authors", AUTHOR, a)
             }
             Qualification::Check { name, conclusion } => {
@@ -323,7 +323,7 @@ PRs merged
             Disqualification::Head(h) => {
                 format!("{} \"{}\" doesn't match the allowed head pattern", HEAD, h)
             }
-            Disqualification::User(maybe_author) => match maybe_author {
+            Disqualification::Author(maybe_author) => match maybe_author {
                 Some(a) => format!("{} \"{}\" is not in the list of trusted authors", AUTHOR, a),
                 None => format!(
                     "{} Github sent an empty user; skipping as I can't make any assumptions here",
@@ -438,7 +438,7 @@ mod tests {
     const PR_AUTHOR: &str = "dependabot[bot]";
 
     #[test]
-    fn test_failed_repo_result_is_printed_correctly() {
+    fn failed_repo_result_is_printed_correctly() {
         // GIVEN
         let mut buffer = vec![];
         let mut l = RunLog::new(&mut buffer, &default_behaviours());
@@ -459,7 +459,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_unmatched_head_is_ignored_by_default() {
+    fn pr_with_unmatched_head_is_ignored_by_default() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -479,7 +479,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_unmatched_head_is_printed_if_requested() {
+    fn pr_with_unmatched_head_is_printed_if_requested() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -527,7 +527,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_unknown_author_is_ignored_by_default() {
+    fn pr_with_unknown_author_is_ignored_by_default() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -547,7 +547,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_unknown_author_is_printed_if_requested() {
+    fn pr_with_unknown_author_is_printed_if_requested() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -596,7 +596,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_untrusted_author_is_ignored_by_default() {
+    fn pr_with_untrusted_author_is_ignored_by_default() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -616,7 +616,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_untrusted_author_is_printed_if_requested() {
+    fn pr_with_untrusted_author_is_printed_if_requested() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -665,7 +665,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_empty_check_conclusion_is_printed_correctly() {
+    fn pr_with_empty_check_conclusion_is_printed_correctly() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -709,7 +709,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_a_failed_check_is_printed_correctly() {
+    fn pr_with_a_failed_check_is_printed_correctly() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -751,7 +751,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_unknown_state_is_printed_correctly() {
+    fn pr_with_unknown_state_is_printed_correctly() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -793,7 +793,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_an_undesirable_state_is_printed_correctly() {
+    fn pr_with_an_undesirable_state_is_printed_correctly() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -835,7 +835,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pr_with_a_finished_check_is_printed_correctly() {
+    fn pr_with_a_finished_check_is_printed_correctly() {
         // GIVEN
         let mut buffer = vec![];
 
@@ -897,7 +897,7 @@ mod tests {
             pr_created_at: Some(created_at()),
             pr_updated_at: Some(updated_at()),
             qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
-            state: PRDisqualified(Disqualification::User(None)),
+            state: PRDisqualified(Disqualification::Author(None)),
         })
     }
 
@@ -909,7 +909,7 @@ mod tests {
             pr_created_at: Some(created_at()),
             pr_updated_at: Some(updated_at()),
             qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
-            state: PRDisqualified(Disqualification::User(Some(
+            state: PRDisqualified(Disqualification::Author(Some(
                 "untrusted-dependabot[bot]".to_string(),
             ))),
         })
@@ -924,7 +924,7 @@ mod tests {
             pr_updated_at: Some(updated_at()),
             qualifications: vec![
                 Qualification::Head(PR_HEAD.to_string()),
-                Qualification::User(PR_AUTHOR.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
                 Qualification::Check {
                     name: "build (macos-latest)".to_string(),
                     conclusion: "success".to_string(),
@@ -954,7 +954,7 @@ mod tests {
             pr_updated_at: Some(updated_at()),
             qualifications: vec![
                 Qualification::Head(PR_HEAD.to_string()),
-                Qualification::User(PR_AUTHOR.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
                 Qualification::Check {
                     name: "build (macos-latest)".to_string(),
                     conclusion: "success".to_string(),
@@ -984,7 +984,7 @@ mod tests {
             pr_updated_at: Some(updated_at()),
             qualifications: vec![
                 Qualification::Head(PR_HEAD.to_string()),
-                Qualification::User(PR_AUTHOR.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
                 Qualification::Check {
                     name: "build (macos-latest)".to_string(),
                     conclusion: "success".to_string(),
@@ -1011,7 +1011,7 @@ mod tests {
             pr_updated_at: Some(updated_at()),
             qualifications: vec![
                 Qualification::Head(PR_HEAD.to_string()),
-                Qualification::User(PR_AUTHOR.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
                 Qualification::Check {
                     name: "build (macos-latest)".to_string(),
                     conclusion: "success".to_string(),
@@ -1038,7 +1038,7 @@ mod tests {
             pr_updated_at: Some(updated_at()),
             qualifications: vec![
                 Qualification::Head(PR_HEAD.to_string()),
-                Qualification::User(PR_AUTHOR.to_string()),
+                Qualification::Author(PR_AUTHOR.to_string()),
                 Qualification::Check {
                     name: "build (macos-latest)".to_string(),
                     conclusion: "success".to_string(),
