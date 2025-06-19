@@ -33,10 +33,10 @@ pub enum MrjCommand {
             value_parser = validate_repo
             )]
         repos: Vec<Repo>,
-        /// Whether to write output to a file
+        /// Whether to write mrj's log of events to a file
         #[arg(long = "output-to-file", short = 'o')]
         output_to_file: bool,
-        /// Whether to write mrj's log of events to a file
+        /// File to write output to
         #[arg(
             long = "output-path",
             value_name = "FILE",

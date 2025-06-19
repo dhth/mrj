@@ -188,7 +188,7 @@ async fn merge_pr(
             }
             other => {
                 return MergeResult::Disqualified(
-                    pr_check.disqualify(DQ::State(Some(format!("{:?}", other)))),
+                    pr_check.disqualify(DQ::State(Some(format!("{:?}", other).to_lowercase()))),
                 );
             }
         },

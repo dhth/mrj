@@ -104,6 +104,14 @@ PRs merged
 
         let disqualifications_summary =
             if self.b.summarize_disqualifications && !self.summary.disqualifications.is_empty() {
+                let longest_url_len = self
+                    .summary
+                    .disqualifications
+                    .iter()
+                    .map(|(p, _)| p.len())
+                    .max()
+                    .unwrap_or(80);
+
                 Some(format!(
                     r#"
 
@@ -114,7 +122,7 @@ Disqualifications
                     self.summary
                         .disqualifications
                         .iter()
-                        .map(|d| format!("- {}", d))
+                        .map(|(u, d)| format!("- {:<longest_url_len$}        {}", u, d))
                         .collect::<Vec<_>>()
                         .join("\n")
                 ))
@@ -499,7 +507,7 @@ mod tests {
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
-            state: RepoCheckFinished(vec![merge_result_disqualified_unmatched_head()]),
+            state: RepoCheckFinished(vec![merge_result_disqualified_unmatched_head(1)]),
         };
         let repo_result = RepoResult::Finished(repo_check);
 
@@ -520,7 +528,7 @@ mod tests {
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
-            state: RepoCheckFinished(vec![merge_result_disqualified_unmatched_head()]),
+            state: RepoCheckFinished(vec![merge_result_disqualified_unmatched_head(1)]),
         };
         let repo_result = RepoResult::Finished(repo_check);
 
@@ -889,7 +897,7 @@ mod tests {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
             state: RepoCheckFinished(vec![
-                merge_result_disqualified_unmatched_head(),
+                merge_result_disqualified_unmatched_head(1),
                 merge_result_disqualified_unknown_author(),
                 merge_result_disqualified_untrusted_author(),
                 merge_result_disqualified_check_with_unknown_conclusion(),
@@ -943,7 +951,7 @@ mod tests {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
             state: RepoCheckFinished(vec![
-                merge_result_disqualified_unmatched_head(),
+                merge_result_disqualified_unmatched_head(1),
                 merge_result_disqualified_unknown_author(),
                 merge_result_disqualified_untrusted_author(),
                 merge_result_disqualified_check_with_unknown_conclusion(),
@@ -985,10 +993,10 @@ mod tests {
 Disqualifications
 ---
 
-- https://github.com/dhth/mrj/pull/1: check "lint" concluded with unknown status
-- https://github.com/dhth/mrj/pull/1: check "lint" concluded with undesirable status "failure"
-- https://github.com/dhth/mrj/pull/1: state is unknown
-- https://github.com/dhth/mrj/pull/1: state "dirty" is undesirable
+- https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
+- https://github.com/dhth/mrj/pull/1        check lint: failure
+- https://github.com/dhth/mrj/pull/1        state: unknown
+- https://github.com/dhth/mrj/pull/1        state: dirty
 "#
         );
     }
@@ -1008,7 +1016,7 @@ Disqualifications
             owner: OWNER.to_string(),
             name: REPO.to_string(),
             state: RepoCheckFinished(vec![
-                merge_result_disqualified_unmatched_head(),
+                merge_result_disqualified_unmatched_head(1),
                 merge_result_disqualified_unknown_author(),
                 merge_result_disqualified_untrusted_author(),
                 merge_result_disqualified_check_with_unknown_conclusion(),
@@ -1050,13 +1058,13 @@ Disqualifications
 Disqualifications
 ---
 
-- https://github.com/dhth/mrj/pull/1: head didn't match
-- https://github.com/dhth/mrj/pull/1: github returned empty author
-- https://github.com/dhth/mrj/pull/1: author "untrusted-dependabot[bot]" is not in the list of trusted authors
-- https://github.com/dhth/mrj/pull/1: check "lint" concluded with unknown status
-- https://github.com/dhth/mrj/pull/1: check "lint" concluded with undesirable status "failure"
-- https://github.com/dhth/mrj/pull/1: state is unknown
-- https://github.com/dhth/mrj/pull/1: state "dirty" is undesirable
+- https://github.com/dhth/mrj/pull/1        head didn't match
+- https://github.com/dhth/mrj/pull/1        author unknown
+- https://github.com/dhth/mrj/pull/1        author untrusted-dependabot[bot] untrusted
+- https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
+- https://github.com/dhth/mrj/pull/1        check lint: failure
+- https://github.com/dhth/mrj/pull/1        state: unknown
+- https://github.com/dhth/mrj/pull/1        state: dirty
 "#
         );
     }
@@ -1106,11 +1114,71 @@ Disqualifications
         );
     }
 
-    fn merge_result_disqualified_unmatched_head() -> MergeResult {
+    #[test]
+    fn disqualification_reasons_are_left_aligned_in_summary() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let behaviours = RunBehaviours::default()
+            .show_prs_with_unmatched_head()
+            .summarize_disqualifications();
+
+        let mut l = RunLog::new(&mut buffer, &behaviours);
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![
+                merge_result_disqualified_unmatched_head(1),
+                merge_result_disqualified_unmatched_head(11),
+                merge_result_disqualified_unmatched_head(111),
+                merge_result_disqualified_unmatched_head(1111),
+            ]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+        l.write_output().expect("output should've been written");
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+
+        let (_, summary) = out
+            .split_once(
+                r#"
+===========
+  SUMMARY
+===========
+"#,
+            )
+            .expect("output should've been split by the summary header");
+
+        assert_eq!(
+            summary,
+            r#"
+# PRs merged                  :  0
+# PRs disqualified            :  4
+# Repos checked               :  1
+# Repos with no relevant PRs  :  0
+# Errors encountered          :  0
+
+Disqualifications
+---
+
+- https://github.com/dhth/mrj/pull/1           head didn't match
+- https://github.com/dhth/mrj/pull/11          head didn't match
+- https://github.com/dhth/mrj/pull/111         head didn't match
+- https://github.com/dhth/mrj/pull/1111        head didn't match
+"#
+        );
+    }
+
+    fn merge_result_disqualified_unmatched_head(number: u64) -> MergeResult {
         MergeResult::Disqualified(PRCheck {
-            number: 1,
+            number,
             title: PR_TITLE.to_string(),
-            url: PR_URL.to_string(),
+            url: format!("https://github.com/dhth/mrj/pull/{}", number),
             pr_created_at: Some(created_at()),
             pr_updated_at: Some(updated_at()),
             qualifications: vec![],
