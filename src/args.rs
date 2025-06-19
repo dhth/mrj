@@ -139,7 +139,7 @@ impl std::fmt::Display for Args {
             MrjCommand::Run {
                 config_file,
                 repos,
-                output_to_file: output,
+                output_to_file,
                 output_path,
                 summary,
                 summary_path,
@@ -167,7 +167,7 @@ plain stdout                      : {}
 "#,
                 config_file.to_string_lossy(),
                 repos.iter().map(|r| r.to_string()).collect::<Vec<String>>(),
-                output,
+                output_to_file,
                 output_path.to_string_lossy(),
                 summary,
                 summary_path.to_string_lossy(),
