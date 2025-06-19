@@ -23,7 +23,7 @@ pub async fn merge_prs(
     repos_override: Vec<Repo>,
     behaviours: RunBehaviours,
 ) -> anyhow::Result<()> {
-    let mut l = RunLog::new(&behaviours);
+    let mut l = RunLog::new(std::io::stdout(), &behaviours);
 
     let repos_to_use = if repos_override.is_empty() {
         config.repos.clone()

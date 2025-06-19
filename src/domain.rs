@@ -232,7 +232,7 @@ impl private::Sealed for RepoCheckInProgress {}
 impl RepoCheckState for RepoCheckInProgress {}
 
 #[derive(Debug)]
-pub struct RepoCheckErrored(anyhow::Error);
+pub struct RepoCheckErrored(pub anyhow::Error);
 impl private::Sealed for RepoCheckErrored {}
 impl RepoCheckState for RepoCheckErrored {}
 impl RepoCheckErrored {
@@ -242,7 +242,7 @@ impl RepoCheckErrored {
 }
 
 #[derive(Debug)]
-pub struct RepoCheckFinished(Vec<MergeResult>);
+pub struct RepoCheckFinished(pub Vec<MergeResult>);
 impl private::Sealed for RepoCheckFinished {}
 impl RepoCheckState for RepoCheckFinished {}
 
@@ -291,12 +291,12 @@ impl RepoCheck<RepoCheckFinished> {
 
 #[derive(Debug)]
 pub struct PRCheck<S: PRCheckState> {
-    number: u64,
-    title: String,
-    url: String,
-    pr_created_at: Option<DateTime<Utc>>,
-    pr_updated_at: Option<DateTime<Utc>>,
-    qualifications: Vec<Qualification>,
+    pub number: u64,
+    pub title: String,
+    pub url: String,
+    pub pr_created_at: Option<DateTime<Utc>>,
+    pub pr_updated_at: Option<DateTime<Utc>>,
+    pub qualifications: Vec<Qualification>,
     pub state: S,
 }
 
@@ -369,7 +369,7 @@ impl private::Sealed for PRCheckInProgress {}
 impl PRCheckState for PRCheckInProgress {}
 
 #[derive(Debug)]
-pub struct PRDisqualified(Disqualification);
+pub struct PRDisqualified(pub Disqualification);
 impl private::Sealed for PRDisqualified {}
 impl PRCheckState for PRDisqualified {}
 
@@ -380,7 +380,7 @@ impl PRDisqualified {
 }
 
 #[derive(Debug)]
-pub struct PRCheckErrored(anyhow::Error);
+pub struct PRCheckErrored(pub anyhow::Error);
 impl private::Sealed for PRCheckErrored {}
 impl PRCheckState for PRCheckErrored {}
 impl PRCheckErrored {

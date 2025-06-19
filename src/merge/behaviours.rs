@@ -10,4 +10,5 @@ pub struct RunBehaviours {
     pub show_prs_from_untrusted_authors: bool,
     pub show_prs_with_unmatched_head: bool,
     pub execute: bool,
+    pub plain_stdout: bool,
 }
