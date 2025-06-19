@@ -1061,6 +1061,51 @@ Disqualifications
         );
     }
 
+    #[test]
+    fn summary_doesnt_include_dq_if_none_exist() {
+        // GIVEN
+        let mut buffer = vec![];
+
+        let behaviours = RunBehaviours::default().summarize_disqualifications();
+
+        let mut l = RunLog::new(&mut buffer, &behaviours);
+        let repo_check = RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![merge_result_qualified()]),
+        };
+        let repo_result = RepoResult::Finished(repo_check);
+
+        // WHEN
+        l.add_repo_result(repo_result);
+        l.write_output().expect("output should've been written");
+
+        // THEN
+        let out = String::from_utf8(buffer)
+            .expect("buffer contents should've been converted to a string");
+
+        let (_, summary) = out
+            .split_once(
+                r#"
+===========
+  SUMMARY
+===========
+"#,
+            )
+            .expect("output should've been split by the summary header");
+
+        assert_eq!(
+            summary,
+            r#"
+# PRs merged                  :  0
+# PRs disqualified            :  0
+# Repos checked               :  1
+# Repos with no relevant PRs  :  0
+# Errors encountered          :  0
+"#
+        );
+    }
+
     fn merge_result_disqualified_unmatched_head() -> MergeResult {
         MergeResult::Disqualified(PRCheck {
             number: 1,
