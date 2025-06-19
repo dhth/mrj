@@ -34,7 +34,11 @@ impl<W: Write> RunLog<W> {
         self.summary.record_repo();
 
         match &result {
-            RepoResult::Errored(repo_check) => self.error(repo_check.state.reason()),
+            RepoResult::Errored(repo_check) => {
+                self.repo_info(&result.name());
+                self.empty_line();
+                self.error(repo_check.state.reason());
+            }
             RepoResult::Finished(repo_check) => {
                 let filtered_results = repo_check
                     .results()
@@ -441,7 +445,7 @@ mod tests {
     fn failed_repo_result_is_printed_correctly() {
         // GIVEN
         let mut buffer = vec![];
-        let mut l = RunLog::new(&mut buffer, &default_behaviours());
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -455,7 +459,17 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(out, "        error 😵: something went wrong\n");
+        assert_eq!(
+            out,
+            r#"
+
+=============
+  dhth/mrj
+=============
+
+        error 😵: something went wrong
+"#
+        );
     }
 
     #[test]
@@ -463,7 +477,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours());
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -531,7 +545,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours());
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -600,7 +614,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours());
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -669,7 +683,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours());
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -713,7 +727,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours());
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -755,7 +769,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours());
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -797,7 +811,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours());
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -839,7 +853,7 @@ mod tests {
         // GIVEN
         let mut buffer = vec![];
 
-        let mut l = RunLog::new(&mut buffer, &default_behaviours());
+        let mut l = RunLog::new(&mut buffer, &default_behaviours_for_test());
         let repo_check = RepoCheck {
             owner: OWNER.to_string(),
             name: REPO.to_string(),
@@ -1057,7 +1071,7 @@ mod tests {
         })
     }
 
-    fn default_behaviours() -> RunBehaviours {
+    fn default_behaviours_for_test() -> RunBehaviours {
         RunBehaviours {
             output: false,
             output_path: PathBuf::new(),
