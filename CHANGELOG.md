@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- By default, skip PRs whose head does not match the configured pattern
+- Defaults to skipping PRs where head doesn't match the configured pattern
 
 ## [v0.3.0] - Jun 16, 2025
 
