@@ -133,16 +133,15 @@ Disqualifications
 
         let summary = format!(
             r#"
-
 ===========
   SUMMARY
 ===========
 
-# PRs merged                  :  {}
-# PRs disqualified            :  {}
-# Repos checked               :  {}
-# Repos with no relevant PRs  :  {}
-# Errors encountered          :  {}{}{}"#,
+- PRs merged                  :  {}
+- PRs disqualified            :  {}
+- Repos checked               :  {}
+- Repos with no relevant PRs  :  {}
+- Errors encountered          :  {}{}{}"#,
             self.summary.prs_merged.len(),
             self.summary.disqualifications.len(),
             self.summary.num_repos,
@@ -931,11 +930,11 @@ mod tests {
         assert_eq!(
             summary,
             r#"
-# PRs merged                  :  0
-# PRs disqualified            :  4
-# Repos checked               :  1
-# Repos with no relevant PRs  :  0
-# Errors encountered          :  0
+- PRs merged                  :  0
+- PRs disqualified            :  4
+- Repos checked               :  1
+- Repos with no relevant PRs  :  0
+- Errors encountered          :  0
 
 Disqualifications
 ---
@@ -993,11 +992,11 @@ Disqualifications
         assert_eq!(
             summary,
             r#"
-# PRs merged                  :  0
-# PRs disqualified            :  4
-# Repos checked               :  1
-# Repos with no relevant PRs  :  0
-# Errors encountered          :  0
+- PRs merged                  :  0
+- PRs disqualified            :  4
+- Repos checked               :  1
+- Repos with no relevant PRs  :  0
+- Errors encountered          :  0
 "#
         );
     }
@@ -1049,11 +1048,11 @@ Disqualifications
         assert_eq!(
             summary,
             r#"
-# PRs merged                  :  0
-# PRs disqualified            :  7
-# Repos checked               :  1
-# Repos with no relevant PRs  :  0
-# Errors encountered          :  0
+- PRs merged                  :  0
+- PRs disqualified            :  7
+- Repos checked               :  1
+- Repos with no relevant PRs  :  0
+- Errors encountered          :  0
 
 Disqualifications
 ---
@@ -1105,11 +1104,11 @@ Disqualifications
         assert_eq!(
             summary,
             r#"
-# PRs merged                  :  0
-# PRs disqualified            :  0
-# Repos checked               :  1
-# Repos with no relevant PRs  :  0
-# Errors encountered          :  0
+- PRs merged                  :  0
+- PRs disqualified            :  0
+- Repos checked               :  1
+- Repos with no relevant PRs  :  0
+- Errors encountered          :  0
 "#
         );
     }
@@ -1155,11 +1154,11 @@ Disqualifications
         assert_eq!(
             summary,
             r#"
-# PRs merged                  :  0
-# PRs disqualified            :  4
-# Repos checked               :  1
-# Repos with no relevant PRs  :  0
-# Errors encountered          :  0
+- PRs merged                  :  0
+- PRs disqualified            :  4
+- Repos checked               :  1
+- Repos with no relevant PRs  :  0
+- Errors encountered          :  0
 
 Disqualifications
 ---
