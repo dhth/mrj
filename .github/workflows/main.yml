@@ -15,6 +15,7 @@ jobs:
       contents: read
     outputs:
       code: ${{ steps.filter.outputs.code }}
+      deps: ${{ steps.filter.outputs.deps }}
       workflows: ${{ steps.filter.outputs.workflows }}
       yml: ${{ steps.filter.outputs.yml }}
     steps:
@@ -32,6 +33,11 @@ jobs:
               - dist-workspace.toml
               - rust-toolchain.toml
               - ".github/actions/**/*.yml"
+              - ".github/workflows/main.yml"
+            deps:
+              - "Cargo.toml"
+              - "Cargo.lock"
+              - "deny.toml"
               - ".github/workflows/main.yml"
             workflows:
               - ".github/**/*.yml"
@@ -114,3 +120,18 @@ jobs:
         with:
           mrj_app_id: ${{ secrets.MRJ_APP_ID }}
           mrj_app_private_key: ${{ secrets.MRJ_APP_PRIVATE_KEY }}
+
+  audit:
+    needs: changes
+    if: ${{ needs.changes.outputs.deps == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Install cargo-deny
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
+        with:
+          repo: EmbarkStudios/cargo-deny
+      - name: cargo deny
+        run: cargo deny check
