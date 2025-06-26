@@ -220,7 +220,7 @@ impl RepoResult {
             RepoResult::Errored(r) => (&r.owner, &r.name),
         };
 
-        format!("{}/{}", o, r)
+        format!("{o}/{r}")
     }
 }
 
@@ -476,15 +476,15 @@ impl RunSummary {
         let disqualification_summary = match disqualification {
             Disqualification::Head(_) => "head didn't match".to_string(),
             Disqualification::Author(author) => match author {
-                Some(a) => format!("author {} untrusted", a),
+                Some(a) => format!("author {a} untrusted"),
                 None => "author unknown".to_string(),
             },
             Disqualification::Check { name, conclusion } => match conclusion {
-                Some(c) => format!("check {}: {}", name, c),
-                None => format!("check {}: unknown conclusion", name),
+                Some(c) => format!("check {name}: {c}"),
+                None => format!("check {name}: unknown conclusion"),
             },
             Disqualification::State(state) => match state {
-                Some(s) => format!("state: {}", s),
+                Some(s) => format!("state: {s}"),
                 None => "state: unknown".to_string(),
             },
         };

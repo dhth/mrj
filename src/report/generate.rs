@@ -32,7 +32,7 @@ where
     let run_number = last_run_number + 1;
     let now = Utc::now();
     let date = now.format("%a-%b-%d").to_string().to_lowercase();
-    let new_run_file = runs_dir.join(format!("run-{}--{}.txt", run_number, date));
+    let new_run_file = runs_dir.join(format!("run-{run_number}--{date}.txt"));
 
     fs::copy(output_file, new_run_file)
         .context("couldn't copy latest run to mrj's \"runs\" directory")?;
@@ -66,12 +66,11 @@ where
         let index_path = dist_dir.join("index.html");
         if open::that(index_path).is_err() {
             eprintln!(
-                "couldn't open report in your browser, report is available in the \"{}\" directory",
-                DIST_DIR
+                "couldn't open report in your browser, report is available in the \"{DIST_DIR}\" directory"
             );
         }
     } else {
-        println!("report is available in the \"{}\" directory 🚀", DIST_DIR);
+        println!("report is available in the \"{DIST_DIR}\" directory 🚀");
     }
 
     Ok(())
@@ -193,7 +192,7 @@ where
         .truncate(true)
         .open(path)?;
 
-    file.write_all(format!("{}", run_number).as_bytes())?;
+    file.write_all(format!("{run_number}").as_bytes())?;
 
     Ok(())
 }
@@ -233,7 +232,7 @@ where
 
             let stem = path_str.replace(".txt", "");
             let link_text = match stem.split_once("--") {
-                Some((r, d)) => format!("{} ({})", r, d),
+                Some((r, d)) => format!("{r} ({d})"),
                 None => stem.to_string(),
             };
 

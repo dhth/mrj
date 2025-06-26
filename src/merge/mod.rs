@@ -38,12 +38,11 @@ pub async fn merge_prs(
     l.banner();
 
     let start = Utc::now();
-    l.info(&format!("The time right now is {}", start));
+    l.info(&format!("The time right now is {start}"));
 
     if let Some(b) = &config.base_branch {
         l.info(&format!(
-            "I'm only looking for PRs where the base branch is \"{}\"",
-            b
+            "I'm only looking for PRs where the base branch is \"{b}\""
         ));
     }
 
@@ -96,8 +95,7 @@ pub async fn merge_prs(
 
     l.empty_line();
     l.info(&format!(
-        "This run ended at {}; took {} seconds",
-        end_ts, num_seconds
+        "This run ended at {end_ts}; took {num_seconds} seconds"
     ));
 
     l.write_output().context("couldn't write output to file")?;
