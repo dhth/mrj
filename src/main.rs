@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     if args.debug {
-        print!("DEBUG INFO\n{}", args);
+        print!("DEBUG INFO\n{args}");
         return Ok(());
     }
 
@@ -81,7 +81,7 @@ async fn main() -> anyhow::Result<()> {
                 get_config(config_file)?;
                 println!("config looks good ✅");
             }
-            ConfigCommand::Sample => print!("{}", SAMPLE_CONFIG),
+            ConfigCommand::Sample => print!("{SAMPLE_CONFIG}"),
         },
         MrjCommand::Report { report_command } => match report_command {
             ReportCommand::Generate {

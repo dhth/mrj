@@ -123,7 +123,7 @@ Disqualifications
                 self.summary
                     .disqualifications
                     .iter()
-                    .map(|(u, d)| format!("- {:<longest_url_len$}        {}", u, d))
+                    .map(|(u, d)| format!("- {u:<longest_url_len$}        {d}"))
                     .collect::<Vec<_>>()
                     .join("\n")
             ))
@@ -157,7 +157,7 @@ Disqualifications
             &summary.green().to_string()
         };
 
-        let _ = writeln!(self.w, "{}", output);
+        let _ = writeln!(self.w, "{output}");
 
         if let Some(output_path) = &self.b.output_path {
             self.lines.push(summary.clone());
@@ -195,7 +195,7 @@ Disqualifications
             &BANNER.green().bold().to_string()
         };
 
-        let _ = writeln!(self.w, "{}", banner_output);
+        let _ = writeln!(self.w, "{banner_output}");
 
         let dry_run_line = "                         dry run".to_string();
         let dry_run_output = if self.b.plain_stdout {
@@ -205,7 +205,7 @@ Disqualifications
         };
 
         if !self.b.execute {
-            let _ = writeln!(self.w, "{}", dry_run_output);
+            let _ = writeln!(self.w, "{dry_run_output}");
         }
 
         let _ = writeln!(self.w);
@@ -220,10 +220,10 @@ Disqualifications
     }
 
     pub(super) fn info(&mut self, message: &str) {
-        let _ = writeln!(self.w, "[INFO] {}", message);
+        let _ = writeln!(self.w, "[INFO] {message}");
 
         if self.b.output_path.is_some() {
-            self.lines.push(format!("[INFO] {}", message));
+            self.lines.push(format!("[INFO] {message}"));
         }
     }
 
@@ -287,9 +287,8 @@ Disqualifications
             r#"
 
 =============
-  {}
-============="#,
-            name
+  {name}
+============="#
         );
 
         let output = if self.b.plain_stdout {
@@ -298,7 +297,7 @@ Disqualifications
             &line.cyan().to_string()
         };
 
-        let _ = writeln!(self.w, "{}", output);
+        let _ = writeln!(self.w, "{output}");
 
         if self.b.output_path.is_some() {
             self.lines.push(line);
@@ -312,7 +311,7 @@ Disqualifications
             &msg.purple().to_string()
         };
 
-        let _ = writeln!(self.w, "{}", output);
+        let _ = writeln!(self.w, "{output}");
 
         if self.b.output_path.is_some() {
             self.lines.push(msg.to_string());
@@ -322,18 +321,15 @@ Disqualifications
     fn qualification(&mut self, q: &Qualification) {
         let msg = match q {
             Qualification::Head(h) => {
-                format!("{} \"{}\" matches the allowed head pattern", HEAD, h)
+                format!("{HEAD} \"{h}\" matches the allowed head pattern")
             }
             Qualification::Author(a) => {
-                format!("{} \"{}\" is in the list of trusted authors", AUTHOR, a)
+                format!("{AUTHOR} \"{a}\" is in the list of trusted authors")
             }
             Qualification::Check { name, conclusion } => {
-                format!(
-                    "{} \"{}\" concluded with desired status: \"{}\"",
-                    CHECK, name, conclusion,
-                )
+                format!("{CHECK} \"{name}\" concluded with desired status: \"{conclusion}\"",)
             }
-            Qualification::State(s) => format!("{} \"{}\" is desirable", STATE, s),
+            Qualification::State(s) => format!("{STATE} \"{s}\" is desirable"),
         };
 
         let output = if self.b.plain_stdout {
@@ -342,40 +338,34 @@ Disqualifications
             &msg.blue().to_string()
         };
 
-        let _ = writeln!(self.w, "        {}", output);
+        let _ = writeln!(self.w, "        {output}");
 
         if self.b.output_path.is_some() {
-            self.lines.push(format!("        {}", msg));
+            self.lines.push(format!("        {msg}"));
         }
     }
 
     fn disqualification(&mut self, pr_url: &str, dq: &Disqualification) {
         let msg = match dq {
             Disqualification::Head(h) => {
-                format!("{} \"{}\" doesn't match the allowed head pattern", HEAD, h)
+                format!("{HEAD} \"{h}\" doesn't match the allowed head pattern")
             }
             Disqualification::Author(maybe_author) => match maybe_author {
-                Some(a) => format!("{} \"{}\" is not in the list of trusted authors", AUTHOR, a),
+                Some(a) => format!("{AUTHOR} \"{a}\" is not in the list of trusted authors"),
                 None => format!(
-                    "{} Github sent an empty user; skipping as I can't make any assumptions here",
-                    AUTHOR
+                    "{AUTHOR} Github sent an empty user; skipping as I can't make any assumptions here"
                 ),
             },
             Disqualification::Check { name, conclusion } => match conclusion {
-                Some(c) => format!(
-                    "{} \"{}\" concluded with undesired status: \"{}\"",
-                    CHECK, name, c
-                ),
+                Some(c) => format!("{CHECK} \"{name}\" concluded with undesired status: \"{c}\""),
                 None => format!(
-                    "{} Github returned with an empty conclusion for the check {}; skipping as I can't make any assumptions here",
-                    CHECK, name,
+                    "{CHECK} Github returned with an empty conclusion for the check {name}; skipping as I can't make any assumptions here",
                 ),
             },
             Disqualification::State(maybe_state) => match maybe_state {
-                Some(s) => format!("{} \"{}\" is undesirable", STATE, s),
+                Some(s) => format!("{STATE} \"{s}\" is undesirable"),
                 None => format!(
-                    "{} Github returned with an empty mergeable state; skipping as I can't make any assumptions here",
-                    STATE
+                    "{STATE} Github returned with an empty mergeable state; skipping as I can't make any assumptions here"
                 ),
             },
         };
@@ -386,10 +376,10 @@ Disqualifications
             &msg.yellow().to_string()
         };
 
-        let _ = writeln!(self.w, "        {} ❌", output);
+        let _ = writeln!(self.w, "        {output} ❌");
 
         if self.b.output_path.is_some() {
-            self.lines.push(format!("        {} ❌", msg));
+            self.lines.push(format!("        {msg} ❌"));
         }
 
         self.summary.record_disqualification(pr_url, dq);
@@ -402,10 +392,10 @@ Disqualifications
             &msg.yellow().to_string()
         };
 
-        let _ = writeln!(self.w, "        {}", output);
+        let _ = writeln!(self.w, "        {output}");
 
         if self.b.output_path.is_some() {
-            self.lines.push(format!("        {}", msg));
+            self.lines.push(format!("        {msg}"));
         }
     }
 
@@ -422,10 +412,10 @@ Disqualifications
             &msg.green().to_string()
         };
 
-        let _ = writeln!(self.w, "        {}", output);
+        let _ = writeln!(self.w, "        {output}");
 
         if self.b.output_path.is_some() {
-            self.lines.push(format!("        {}", msg));
+            self.lines.push(format!("        {msg}"));
         }
 
         if self.b.execute {
@@ -434,14 +424,14 @@ Disqualifications
     }
 
     fn error(&mut self, error: &anyhow::Error) {
-        let line = format!("        error 😵: {}", error);
+        let line = format!("        error 😵: {error}");
         let output = if self.b.plain_stdout {
             &line
         } else {
             &line.red().to_string()
         };
 
-        let _ = writeln!(self.w, "{}", output);
+        let _ = writeln!(self.w, "{output}");
 
         if self.b.output_path.is_some() {
             self.lines.push(line);
@@ -1175,7 +1165,7 @@ Disqualifications
         MergeResult::Disqualified(PRCheck {
             number,
             title: PR_TITLE.to_string(),
-            url: format!("https://github.com/dhth/mrj/pull/{}", number),
+            url: format!("https://github.com/dhth/mrj/pull/{number}"),
             pr_created_at: Some(created_at()),
             pr_updated_at: Some(updated_at()),
             qualifications: vec![],

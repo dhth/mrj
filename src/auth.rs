@@ -11,13 +11,12 @@ pub fn get_token() -> anyhow::Result<String> {
                 format!(r#"couldn't get a GitHub authentication token
 
 mrj tries to get this token in the following order:
-- Using the value of environment variable {} (this was not set)
+- Using the value of environment variable {TOKEN_ENV_VAR} (this was not set)
 - Running "gh auth token" (this failed)
 
 Make sure mrj can get a token from either one of these approaches, and that the token has the following permissions for the relevant repos:
 - Read access to checks, metadata, and pull requests
-- Read and write access to code"#,
-                TOKEN_ENV_VAR
+- Read and write access to code"#
             )),
             VarError::NotUnicode(_) => Err(anyhow::anyhow!("{} is not valid unicode", TOKEN_ENV_VAR))
         })?;
