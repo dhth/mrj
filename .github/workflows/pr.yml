@@ -73,7 +73,7 @@ jobs:
       - name: Test
         env:
           INSTA_UPDATE: no
-        run: cargo insta test
+        run: cargo test
 
   lint:
     needs: changes
