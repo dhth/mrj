@@ -12,3 +12,6 @@ allow = [
 deny = [
     "openssl",
 ]
+skip = [
+    "windows-sys",
+]
