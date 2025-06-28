@@ -33,7 +33,7 @@ tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }
 toml = { version = "0.8.23", features = ["parse"] }
 
 [dev-dependencies]
-insta = "1.43.1"
+insta = { version = "1.43.1", features = ["yaml"] }
 insta-cmd = "0.6.0"
 
 [profile.dev.package]
