@@ -57,7 +57,6 @@ fn parse_config(config_str: &str) -> anyhow::Result<Config> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
     //-------------//
     //  SUCCESSES  //
@@ -110,8 +109,8 @@ merge_type = "squash"
         // THEN
         assert_eq!(config.repos.len(), 3);
         assert_eq!(config.trusted_authors.len(), 1);
-        assert_eq!(config.merge_if_blocked, false);
-        assert_eq!(config.merge_if_checks_skipped, true);
+        assert!(!config.merge_if_blocked);
+        assert!(config.merge_if_checks_skipped);
         assert_eq!(config.sort_by, SortBy::Created);
         assert_eq!(config.sort_direction, SortDirection::Ascending);
     }
