@@ -1,5 +1,7 @@
-use assert_cmd::Command;
-use predicates::str::contains;
+mod common;
+
+use common::base_command;
+use insta_cmd::assert_cmd_snapshot;
 
 //-------------//
 //  SUCCESSES  //
@@ -8,8 +10,8 @@ use predicates::str::contains;
 #[test]
 fn debug_mode_works() {
     // GIVEN
-    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
-    cmd.args([
+    let mut base_cmd = base_command();
+    let mut cmd = base_cmd.args([
         "run",
         "--debug",
         "-c",
@@ -18,14 +20,35 @@ fn debug_mode_works() {
 
     // WHEN
     // THEN
-    cmd.assert().success().stdout(contains("DEBUG INFO"));
+    assert_cmd_snapshot!(cmd, @r"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    DEBUG INFO
+
+    command                           : Run
+    config file                       : tests/assets/valid-config-with-all-props.toml
+    repos (overridden)                : []
+    output to file                    : false
+    output file                       : output.txt
+    write summary                     : false
+    summary file                      : summary.txt
+    skip disqualifications in summary : false
+    show repos with no prs            : false
+    show prs from untrusted authors   : false
+    show prs with unmatched head      : false
+    execute                           : false
+    plain stdout                      : false
+
+    ----- stderr -----
+    ");
 }
 
 #[test]
 fn overriding_repos_works() {
     // GIVEN
-    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
-    cmd.args([
+    let mut base_cmd = base_command();
+    let mut cmd = base_cmd.args([
         "run",
         "--debug",
         "-c",
@@ -36,7 +59,28 @@ fn overriding_repos_works() {
 
     // WHEN
     // THEN
-    cmd.assert().success().stdout(contains("DEBUG INFO"));
+    assert_cmd_snapshot!(cmd, @r#"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    DEBUG INFO
+
+    command                           : Run
+    config file                       : tests/assets/valid-config-with-no-repos.toml
+    repos (overridden)                : ["dhth/mrj", "dhth/bmm"]
+    output to file                    : false
+    output file                       : output.txt
+    write summary                     : false
+    summary file                      : summary.txt
+    skip disqualifications in summary : false
+    show repos with no prs            : false
+    show prs from untrusted authors   : false
+    show prs with unmatched head      : false
+    execute                           : false
+    plain stdout                      : false
+
+    ----- stderr -----
+    "#);
 }
 
 //-------------//
@@ -46,8 +90,8 @@ fn overriding_repos_works() {
 #[test]
 fn fails_if_overridden_repos_are_invalid() {
     // GIVEN
-    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
-    cmd.args([
+    let mut base_cmd = base_command();
+    let mut cmd = base_cmd.args([
         "run",
         "--debug",
         "-c",
@@ -58,18 +102,32 @@ fn fails_if_overridden_repos_are_invalid() {
 
     // WHEN
     // THEN
-    cmd.assert().failure();
+    assert_cmd_snapshot!(cmd, @r#"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: invalid value 'invalid-repo' for '--repos <STRING,STRING>': repo needs to be in the form "owner/repo"
+
+    For more information, try '--help'.
+    "#);
 }
 
 #[test]
 fn fails_if_no_repos_provided() {
     // GIVEN
-    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
-    cmd.args(["run", "-c", "tests/assets/valid-config-with-no-repos.toml"]);
+    let mut base_cmd = base_command();
+    let mut cmd = base_cmd.args(["run", "-c", "tests/assets/valid-config-with-no-repos.toml"]);
 
     // WHEN
     // THEN
-    cmd.assert()
-        .failure()
-        .stderr(contains("no repos to run for"));
+    assert_cmd_snapshot!(cmd, @r"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+
+    ----- stderr -----
+    Error: no repos to run for
+    ");
 }

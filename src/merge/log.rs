@@ -9,7 +9,7 @@ use std::io::Write;
 
 const BANNER: &str = include_str!("assets/banner.txt");
 const AUTHOR: &str = "[ author ]  ";
-const HEAD: &str = "[ head   ]  ";
+const HEAD: &str = "[ head  ]  ";
 const CHECK: &str = "[ check  ]  ";
 const STATE: &str = "[ state  ]  ";
 
@@ -137,11 +137,11 @@ Disqualifications
   SUMMARY
 ===========
 
-- PRs merged                  :  {}
-- PRs disqualified            :  {}
-- Repos checked               :  {}
-- Repos with no relevant PRs  :  {}
-- Errors encountered          :  {}{}{}"#,
+- PRs merged:                    {}
+- PRs disqualified:              {}
+- Repos checked:                 {}
+- Repos with no relevant PRs:    {}
+- Errors encountered:            {}{}{}"#,
             self.summary.prs_merged.len(),
             self.summary.disqualifications.len(),
             self.summary.num_repos,
@@ -448,7 +448,7 @@ mod tests {
         PRCheck, PRCheckFinished, PRDisqualified, RepoCheck, RepoCheckErrored, RepoCheckFinished,
     };
     use chrono::{DateTime, TimeZone, Utc};
-    use pretty_assertions::assert_eq;
+    use insta::assert_snapshot;
 
     const OWNER: &str = "dhth";
     const REPO: &str = "mrj";
@@ -475,9 +475,9 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(
+        assert_snapshot!(
             out,
-            r#"
+            @r#"
 
 =============
   dhth/mrj
@@ -528,21 +528,20 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(
+        assert_snapshot!(
             out,
-            r#"
+            @r#"
+        =============
+          dhth/mrj
+        =============
 
-=============
-  dhth/mrj
-=============
-
--> checking PR #1
-        build: bump clap from 4.5.39 to 4.5.40
-        https://github.com/dhth/mrj/pull/1
-        Created: Mon, 1 Jan 2024 01:01:01 +0000
-        Updated: Tue, 2 Jan 2024 01:01:01 +0000
-        [ head   ]   "improve tests" doesn't match the allowed head pattern ❌
-"#
+        -> checking PR #1
+                build: bump clap from 4.5.39 to 4.5.40
+                https://github.com/dhth/mrj/pull/1
+                Created: Mon, 1 Jan 2024 01:01:01 +0000
+                Updated: Tue, 2 Jan 2024 01:01:01 +0000
+                [ head  ]   "improve tests" doesn't match the allowed head pattern ❌
+        "#
         );
     }
 
@@ -586,22 +585,21 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(
+        assert_snapshot!(
             out,
-            r#"
+            @r#"
+        =============
+          dhth/mrj
+        =============
 
-=============
-  dhth/mrj
-=============
-
--> checking PR #1
-        build: bump clap from 4.5.39 to 4.5.40
-        https://github.com/dhth/mrj/pull/1
-        Created: Mon, 1 Jan 2024 01:01:01 +0000
-        Updated: Tue, 2 Jan 2024 01:01:01 +0000
-        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-        [ author ]   Github sent an empty user; skipping as I can't make any assumptions here ❌
-"#
+        -> checking PR #1
+                build: bump clap from 4.5.39 to 4.5.40
+                https://github.com/dhth/mrj/pull/1
+                Created: Mon, 1 Jan 2024 01:01:01 +0000
+                Updated: Tue, 2 Jan 2024 01:01:01 +0000
+                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+                [ author ]   Github sent an empty user; skipping as I can't make any assumptions here ❌
+        "#
         );
     }
 
@@ -645,22 +643,21 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(
+        assert_snapshot!(
             out,
-            r#"
+            @r#"
+        =============
+          dhth/mrj
+        =============
 
-=============
-  dhth/mrj
-=============
-
--> checking PR #1
-        build: bump clap from 4.5.39 to 4.5.40
-        https://github.com/dhth/mrj/pull/1
-        Created: Mon, 1 Jan 2024 01:01:01 +0000
-        Updated: Tue, 2 Jan 2024 01:01:01 +0000
-        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-        [ author ]   "untrusted-dependabot[bot]" is not in the list of trusted authors ❌
-"#
+        -> checking PR #1
+                build: bump clap from 4.5.39 to 4.5.40
+                https://github.com/dhth/mrj/pull/1
+                Created: Mon, 1 Jan 2024 01:01:01 +0000
+                Updated: Tue, 2 Jan 2024 01:01:01 +0000
+                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+                [ author ]   "untrusted-dependabot[bot]" is not in the list of trusted authors ❌
+        "#
         );
     }
 
@@ -685,26 +682,25 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(
+        assert_snapshot!(
             out,
-            r#"
+            @r#"
+        =============
+          dhth/mrj
+        =============
 
-=============
-  dhth/mrj
-=============
-
--> checking PR #1
-        build: bump clap from 4.5.39 to 4.5.40
-        https://github.com/dhth/mrj/pull/1
-        Created: Mon, 1 Jan 2024 01:01:01 +0000
-        Updated: Tue, 2 Jan 2024 01:01:01 +0000
-        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-        [ author ]   "dependabot[bot]" is in the list of trusted authors
-        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-        [ check  ]   "test" concluded with desired status: "success"
-        [ check  ]   Github returned with an empty conclusion for the check lint; skipping as I can't make any assumptions here ❌
-"#
+        -> checking PR #1
+                build: bump clap from 4.5.39 to 4.5.40
+                https://github.com/dhth/mrj/pull/1
+                Created: Mon, 1 Jan 2024 01:01:01 +0000
+                Updated: Tue, 2 Jan 2024 01:01:01 +0000
+                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+                [ author ]   "dependabot[bot]" is in the list of trusted authors
+                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+                [ check  ]   "test" concluded with desired status: "success"
+                [ check  ]   Github returned with an empty conclusion for the check lint; skipping as I can't make any assumptions here ❌
+        "#
         );
     }
 
@@ -727,26 +723,25 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(
+        assert_snapshot!(
             out,
-            r#"
+            @r#"
+        =============
+          dhth/mrj
+        =============
 
-=============
-  dhth/mrj
-=============
-
--> checking PR #1
-        build: bump clap from 4.5.39 to 4.5.40
-        https://github.com/dhth/mrj/pull/1
-        Created: Mon, 1 Jan 2024 01:01:01 +0000
-        Updated: Tue, 2 Jan 2024 01:01:01 +0000
-        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-        [ author ]   "dependabot[bot]" is in the list of trusted authors
-        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-        [ check  ]   "test" concluded with desired status: "success"
-        [ check  ]   "lint" concluded with undesired status: "failure" ❌
-"#
+        -> checking PR #1
+                build: bump clap from 4.5.39 to 4.5.40
+                https://github.com/dhth/mrj/pull/1
+                Created: Mon, 1 Jan 2024 01:01:01 +0000
+                Updated: Tue, 2 Jan 2024 01:01:01 +0000
+                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+                [ author ]   "dependabot[bot]" is in the list of trusted authors
+                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+                [ check  ]   "test" concluded with desired status: "success"
+                [ check  ]   "lint" concluded with undesired status: "failure" ❌
+        "#
         );
     }
 
@@ -769,26 +764,25 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(
+        assert_snapshot!(
             out,
-            r#"
+            @r#"
+        =============
+          dhth/mrj
+        =============
 
-=============
-  dhth/mrj
-=============
-
--> checking PR #1
-        build: bump clap from 4.5.39 to 4.5.40
-        https://github.com/dhth/mrj/pull/1
-        Created: Mon, 1 Jan 2024 01:01:01 +0000
-        Updated: Tue, 2 Jan 2024 01:01:01 +0000
-        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-        [ author ]   "dependabot[bot]" is in the list of trusted authors
-        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-        [ check  ]   "test" concluded with desired status: "success"
-        [ state  ]   Github returned with an empty mergeable state; skipping as I can't make any assumptions here ❌
-"#
+        -> checking PR #1
+                build: bump clap from 4.5.39 to 4.5.40
+                https://github.com/dhth/mrj/pull/1
+                Created: Mon, 1 Jan 2024 01:01:01 +0000
+                Updated: Tue, 2 Jan 2024 01:01:01 +0000
+                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+                [ author ]   "dependabot[bot]" is in the list of trusted authors
+                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+                [ check  ]   "test" concluded with desired status: "success"
+                [ state  ]   Github returned with an empty mergeable state; skipping as I can't make any assumptions here ❌
+        "#
         );
     }
 
@@ -811,26 +805,25 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(
+        assert_snapshot!(
             out,
-            r#"
+            @r#"
+        =============
+          dhth/mrj
+        =============
 
-=============
-  dhth/mrj
-=============
-
--> checking PR #1
-        build: bump clap from 4.5.39 to 4.5.40
-        https://github.com/dhth/mrj/pull/1
-        Created: Mon, 1 Jan 2024 01:01:01 +0000
-        Updated: Tue, 2 Jan 2024 01:01:01 +0000
-        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-        [ author ]   "dependabot[bot]" is in the list of trusted authors
-        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-        [ check  ]   "test" concluded with desired status: "success"
-        [ state  ]   "dirty" is undesirable ❌
-"#
+        -> checking PR #1
+                build: bump clap from 4.5.39 to 4.5.40
+                https://github.com/dhth/mrj/pull/1
+                Created: Mon, 1 Jan 2024 01:01:01 +0000
+                Updated: Tue, 2 Jan 2024 01:01:01 +0000
+                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+                [ author ]   "dependabot[bot]" is in the list of trusted authors
+                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+                [ check  ]   "test" concluded with desired status: "success"
+                [ state  ]   "dirty" is undesirable ❌
+        "#
         );
     }
 
@@ -853,27 +846,26 @@ mod tests {
         // THEN
         let out = String::from_utf8(buffer)
             .expect("buffer contents should've been converted to a string");
-        assert_eq!(
+        assert_snapshot!(
             out,
-            r#"
+            @r#"
+        =============
+          dhth/mrj
+        =============
 
-=============
-  dhth/mrj
-=============
-
--> checking PR #1
-        build: bump clap from 4.5.39 to 4.5.40
-        https://github.com/dhth/mrj/pull/1
-        Created: Mon, 1 Jan 2024 01:01:01 +0000
-        Updated: Tue, 2 Jan 2024 01:01:01 +0000
-        [ head   ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-        [ author ]   "dependabot[bot]" is in the list of trusted authors
-        [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-        [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-        [ check  ]   "test" concluded with desired status: "success"
-        [ state  ]   "clean" is desirable
-        PR matches all criteria, I would've merged it if this weren't a dry run ✅
-"#
+        -> checking PR #1
+                build: bump clap from 4.5.39 to 4.5.40
+                https://github.com/dhth/mrj/pull/1
+                Created: Mon, 1 Jan 2024 01:01:01 +0000
+                Updated: Tue, 2 Jan 2024 01:01:01 +0000
+                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+                [ author ]   "dependabot[bot]" is in the list of trusted authors
+                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+                [ check  ]   "test" concluded with desired status: "success"
+                [ state  ]   "clean" is desirable
+                PR matches all criteria, I would've merged it if this weren't a dry run ✅
+        "#
         );
     }
 
@@ -917,23 +909,23 @@ mod tests {
             )
             .expect("output should've been split by the summary header");
 
-        assert_eq!(
+        assert_snapshot!(
             summary,
-            r#"
-- PRs merged                  :  0
-- PRs disqualified            :  4
-- Repos checked               :  1
-- Repos with no relevant PRs  :  0
-- Errors encountered          :  0
+            @r"
+        - PRs merged:                    0
+        - PRs disqualified:              4
+        - Repos checked:                 1
+        - Repos with no relevant PRs:    0
+        - Errors encountered:            0
 
-Disqualifications
----
+        Disqualifications
+        ---
 
-- https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
-- https://github.com/dhth/mrj/pull/1        check lint: failure
-- https://github.com/dhth/mrj/pull/1        state: unknown
-- https://github.com/dhth/mrj/pull/1        state: dirty
-"#
+        - https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
+        - https://github.com/dhth/mrj/pull/1        check lint: failure
+        - https://github.com/dhth/mrj/pull/1        state: unknown
+        - https://github.com/dhth/mrj/pull/1        state: dirty
+        "
         );
     }
 
@@ -979,15 +971,15 @@ Disqualifications
             )
             .expect("output should've been split by the summary header");
 
-        assert_eq!(
+        assert_snapshot!(
             summary,
-            r#"
-- PRs merged                  :  0
-- PRs disqualified            :  4
-- Repos checked               :  1
-- Repos with no relevant PRs  :  0
-- Errors encountered          :  0
-"#
+            @r"
+        - PRs merged:                    0
+        - PRs disqualified:              4
+        - Repos checked:                 1
+        - Repos with no relevant PRs:    0
+        - Errors encountered:            0
+        "
         );
     }
 
@@ -1035,26 +1027,26 @@ Disqualifications
             )
             .expect("output should've been split by the summary header");
 
-        assert_eq!(
+        assert_snapshot!(
             summary,
-            r#"
-- PRs merged                  :  0
-- PRs disqualified            :  7
-- Repos checked               :  1
-- Repos with no relevant PRs  :  0
-- Errors encountered          :  0
+            @r"
+        - PRs merged:                    0
+        - PRs disqualified:              7
+        - Repos checked:                 1
+        - Repos with no relevant PRs:    0
+        - Errors encountered:            0
 
-Disqualifications
----
+        Disqualifications
+        ---
 
-- https://github.com/dhth/mrj/pull/1        head didn't match
-- https://github.com/dhth/mrj/pull/1        author unknown
-- https://github.com/dhth/mrj/pull/1        author untrusted-dependabot[bot] untrusted
-- https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
-- https://github.com/dhth/mrj/pull/1        check lint: failure
-- https://github.com/dhth/mrj/pull/1        state: unknown
-- https://github.com/dhth/mrj/pull/1        state: dirty
-"#
+        - https://github.com/dhth/mrj/pull/1        head didn't match
+        - https://github.com/dhth/mrj/pull/1        author unknown
+        - https://github.com/dhth/mrj/pull/1        author untrusted-dependabot[bot] untrusted
+        - https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
+        - https://github.com/dhth/mrj/pull/1        check lint: failure
+        - https://github.com/dhth/mrj/pull/1        state: unknown
+        - https://github.com/dhth/mrj/pull/1        state: dirty
+        "
         );
     }
 
@@ -1091,15 +1083,15 @@ Disqualifications
             )
             .expect("output should've been split by the summary header");
 
-        assert_eq!(
+        assert_snapshot!(
             summary,
-            r#"
-- PRs merged                  :  0
-- PRs disqualified            :  0
-- Repos checked               :  1
-- Repos with no relevant PRs  :  0
-- Errors encountered          :  0
-"#
+            @r"
+        - PRs merged:                    0
+        - PRs disqualified:              0
+        - Repos checked:                 1
+        - Repos with no relevant PRs:    0
+        - Errors encountered:            0
+        "
         );
     }
 
@@ -1141,23 +1133,23 @@ Disqualifications
             )
             .expect("output should've been split by the summary header");
 
-        assert_eq!(
+        assert_snapshot!(
             summary,
-            r#"
-- PRs merged                  :  0
-- PRs disqualified            :  4
-- Repos checked               :  1
-- Repos with no relevant PRs  :  0
-- Errors encountered          :  0
+            @r"
+        - PRs merged:                    0
+        - PRs disqualified:              4
+        - Repos checked:                 1
+        - Repos with no relevant PRs:    0
+        - Errors encountered:            0
 
-Disqualifications
----
+        Disqualifications
+        ---
 
-- https://github.com/dhth/mrj/pull/1           head didn't match
-- https://github.com/dhth/mrj/pull/11          head didn't match
-- https://github.com/dhth/mrj/pull/111         head didn't match
-- https://github.com/dhth/mrj/pull/1111        head didn't match
-"#
+        - https://github.com/dhth/mrj/pull/1           head didn't match
+        - https://github.com/dhth/mrj/pull/11          head didn't match
+        - https://github.com/dhth/mrj/pull/111         head didn't match
+        - https://github.com/dhth/mrj/pull/1111        head didn't match
+        "
         );
     }
 

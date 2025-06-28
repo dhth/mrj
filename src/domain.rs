@@ -10,6 +10,7 @@ use serde::{
 use std::fmt::{self, Display};
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub enum MergeType {
     Merge,
     Squash,
@@ -58,6 +59,7 @@ impl<'de> Deserialize<'de> for MergeType {
 }
 
 #[derive(Debug, Clone)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct Repo {
     pub owner: String,
     pub repo: String,
@@ -154,7 +156,8 @@ pub trait GhApiQueryParam<T> {
     fn readable_repr(&self) -> &str;
 }
 
-#[derive(Debug, serde::Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[cfg_attr(test, derive(serde::Serialize))]
 #[serde(rename_all = "kebab-case")]
 pub enum SortBy {
     Created,
@@ -183,7 +186,8 @@ impl GhApiQueryParam<Sort> for SortBy {
     }
 }
 
-#[derive(Debug, serde::Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub enum SortDirection {
     #[serde(rename = "asc")]
     Ascending,

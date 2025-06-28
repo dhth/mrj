@@ -1,5 +1,7 @@
-use assert_cmd::Command;
-use predicates::str::contains;
+mod common;
+
+use common::base_command;
+use insta_cmd::assert_cmd_snapshot;
 
 //-------------//
 //  SUCCESSES  //
@@ -8,14 +10,26 @@ use predicates::str::contains;
 #[test]
 fn debug_mode_works() {
     // GIVEN
-    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
-    cmd.args([
+    let mut base_cmd = base_command();
+    let mut cmd = base_cmd.args([
         "report", "generate", "-p", "log.txt", "-o", "-n", "20", "--debug",
     ]);
 
     // WHEN
     // THEN
-    cmd.assert().success().stdout(contains("DEBUG INFO"));
+    assert_cmd_snapshot!(cmd, @r"
+    success: true
+    exit_code: 0
+    ----- stdout -----
+    DEBUG INFO
+
+    command                  : Generate report
+    output file              : log.txt
+    open report              : true
+    num runs                 : 20
+
+    ----- stderr -----
+    ");
 }
 
 //-------------//
@@ -23,15 +37,63 @@ fn debug_mode_works() {
 //-------------//
 
 #[test]
-fn fails_if_num_runs_is_invalid() {
+fn fails_if_num_runs_is_negative() {
     // GIVEN
-    let test_cases = [-10, 0, 101];
-    for num_run in test_cases {
-        let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
-        cmd.args(["report", "generate", "-n", &num_run.to_string(), "--debug"]);
+    let mut base_cmd = base_command();
+    let mut cmd = base_cmd.args(["report", "generate", "-n", "-10", "--debug"]);
 
-        // WHEN
-        // THEN
-        cmd.assert().failure();
-    }
+    // WHEN
+    // THEN
+    assert_cmd_snapshot!(cmd, @r"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: unexpected argument '-1' found
+
+    Usage: mrj report generate [OPTIONS]
+
+    For more information, try '--help'.
+    ");
+}
+
+#[test]
+fn fails_if_num_runs_is_zero() {
+    // GIVEN
+    let mut base_cmd = base_command();
+    let mut cmd = base_cmd.args(["report", "generate", "-n", "0", "--debug"]);
+
+    // WHEN
+    // THEN
+    assert_cmd_snapshot!(cmd, @r"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: invalid value '0' for '--num-runs <NUMBER>': 0 is not in 1..=100
+
+    For more information, try '--help'.
+    ");
+}
+
+#[test]
+fn fails_if_num_runs_is_greater_than_max_allowed() {
+    // GIVEN
+    let mut base_cmd = base_command();
+    let mut cmd = base_cmd.args(["report", "generate", "-n", "101", "--debug"]);
+
+    // WHEN
+    // THEN
+    assert_cmd_snapshot!(cmd, @r"
+    success: false
+    exit_code: 2
+    ----- stdout -----
+
+    ----- stderr -----
+    error: invalid value '101' for '--num-runs <NUMBER>': 101 is not in 1..=100
+
+    For more information, try '--help'.
+    ");
 }

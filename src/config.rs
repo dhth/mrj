@@ -4,10 +4,12 @@ use serde::Deserialize;
 use std::path::PathBuf;
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct Config {
     pub repos: Vec<Repo>,
     pub trusted_authors: Vec<String>,
     pub base_branch: Option<String>,
+    #[serde(skip_serializing)]
     pub head_pattern: Option<HeadPattern>,
     #[serde(default = "default_false")]
     pub merge_if_blocked: bool,
@@ -57,7 +59,7 @@ fn parse_config(config_str: &str) -> anyhow::Result<Config> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
+    use insta::assert_yaml_snapshot;
 
     //-------------//
     //  SUCCESSES  //
@@ -86,9 +88,23 @@ sort_direction = "desc"
         let config = parse_config(config_str).expect("config should've been parsed");
 
         // THEN
-        assert_eq!(config.repos.len(), 3);
-        assert_eq!(config.sort_by, SortBy::Updated);
-        assert_eq!(config.sort_direction, SortDirection::Descending);
+        assert_yaml_snapshot!(config, @r#"
+        repos:
+          - owner: user
+            repo: repo-1
+          - owner: user
+            repo: repo-2
+          - owner: user
+            repo: repo-3
+        trusted_authors:
+          - "dependabot[bot]"
+        base_branch: main
+        merge_if_blocked: true
+        merge_if_checks_skipped: true
+        merge_type: Squash
+        sort_by: updated
+        sort_direction: desc
+        "#);
     }
 
     #[test]
@@ -108,12 +124,23 @@ merge_type = "squash"
         let config = parse_config(config_str).expect("config should've been parsed");
 
         // THEN
-        assert_eq!(config.repos.len(), 3);
-        assert_eq!(config.trusted_authors.len(), 1);
-        assert_eq!(config.merge_if_blocked, false);
-        assert_eq!(config.merge_if_checks_skipped, true);
-        assert_eq!(config.sort_by, SortBy::Created);
-        assert_eq!(config.sort_direction, SortDirection::Ascending);
+        assert_yaml_snapshot!(config, @r#"
+        repos:
+          - owner: user
+            repo: repo-1
+          - owner: user
+            repo: repo-2
+          - owner: user
+            repo: repo-3
+        trusted_authors:
+          - "dependabot[bot]"
+        base_branch: ~
+        merge_if_blocked: false
+        merge_if_checks_skipped: true
+        merge_type: Squash
+        sort_by: created
+        sort_direction: asc
+        "#);
     }
 
     //-------------//
