@@ -71,7 +71,7 @@ jobs:
           repo: mitsuhiko/insta
           tag: 1.43.1
       - name: Test
-        run: cargo test
+        run: cargo insta test
 
   lint:
     needs: changes
