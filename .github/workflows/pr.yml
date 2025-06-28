@@ -60,17 +60,17 @@ jobs:
   test:
     needs: changes
     if: ${{ needs.changes.outputs.code == 'true' }}
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Install toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: debug
-        run: |
-          echo "RUST_BACKTRACE=${RUST_BACKTRACE}"
       - name: Test
         env:
-          INSTA_UPDATE: no
+          RUST_BACKTRACE: 0
         run: cargo test
 
   lint:
