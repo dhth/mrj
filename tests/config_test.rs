@@ -14,7 +14,7 @@ fn parsing_valid_config_with_all_props_works() {
     let mut cmd = base_cmd.args([
         "config",
         "validate",
-        "-p",
+        "--path",
         "tests/assets/valid-config-with-all-props.toml",
     ]);
 
@@ -37,7 +37,7 @@ fn parsing_valid_config_with_mandatory_props_only_works() {
     let mut cmd = base_cmd.args([
         "config",
         "validate",
-        "-p",
+        "--path",
         "tests/assets/valid-config-with-mandatory-props-only.toml",
     ]);
 
@@ -57,7 +57,12 @@ fn parsing_valid_config_with_mandatory_props_only_works() {
 fn sample_config_is_valid() {
     // GIVEN
     let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args(["config", "validate", "-p", "src/assets/sample-config.toml"]);
+    let mut cmd = base_cmd.args([
+        "config",
+        "validate",
+        "--path",
+        "src/assets/sample-config.toml",
+    ]);
 
     // WHEN
     // THEN
@@ -79,7 +84,7 @@ fn printing_sample_config_works() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r#"
+    assert_cmd_snapshot!(cmd, @r###"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -140,7 +145,7 @@ fn printing_sample_config_works() {
     sort_direction = "asc"
 
     ----- stderr -----
-    "#);
+    "###);
 }
 
 //-------------//
@@ -151,11 +156,11 @@ fn printing_sample_config_works() {
 fn parsing_invalid_toml_fails() {
     // GIVEN
     let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args(["config", "validate", "-p", "tests/assets/invalid.toml"]);
+    let mut cmd = base_cmd.args(["config", "validate", "--path", "tests/assets/invalid.toml"]);
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r#"
+    assert_cmd_snapshot!(cmd, @r###"
     success: false
     exit_code: 1
     ----- stdout -----
@@ -167,7 +172,7 @@ fn parsing_invalid_toml_fails() {
        | ^
     invalid string
     expected `"`, `'`
-    "#);
+    "###);
 }
 
 #[test]
@@ -177,13 +182,13 @@ fn parsing_invalid_config_fails() {
     let mut cmd = base_cmd.args([
         "config",
         "validate",
-        "-p",
+        "--path",
         "tests/assets/invalid-config.toml",
     ]);
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r#"
+    assert_cmd_snapshot!(cmd, @r###"
     success: false
     exit_code: 1
     ----- stdout -----
@@ -194,7 +199,7 @@ fn parsing_invalid_config_fails() {
     1 | repos = "not a list"
       |         ^^^^^^^^^^^^
     invalid type: string "not a list", expected a sequence
-    "#);
+    "###);
 }
 
 #[test]
@@ -204,13 +209,13 @@ fn fails_if_invalid_repos_provided_via_config() {
     let mut cmd = base_cmd.args([
         "config",
         "validate",
-        "-p",
+        "--path",
         "tests/assets/config-with-invalid-repos.toml",
     ]);
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r#"
+    assert_cmd_snapshot!(cmd, @r###"
     success: false
     exit_code: 1
     ----- stdout -----
@@ -221,5 +226,5 @@ fn fails_if_invalid_repos_provided_via_config() {
     3 |     "invalid-repo",
       |     ^^^^^^^^^^^^^^
     invalid value: string "invalid-repo", expected a value in the form "owner/repo"
-    "#);
+    "###);
 }
