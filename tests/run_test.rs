@@ -26,19 +26,19 @@ fn debug_mode_works() {
     ----- stdout -----
     DEBUG INFO
 
-    command                           : Run
-    config file                       : tests/assets/valid-config-with-all-props.toml
-    repos (overridden)                : []
-    output to file                    : false
-    output file                       : output.txt
-    write summary                     : false
-    summary file                      : summary.txt
-    skip disqualifications in summary : false
-    show repos with no prs            : false
-    show prs from untrusted authors   : false
-    show prs with unmatched head      : false
-    execute                           : false
-    plain stdout                      : false
+    command:                              Run
+    config file:                          tests/assets/valid-config-with-all-props.toml
+    repos (overridden):                   []
+    output to file:                       false
+    output file:                          output.txt
+    write summary:                        false
+    summary file:                         summary.txt
+    skip disqualifications in summary:    false
+    show repos with no prs:               false
+    show prs from untrusted authors:      false
+    show prs with unmatched head:         false
+    execute:                              false
+    plain stdout:                         false
 
     ----- stderr -----
     ");
@@ -65,19 +65,19 @@ fn overriding_repos_works() {
     ----- stdout -----
     DEBUG INFO
 
-    command                           : Run
-    config file                       : tests/assets/valid-config-with-no-repos.toml
-    repos (overridden)                : ["dhth/mrj", "dhth/bmm"]
-    output to file                    : false
-    output file                       : output.txt
-    write summary                     : false
-    summary file                      : summary.txt
-    skip disqualifications in summary : false
-    show repos with no prs            : false
-    show prs from untrusted authors   : false
-    show prs with unmatched head      : false
-    execute                           : false
-    plain stdout                      : false
+    command:                              Run
+    config file:                          tests/assets/valid-config-with-no-repos.toml
+    repos (overridden):                   ["dhth/mrj", "dhth/bmm"]
+    output to file:                       false
+    output file:                          output.txt
+    write summary:                        false
+    summary file:                         summary.txt
+    skip disqualifications in summary:    false
+    show repos with no prs:               false
+    show prs from untrusted authors:      false
+    show prs with unmatched head:         false
+    execute:                              false
+    plain stdout:                         false
 
     ----- stderr -----
     "#);

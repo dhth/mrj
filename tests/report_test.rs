@@ -23,10 +23,10 @@ fn debug_mode_works() {
     ----- stdout -----
     DEBUG INFO
 
-    command                  : Generate report
-    output file              : log.txt
-    open report              : true
-    num runs                 : 20
+    command:        Generate report
+    output file:    log.txt
+    open report:    true
+    num runs:       20
 
     ----- stderr -----
     ");
