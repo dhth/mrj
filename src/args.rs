@@ -151,19 +151,19 @@ impl std::fmt::Display for Args {
                 plain_stdout,
             } => format!(
                 r#"
-command                           : Run
-config file                       : {}
-repos (overridden)                : {:?}
-output to file                    : {}
-output file                       : {}
-write summary                     : {}
-summary file                      : {}
-skip disqualifications in summary : {}
-show repos with no prs            : {}
-show prs from untrusted authors   : {}
-show prs with unmatched head      : {}
-execute                           : {}
-plain stdout                      : {}
+command:                              Run
+config file:                          {}
+repos (overridden):                   {:?}
+output to file:                       {}
+output file:                          {}
+write summary:                        {}
+summary file:                         {}
+skip disqualifications in summary:    {}
+show repos with no prs:               {}
+show prs from untrusted authors:      {}
+show prs with unmatched head:         {}
+execute:                              {}
+plain stdout:                         {}
 "#,
                 config_file.to_string_lossy(),
                 repos.iter().map(|r| r.to_string()).collect::<Vec<String>>(),
@@ -181,14 +181,14 @@ plain stdout                      : {}
             MrjCommand::Config { config_command } => match config_command {
                 ConfigCommand::Validate { config_file } => format!(
                     r#"
-command                  : Validate config
-config file              : {}
+command:        Validate config
+config file:    {}
 "#,
                     config_file.to_string_lossy(),
                 ),
 
                 ConfigCommand::Sample => r#"
-command                  : Show sample config
+command:    Show sample config
 "#
                 .to_string(),
             },
@@ -199,10 +199,10 @@ command                  : Show sample config
                     num_runs,
                 } => format!(
                     r#"
-command                  : Generate report
-output file              : {}
-open report              : {}
-num runs                 : {}
+command:        Generate report
+output file:    {}
+open report:    {}
+num runs:       {}
 "#,
                     output_path.to_string_lossy(),
                     open_report,
