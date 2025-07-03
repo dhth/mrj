@@ -1,6 +1,6 @@
 mod common;
 
-use common::base_command;
+use common::Fixture;
 use insta_cmd::assert_cmd_snapshot;
 
 //-------------//
@@ -10,8 +10,8 @@ use insta_cmd::assert_cmd_snapshot;
 #[test]
 fn debug_mode_works() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args([
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd([
         "run",
         "--debug",
         "-c",
@@ -47,8 +47,8 @@ fn debug_mode_works() {
 #[test]
 fn overriding_repos_works() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args([
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd([
         "run",
         "--debug",
         "-c",
@@ -90,8 +90,8 @@ fn overriding_repos_works() {
 #[test]
 fn fails_if_overridden_repos_are_invalid() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args([
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd([
         "run",
         "--debug",
         "-c",
@@ -117,8 +117,8 @@ fn fails_if_overridden_repos_are_invalid() {
 #[test]
 fn fails_if_no_repos_provided() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args(["run", "-c", "tests/assets/valid-config-with-no-repos.toml"]);
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd(["run", "-c", "tests/assets/valid-config-with-no-repos.toml"]);
 
     // WHEN
     // THEN
