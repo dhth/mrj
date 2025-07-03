@@ -1,6 +1,6 @@
 mod common;
 
-use common::base_command;
+use common::Fixture;
 use insta_cmd::assert_cmd_snapshot;
 
 //-------------//
@@ -10,8 +10,8 @@ use insta_cmd::assert_cmd_snapshot;
 #[test]
 fn parsing_valid_config_with_all_props_works() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args([
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd([
         "config",
         "validate",
         "--path",
@@ -33,8 +33,8 @@ fn parsing_valid_config_with_all_props_works() {
 #[test]
 fn parsing_valid_config_with_mandatory_props_only_works() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args([
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd([
         "config",
         "validate",
         "--path",
@@ -56,8 +56,8 @@ fn parsing_valid_config_with_mandatory_props_only_works() {
 #[test]
 fn sample_config_is_valid() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args([
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd([
         "config",
         "validate",
         "--path",
@@ -79,8 +79,8 @@ fn sample_config_is_valid() {
 #[test]
 fn printing_sample_config_works() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args(["config", "sample"]);
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd(["config", "sample"]);
 
     // WHEN
     // THEN
@@ -155,8 +155,8 @@ fn printing_sample_config_works() {
 #[test]
 fn parsing_invalid_toml_fails() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args(["config", "validate", "--path", "tests/assets/invalid.toml"]);
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd(["config", "validate", "--path", "tests/assets/invalid.toml"]);
 
     // WHEN
     // THEN
@@ -178,8 +178,8 @@ fn parsing_invalid_toml_fails() {
 #[test]
 fn parsing_invalid_config_fails() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args([
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd([
         "config",
         "validate",
         "--path",
@@ -205,8 +205,8 @@ fn parsing_invalid_config_fails() {
 #[test]
 fn fails_if_invalid_repos_provided_via_config() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args([
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd([
         "config",
         "validate",
         "--path",

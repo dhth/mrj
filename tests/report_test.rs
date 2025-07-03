@@ -1,6 +1,6 @@
 mod common;
 
-use common::base_command;
+use common::Fixture;
 use insta_cmd::assert_cmd_snapshot;
 
 //-------------//
@@ -10,8 +10,8 @@ use insta_cmd::assert_cmd_snapshot;
 #[test]
 fn debug_mode_works() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args([
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd([
         "report", "generate", "-p", "log.txt", "-o", "-n", "20", "--debug",
     ]);
 
@@ -39,8 +39,8 @@ fn debug_mode_works() {
 #[test]
 fn fails_if_num_runs_is_negative() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args(["report", "generate", "-n", "-10", "--debug"]);
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd(["report", "generate", "-n", "-10", "--debug"]);
 
     // WHEN
     // THEN
@@ -61,8 +61,8 @@ fn fails_if_num_runs_is_negative() {
 #[test]
 fn fails_if_num_runs_is_zero() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args(["report", "generate", "-n", "0", "--debug"]);
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd(["report", "generate", "-n", "0", "--debug"]);
 
     // WHEN
     // THEN
@@ -81,8 +81,8 @@ fn fails_if_num_runs_is_zero() {
 #[test]
 fn fails_if_num_runs_is_greater_than_max_allowed() {
     // GIVEN
-    let mut base_cmd = base_command();
-    let mut cmd = base_cmd.args(["report", "generate", "-n", "101", "--debug"]);
+    let fx = Fixture::new();
+    let mut cmd = fx.cmd(["report", "generate", "-n", "101", "--debug"]);
 
     // WHEN
     // THEN
