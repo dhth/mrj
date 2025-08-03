@@ -160,19 +160,18 @@ fn parsing_invalid_toml_fails() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r###"
+    assert_cmd_snapshot!(cmd, @r#"
     success: false
     exit_code: 1
     ----- stdout -----
 
     ----- stderr -----
-    Error: TOML parse error at line 10, column 1
+    Error: TOML parse error at line 10, column 17
        |
     10 | trusted_authors = ["dependabot[bot]"]
-       | ^
-    invalid string
-    expected `"`, `'`
-    "###);
+       |                 ^
+    unexpected `=` in array, expected value, `]`
+    "#);
 }
 
 #[test]
