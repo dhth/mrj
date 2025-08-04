@@ -1,6 +1,8 @@
 mod behaviours;
 mod execute;
 mod log;
+#[cfg(test)]
+mod tests;
 
 use crate::config::Config;
 use crate::domain::{GhApiQueryParam, Repo};
