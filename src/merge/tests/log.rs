@@ -1,4 +1,5 @@
-use super::super::{RunBehaviours, RunLog};
+use super::super::behaviours::RunBehaviours;
+use super::super::log::RunLog;
 use crate::domain::{Disqualification, MergeResult, Qualification, RepoResult};
 use crate::domain::{
     PRCheck, PRCheckFinished, PRDisqualified, RepoCheck, RepoCheckErrored, RepoCheckFinished,
