@@ -145,13 +145,13 @@ where
         let file_name = entry.file_name();
         let file_name = file_name.to_string_lossy();
 
-        if let Some(caps) = re.captures(&file_name) {
-            if let Some(num_match) = caps.get(1) {
-                let num: u16 = num_match.as_str().parse()?;
-                let mut contents = String::new();
-                File::open(entry.path())?.read_to_string(&mut contents)?;
-                generate_run_html(&file_name, num, &contents, dist_dir.as_ref())?;
-            }
+        if let Some(caps) = re.captures(&file_name)
+            && let Some(num_match) = caps.get(1)
+        {
+            let num: u16 = num_match.as_str().parse()?;
+            let mut contents = String::new();
+            File::open(entry.path())?.read_to_string(&mut contents)?;
+            generate_run_html(&file_name, num, &contents, dist_dir.as_ref())?;
         }
     }
     Ok(())
