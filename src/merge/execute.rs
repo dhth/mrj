@@ -197,17 +197,16 @@ async fn merge_pr(
         }
     }
 
-    if execute {
-        if let Err(err) = client
+    if execute
+        && let Err(err) = client
             .pulls(owner, repo)
             .merge(pr.number)
             .method(config.merge_type.merge_method())
             .send()
             .await
             .context("couldn't merge PR")
-        {
-            return MergeResult::Errored(pr_check.record_error(err));
-        }
+    {
+        return MergeResult::Errored(pr_check.record_error(err));
     }
 
     MergeResult::Qualified(pr_check.finish())
