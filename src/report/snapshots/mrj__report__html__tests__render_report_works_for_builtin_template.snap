@@ -1,3 +1,7 @@
+---
+source: src/report/html.rs
+expression: result
+---
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -6,7 +10,7 @@
         <meta name="color-scheme" content="dark">
         <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>">
-        <title>{{ title }}</title>
+        <title>mrj runs</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
@@ -44,32 +48,45 @@
     <body class="bg-[#282828] overflow-y-scroll">
         <div class="w-4/5 max-sm:w-full max-sm:px-4 mx-auto min-h-screen pt-8">
             <div class="flex flex-col gap-2">
-                <h1 class="text-[#fbf1c7] text-3xl font-semibold">{{ title }}</h1>
-                <p class="text-[#928374] italic">Generated at {{ timestamp }}</p>
+                <h1 class="text-[#fbf1c7] text-3xl font-semibold">mrj runs</h1>
+                <p class="text-[#928374] italic">Generated at 2025-01-16T12:00:00Z</p>
             </div>
-            {% if runs | length > 0 %}
+            
             <div class="overflow-x-auto pt-4">
                 <div class="flex gap-4 items-center pb-2">
                     <button class="bg-[#83a598] text-[#282828] font-semibold text-xs p-2 hover:bg-[#fabd2f] cursor-pointer" onclick="toggleAllDetails()">
                     Toggle All
                     </button>
                 </div>
-                {% for run in runs %}
+                
                 <div class="my-2 overflow-x-auto">
                     <details>
                         <summary class="text-[#83a598] cursor-pointer max-sm:text-sm mb-2">
-                            {{ run.label }}
+                            run-576 (sat-nov-01)
                         </summary>
                         <div class="max-sm:p-2 p-4 bg-[#2e2c2c] run-output max-sm:text-xs text-sm">
-                            <pre class="run-output text-[#b8bb26] overflow-x-auto max-sm:text-xs text-sm">{{ run.contents }}</pre>
+                            <pre class="run-output text-[#b8bb26] overflow-x-auto max-sm:text-xs text-sm">[INFO] The time right now is 2025-11-01 22:33:11.521555796 UTC
+[INFO] I&#x27;m only looking for PRs where the base branch is &quot;main&quot;
+[INFO] I&#x27;m sorting PRs based on &quot;creation date&quot; in the &quot;ascending&quot; direction</pre>
                         </div>
                     </details>
                 </div>
-                {% endfor %}
+                
+                <div class="my-2 overflow-x-auto">
+                    <details>
+                        <summary class="text-[#83a598] cursor-pointer max-sm:text-sm mb-2">
+                            run-577 (sun-nov-02)
+                        </summary>
+                        <div class="max-sm:p-2 p-4 bg-[#2e2c2c] run-output max-sm:text-xs text-sm">
+                            <pre class="run-output text-[#b8bb26] overflow-x-auto max-sm:text-xs text-sm">[INFO] The time right now is 2025-11-01 23:31:47.722303883 UTC
+[INFO] I&#x27;m only looking for PRs where the base branch is &quot;main&quot;
+[INFO] I&#x27;m sorting PRs based on &quot;creation date&quot; in the &quot;ascending&quot; direction</pre>
+                        </div>
+                    </details>
+                </div>
+                
             </div>
-            {% else %}
-            <p class="text-[#928374] mt-4">No runs found yet.</p>
-            {% endif %}
+            
             <p class="text-[#928374] italic my-10 pt-2 border-t-2 border-[#92837433]">Built using <a class="font-bold" href="https://github.com/dhth/mrj" target="_blank" rel="noopener noreferrer">mrj</a></p>
         </div>
         <button id="scrollToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'});"
