@@ -223,7 +223,7 @@ template path:  {}
                     template_path
                         .as_ref()
                         .map(|p| p.to_string_lossy().to_string())
-                        .unwrap_or(NOT_PROVIDED.to_string())
+                        .unwrap_or_else(|| NOT_PROVIDED.to_string())
                 ),
             },
         };
