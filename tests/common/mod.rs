@@ -22,6 +22,7 @@ impl Fixture {
         S: AsRef<OsStr>,
     {
         let mut command = Command::new(&self._bin_path);
+        command.env("MRJ_TOKEN", "invalid");
         command.args(args);
         command
     }

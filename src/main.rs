@@ -14,6 +14,8 @@ use config::get_config;
 use merge::{RunBehaviours, merge_prs};
 use report::generate_report;
 
+use crate::domain::ReportConfig;
+
 const SAMPLE_CONFIG: &str = include_str!("./assets/sample-config.toml");
 
 #[tokio::main]
@@ -88,7 +90,26 @@ async fn main() -> anyhow::Result<()> {
                 output_path,
                 open_report,
                 num_runs,
-            } => generate_report(&output_path, open_report, num_runs)?,
+                title,
+                template_path,
+            } => {
+                let custom_template = if let Some(ref template_path) = template_path {
+                    Some(std::fs::read_to_string(template_path).with_context(|| {
+                        format!("failed to read HTML template from {:?}", template_path)
+                    })?)
+                } else {
+                    None
+                };
+
+                let config = ReportConfig {
+                    output_path,
+                    custom_template,
+                    title,
+                    num_runs,
+                    open_report,
+                };
+                generate_report(&config)?;
+            }
         },
     }
 

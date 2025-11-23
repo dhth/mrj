@@ -17,13 +17,6 @@
             .run-output {
                 font-family: "Fira Mono", monospace;
             }
-            .nav-header {
-                position: sticky;
-                top: 0;
-                z-index: 100;
-                background: #2e2c2c;
-                border-bottom: 1px solid #92837433;
-            }
             * {
                 scrollbar-width: thin;
                 scrollbar-color: #928374 #2e2c2c;
@@ -47,14 +40,14 @@
                 <h1 class="text-[#fbf1c7] text-3xl font-semibold">{{ title }}</h1>
                 <p class="text-[#928374] italic">Generated at {{ timestamp }}</p>
             </div>
-            {% if runs | length > 0 %}
+            {%- if runs | length > 0 %}
             <div class="overflow-x-auto pt-4">
                 <div class="flex gap-4 items-center pb-2">
                     <button class="bg-[#83a598] text-[#282828] font-semibold text-xs p-2 hover:bg-[#fabd2f] cursor-pointer" onclick="toggleAllDetails()">
                     Toggle All
                     </button>
                 </div>
-                {% for run in runs %}
+                {%- for run in runs %}
                 <div class="my-2 overflow-x-auto">
                     <details>
                         <summary class="text-[#83a598] cursor-pointer max-sm:text-sm mb-2">
@@ -65,11 +58,11 @@
                         </div>
                     </details>
                 </div>
-                {% endfor %}
+                {%- endfor %}
             </div>
-            {% else %}
+            {%- else %}
             <p class="text-[#928374] mt-4">No runs found yet.</p>
-            {% endif %}
+            {%- endif %}
             <p class="text-[#928374] italic my-10 pt-2 border-t-2 border-[#92837433]">Built using <a class="font-bold" href="https://github.com/dhth/mrj" target="_blank" rel="noopener noreferrer">mrj</a></p>
         </div>
         <button id="scrollToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'});"
