@@ -2,6 +2,8 @@ use crate::domain::Repo;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
+const NOT_PROVIDED: &str = "<NOT PROVIDED>";
+
 /// mrj merges your open PRs
 #[derive(Parser, Debug)]
 pub struct Args {
@@ -126,6 +128,12 @@ pub enum ReportCommand {
             value_parser = clap::value_parser!(u8).range(1..=100),
             )]
         num_runs: u8,
+        /// Title of the report
+        #[arg(long = "title", value_name = "STRING", default_value = "mrj runs")]
+        title: String,
+        /// Path to custom HTML template file
+        #[arg(long = "html-template", value_name = "PATH")]
+        template_path: Option<PathBuf>,
     },
 }
 
@@ -197,16 +205,25 @@ command:    Show sample config
                     output_path,
                     open_report,
                     num_runs,
+                    title,
+                    template_path,
                 } => format!(
                     r#"
 command:        Generate report
 output file:    {}
 open report:    {}
 num runs:       {}
+title:          {}
+template path:  {}
 "#,
                     output_path.to_string_lossy(),
                     open_report,
                     num_runs,
+                    title,
+                    template_path
+                        .as_ref()
+                        .map(|p| p.to_string_lossy().to_string())
+                        .unwrap_or(NOT_PROVIDED.to_string())
                 ),
             },
         };

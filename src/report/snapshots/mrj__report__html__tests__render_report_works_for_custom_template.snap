@@ -1,0 +1,18 @@
+---
+source: src/report/html.rs
+expression: result
+---
+custom template
+Generated at 2025-01-16T12:00:00Z
+-> run-576 (sat-nov-01)
+---
+[INFO] The time right now is 2025-11-01 22:33:11.521555796 UTC
+[INFO] I&#x27;m only looking for PRs where the base branch is &quot;main&quot;
+[INFO] I&#x27;m sorting PRs based on &quot;creation date&quot; in the &quot;ascending&quot; direction
+---
+-> run-577 (sun-nov-02)
+---
+[INFO] The time right now is 2025-11-01 23:31:47.722303883 UTC
+[INFO] I&#x27;m only looking for PRs where the base branch is &quot;main&quot;
+[INFO] I&#x27;m sorting PRs based on &quot;creation date&quot; in the &quot;ascending&quot; direction
+---

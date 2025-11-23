@@ -1,0 +1,12 @@
+{{ title }}
+Generated at {{ timestamp }}
+{%- if runs | length > 0 %}
+{%- for run in runs %}
+-> {{ run.label }}
+---
+{{ run.contents }}
+---
+{%- endfor %}
+{%- else %}
+No runs found yet.
+{%- endif %}
