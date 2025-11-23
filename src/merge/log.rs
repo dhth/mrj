@@ -15,7 +15,7 @@ const STATE: &str = "[ state  ]  ";
 
 pub(super) struct RunLog<W: Write> {
     w: W,
-    b: RunBehaviours,
+    behaviours: RunBehaviours,
     lines: Vec<String>,
     summary: RunSummary,
 }
@@ -24,7 +24,7 @@ impl<W: Write> RunLog<W> {
     pub(super) fn new(writer: W, behaviours: &RunBehaviours) -> Self {
         RunLog {
             w: writer,
-            b: behaviours.clone(),
+            behaviours: behaviours.clone(),
             lines: vec![],
             summary: RunSummary::default(),
         }
@@ -46,11 +46,13 @@ impl<W: Write> RunLog<W> {
                     .filter(|result| match result {
                         MergeResult::Disqualified(pr_check) => match pr_check.state.reason() {
                             Disqualification::Author(_)
-                                if !self.b.show_prs_from_untrusted_authors =>
+                                if !self.behaviours.show_prs_from_untrusted_authors =>
                             {
                                 false
                             }
-                            Disqualification::Head(_) if !self.b.show_prs_with_unmatched_head => {
+                            Disqualification::Head(_)
+                                if !self.behaviours.show_prs_with_unmatched_head =>
+                            {
                                 false
                             }
                             _ => true,
@@ -61,7 +63,7 @@ impl<W: Write> RunLog<W> {
 
                 if filtered_results.is_empty() {
                     self.summary.record_repo_with_no_prs();
-                    if !self.b.show_repos_with_no_prs {
+                    if !self.behaviours.show_repos_with_no_prs {
                         return;
                     }
                 }
@@ -102,7 +104,7 @@ PRs merged
             ))
         };
 
-        let disqualifications_summary = if !self.b.skip_disqualifications_in_summary
+        let disqualifications_summary = if !self.behaviours.skip_disqualifications_in_summary
             && !self.summary.disqualifications.is_empty()
         {
             let longest_url_len = self
@@ -151,7 +153,7 @@ Disqualifications
             disqualifications_summary.unwrap_or_default(),
         );
 
-        let output = if self.b.plain_stdout {
+        let output = if self.behaviours.plain_stdout {
             &summary
         } else {
             &summary.green().to_string()
@@ -159,7 +161,7 @@ Disqualifications
 
         let _ = writeln!(self.w, "{output}");
 
-        if let Some(output_path) = &self.b.output_path {
+        if let Some(output_path) = &self.behaviours.output_path {
             self.lines.push(summary.clone());
 
             let mut file = OpenOptions::new()
@@ -173,7 +175,7 @@ Disqualifications
                 .context("couldn't write output to file")?;
         }
 
-        if let Some(summary_path) = &self.b.summary_path {
+        if let Some(summary_path) = &self.behaviours.summary_path {
             let mut file = OpenOptions::new()
                 .create(true)
                 .write(true)
@@ -189,7 +191,7 @@ Disqualifications
     }
 
     pub(super) fn banner(&mut self) {
-        let banner_output = if self.b.plain_stdout {
+        let banner_output = if self.behaviours.plain_stdout {
             BANNER
         } else {
             &BANNER.green().bold().to_string()
@@ -198,21 +200,21 @@ Disqualifications
         let _ = writeln!(self.w, "{banner_output}");
 
         let dry_run_line = "                         dry run".to_string();
-        let dry_run_output = if self.b.plain_stdout {
+        let dry_run_output = if self.behaviours.plain_stdout {
             &dry_run_line
         } else {
             &dry_run_line.yellow().to_string()
         };
 
-        if !self.b.execute {
+        if !self.behaviours.execute {
             let _ = writeln!(self.w, "{dry_run_output}");
         }
 
         let _ = writeln!(self.w);
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push(BANNER.to_string());
-            if !self.b.execute {
+            if !self.behaviours.execute {
                 self.lines.push(dry_run_line);
             }
             self.lines.push("".to_string());
@@ -222,7 +224,7 @@ Disqualifications
     pub(super) fn info(&mut self, message: &str) {
         let _ = writeln!(self.w, "[INFO] {message}");
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push(format!("[INFO] {message}"));
         }
     }
@@ -230,7 +232,7 @@ Disqualifications
     pub(super) fn empty_line(&mut self) {
         let _ = writeln!(self.w);
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push("".to_string());
         }
     }
@@ -291,7 +293,7 @@ Disqualifications
 ============="#
         );
 
-        let output = if self.b.plain_stdout {
+        let output = if self.behaviours.plain_stdout {
             &line
         } else {
             &line.cyan().to_string()
@@ -299,13 +301,13 @@ Disqualifications
 
         let _ = writeln!(self.w, "{output}");
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push(line);
         }
     }
 
     fn pr_info(&mut self, msg: &str) {
-        let output = if self.b.plain_stdout {
+        let output = if self.behaviours.plain_stdout {
             msg
         } else {
             &msg.purple().to_string()
@@ -313,7 +315,7 @@ Disqualifications
 
         let _ = writeln!(self.w, "{output}");
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push(msg.to_string());
         }
     }
@@ -332,7 +334,7 @@ Disqualifications
             Qualification::State(s) => format!("{STATE} \"{s}\" is desirable"),
         };
 
-        let output = if self.b.plain_stdout {
+        let output = if self.behaviours.plain_stdout {
             &msg
         } else {
             &msg.blue().to_string()
@@ -340,7 +342,7 @@ Disqualifications
 
         let _ = writeln!(self.w, "        {output}");
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push(format!("        {msg}"));
         }
     }
@@ -370,7 +372,7 @@ Disqualifications
             },
         };
 
-        let output = if self.b.plain_stdout {
+        let output = if self.behaviours.plain_stdout {
             &msg
         } else {
             &msg.yellow().to_string()
@@ -378,7 +380,7 @@ Disqualifications
 
         let _ = writeln!(self.w, "        {output} ❌");
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push(format!("        {msg} ❌"));
         }
 
@@ -386,7 +388,7 @@ Disqualifications
     }
 
     fn absence(&mut self, msg: &str) {
-        let output = if self.b.plain_stdout {
+        let output = if self.behaviours.plain_stdout {
             msg
         } else {
             &msg.yellow().to_string()
@@ -394,19 +396,19 @@ Disqualifications
 
         let _ = writeln!(self.w, "        {output}");
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push(format!("        {msg}"));
         }
     }
 
     fn merge(&mut self, pr: MergedPR) {
-        let msg = if self.b.execute {
+        let msg = if self.behaviours.execute {
             "PR merged! 🎉 ✅"
         } else {
             "PR matches all criteria, I would've merged it if this weren't a dry run ✅"
         };
 
-        let output = if self.b.plain_stdout {
+        let output = if self.behaviours.plain_stdout {
             msg
         } else {
             &msg.green().to_string()
@@ -414,18 +416,18 @@ Disqualifications
 
         let _ = writeln!(self.w, "        {output}");
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push(format!("        {msg}"));
         }
 
-        if self.b.execute {
+        if self.behaviours.execute {
             self.summary.record_merged_pr(pr);
         }
     }
 
     fn error(&mut self, error: &anyhow::Error) {
         let line = format!("        error 😵: {error}");
-        let output = if self.b.plain_stdout {
+        let output = if self.behaviours.plain_stdout {
             &line
         } else {
             &line.red().to_string()
@@ -433,7 +435,7 @@ Disqualifications
 
         let _ = writeln!(self.w, "{output}");
 
-        if self.b.output_path.is_some() {
+        if self.behaviours.output_path.is_some() {
             self.lines.push(line);
         }
 

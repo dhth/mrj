@@ -47,17 +47,17 @@ publish-dry:
 run:
     cargo run
 
-review:
-    cargo insta test --review
+review *FLAGS:
+    cargo insta test --review {{FLAGS}}
 
 test:
-    cargo nextest run
+    cargo test
 
 all:
     cargo check --all-targets
     cargo fmt --all
     cargo clippy --all-targets
-    cargo nextest run
+    cargo test
 
 sys-info:
     @echo "os_family: {{ os_family() }}"
