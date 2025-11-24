@@ -27,6 +27,8 @@ anything that fit my needs, I wrote `mrj`.
 `mrj` now takes care of merging dependency PRs for my projects. It runs on a
 schedule on GitHub Actions [here][2].
 
+> Read more about how I leverage mrj for my needs [here][4].
+
 💾 Installation
 ---
 
@@ -77,22 +79,28 @@ Options:
           Path to mrj's config file [default: mrj.toml]
   -r, --repos <STRING,STRING>
           Repos to run for (will override repos in config)
-  -o, --output
-          Whether to write output to a file
+  -o, --output-to-file
+          Whether to write mrj's log of events to a file
       --debug
           Output debug information without doing anything
       --output-path <FILE>
-          Whether to write mrj's log of events to a file [default: output.txt]
+          File to write output to [default: output.txt]
   -s, --summary
           Whether to write merge summary to a file
       --summary-path <FILE>
           File to write summary to [default: summary.txt]
-  -n, --show-repos-with-no-prs
+  -D, --skip-disqualifications-in-summary
+          Whether to skip listing disqualifications in the summary
+  -N, --show-repos-with-no-prs
           Whether to show information for repos with no PRs
-  -u, --show-prs-from-untrusted-authors
+  -U, --show-prs-from-untrusted-authors
           Whether to show information for PRs from untrusted authors
+  -H, --show-unmatched-head-prs
+          Whether to show information for PRs where head doesn't match configured pattern
   -e, --execute
           Whether to actually merge PRs; mrj operates in "dry-run mode" by default
+  -p, --plain
+          Whether to use output text to stdout without color
   -h, --help
           Print help
 ```
@@ -104,11 +112,13 @@ Generate a report
 Usage: mrj report generate [OPTIONS]
 
 Options:
-  -p, --output-path <PATH>  File containing the output of "mrj run" [default: output.txt]
-  -o, --open                Whether to open report in the browser
-  -n, --num-runs <NUMBER>   Maximum number of runs to keep in the report (allowed range: [1, 100]) [default: 10]
-      --debug               Output debug information without doing anything
-  -h, --help                Print help
+  -p, --output-path <PATH>    File containing the output of "mrj run" [default: output.txt]
+  -o, --open                  Whether to open report in the browser
+  -n, --num-runs <NUMBER>     Maximum number of runs to keep in the report (allowed range: [1, 100]) [default: 10]
+      --debug                 Output debug information without doing anything
+      --title <STRING>        Title of the report [default: "mrj runs"]
+      --html-template <PATH>  Path to custom HTML template file
+  -h, --help                  Print help
 ```
 
 🔑 Authentication
@@ -267,7 +277,7 @@ jobs:
           CLICOLOR_FORCE: 1
           COLORTERM: "truecolor"
         run: |
-          mrj run -e
+          mrj run --execute
 ```
 
 If you also want to generate reports that can be deployed on GitHub Pages, use
@@ -313,7 +323,7 @@ jobs:
           CLICOLOR_FORCE: 1
           COLORTERM: "truecolor"
         run: |
-          mrj run -eos
+          mrj run --execute --output-to-file --summary
       - name: Generate report
         run: |
           mrj report generate
@@ -380,6 +390,7 @@ want):
    # profit!
    ```
 
-[1]: https://dhth.github.io/mrj-runner/index.html
+[1]: https://deps.gh.dhruvs.space
 [2]: https://github.com/dhth/mrj-runner
 [3]: https://github.com/dhth/mrj/releases
+[4]: http://devlog.dhruvs.space/log/009/
