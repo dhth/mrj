@@ -213,8 +213,7 @@ mrj report generate --open
 
 This will generate a report that looks like this:
 
-![list](https://tools.dhruvs.space/images/mrj/v0-3-0/mrj-list.png)
-![report](https://tools.dhruvs.space/images/mrj/v0-3-0/mrj-report.png)
+![report](https://tools.dhruvs.space/images/mrj/v0-4-0/mrj-report.png)
 
 ⏱️ Running on a schedule via Github Actions
 ---
