@@ -251,7 +251,7 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.3.0
+  MRJ_VERSION: v0.4.0
 
 jobs:
   run:
@@ -297,7 +297,7 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.3.0
+  MRJ_VERSION: v0.4.0
 
 jobs:
   run:
