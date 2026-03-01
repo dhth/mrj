@@ -20,21 +20,21 @@ exclude = [
 ]
 
 [dependencies]
-anyhow = "1.0.100"
-chrono = "0.4.43"
-clap = { version = "4.5.56", features = ["derive"] }
+anyhow = "1.0.102"
+chrono = "0.4.44"
+clap = { version = "4.5.60", features = ["derive"] }
 colored = "3"
-futures = "0.3.31"
+futures = "0.3.32"
 octocrab = "0.49.5"
 open = "5.3.3"
-regex = "1.12.2"
+regex = "1.12.3"
 serde = { version = "1.0.228", features = ["derive"] }
 tera = "1.20.1"
 tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread"] }
 toml = { version = "0.9.11", features = ["parse"] }
 
 [dev-dependencies]
-insta = { version = "1.46.2", features = ["yaml"] }
+insta = { version = "1.46.3", features = ["yaml"] }
 insta-cmd = "0.6.0"
 
 [profile.release]
