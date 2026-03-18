@@ -426,7 +426,7 @@ Disqualifications
     }
 
     fn error(&mut self, error: &anyhow::Error) {
-        let line = format!("        error 😵: {error}");
+        let line = format!("        error 😵: {error:#}");
         let output = if self.behaviours.plain_stdout {
             &line
         } else {
