@@ -44,8 +44,8 @@ lint-fix:
 publish-dry:
     cargo publish --dry-run --allow-dirty
 
-run:
-    cargo run
+run *ARGS:
+    cargo run -- {{ARGS}}
 
 review *FLAGS:
     cargo insta test --review {{FLAGS}}
