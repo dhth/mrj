@@ -58,17 +58,3 @@ all:
     cargo fmt --all
     cargo clippy --all-targets
     cargo test
-
-sys-info:
-    @echo "os_family: {{ os_family() }}"
-    @echo "os: {{ os() }}"
-    @echo "arch: {{ arch() }}"
-
-arch-specific:
-    just {{ if arch() == "aarch64" { "arm-stuff" } else { "x86-stuff" } }}
-
-@arm-stuff:
-    echo "arm!"
-
-@x86-stuff:
-    echo "x86!"

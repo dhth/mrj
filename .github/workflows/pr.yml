@@ -56,18 +56,6 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
       - name: Build
         run: cargo build
-
-  test:
-    needs: changes
-    if: ${{ needs.changes.outputs.code == 'true' }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Install toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
       - name: Test
         env:
           RUST_BACKTRACE: 0
