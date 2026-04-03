@@ -1,8 +1,10 @@
 use super::behaviours::RunBehaviours;
+use crate::config::Config;
 use crate::domain::{
-    Disqualification, MergeResult, MergedPR, Qualification, RepoResult, RunSummary,
+    Disqualification, GhApiQueryParam, MergeResult, MergedPR, Qualification, RepoResult, RunSummary,
 };
 use anyhow::Context;
+use chrono::{DateTime, Utc};
 use colored::Colorize;
 use std::fs::OpenOptions;
 use std::io::Write;
@@ -13,16 +15,16 @@ const HEAD: &str = "[ head  ]  ";
 const CHECK: &str = "[ check  ]  ";
 const STATE: &str = "[ state  ]  ";
 
-pub(super) struct RunLog<W: Write> {
+pub(super) struct RunLogger<W: Write> {
     w: W,
     behaviours: RunBehaviours,
     lines: Vec<String>,
     summary: RunSummary,
 }
 
-impl<W: Write> RunLog<W> {
+impl<W: Write> RunLogger<W> {
     pub(super) fn new(writer: W, behaviours: &RunBehaviours) -> Self {
-        RunLog {
+        RunLogger {
             w: writer,
             behaviours: behaviours.clone(),
             lines: vec![],
@@ -190,7 +192,7 @@ Disqualifications
         Ok(())
     }
 
-    pub(super) fn banner(&mut self) {
+    pub(super) fn print_banner(&mut self) {
         let banner_output = if self.behaviours.plain_stdout {
             BANNER
         } else {
@@ -221,7 +223,50 @@ Disqualifications
         }
     }
 
-    pub(super) fn info(&mut self, message: &str) {
+    pub(super) fn print_startup_info(&mut self, config: &Config, now: DateTime<Utc>) {
+        self.info(&format!("The time right now is {now}"));
+
+        if let Some(b) = &config.base_branch {
+            self.info(&format!(
+                "I'm only looking for PRs where the base branch is \"{b}\""
+            ));
+        }
+
+        if config.merge_if_blocked {
+            self.info("I will merge PRs even if they're blocked");
+        }
+
+        if !config.merge_if_checks_skipped {
+            self.info("I won't merge PRs if checks are skipped");
+        }
+
+        if self.behaviours.show_repos_with_no_prs {
+            self.info("I will show repositories that have no PRs");
+        }
+
+        if self.behaviours.show_prs_from_untrusted_authors {
+            self.info("I will show PRs from untrusted authors");
+        }
+
+        if self.behaviours.show_prs_with_unmatched_head && config.head_pattern.is_some() {
+            self.info("I will show PRs from where head doesn't match configured head pattern");
+        }
+
+        self.info(&format!(
+            r#"I'm sorting PRs based on "{}" in the "{}" direction"#,
+            config.sort_by.readable_repr(),
+            config.sort_direction.readable_repr()
+        ));
+    }
+
+    pub(super) fn print_conclusion(&mut self, now: DateTime<Utc>, num_seconds: i64) {
+        self.empty_line();
+        self.info(&format!(
+            "This run ended at {now}; took {num_seconds} seconds"
+        ));
+    }
+
+    fn info(&mut self, message: &str) {
         let _ = writeln!(self.w, "[INFO] {message}");
 
         if self.behaviours.output_path.is_some() {
@@ -229,7 +274,7 @@ Disqualifications
         }
     }
 
-    pub(super) fn empty_line(&mut self) {
+    fn empty_line(&mut self) {
         let _ = writeln!(self.w);
 
         if self.behaviours.output_path.is_some() {

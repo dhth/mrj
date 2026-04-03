@@ -1,5 +1,5 @@
 use super::super::behaviours::RunBehaviours;
-use super::super::log::RunLog;
+use super::super::log::RunLogger;
 use crate::domain::{Disqualification, MergeResult, Qualification, RepoResult};
 use crate::domain::{
     PRCheck, PRCheckFinished, PRDisqualified, RepoCheck, RepoCheckErrored, RepoCheckFinished,
@@ -18,7 +18,7 @@ const PR_AUTHOR: &str = "dependabot[bot]";
 fn failed_repo_result_is_printed_correctly() {
     // GIVEN
     let mut buffer = vec![];
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -50,7 +50,7 @@ fn pr_with_unmatched_head_is_ignored_by_default() {
     // GIVEN
     let mut buffer = vec![];
 
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -71,7 +71,7 @@ fn pr_with_unmatched_head_is_printed_if_requested() {
     let mut buffer = vec![];
 
     let behaviours = RunBehaviours::default().show_prs_with_unmatched_head();
-    let mut l = RunLog::new(&mut buffer, &behaviours);
+    let mut l = RunLogger::new(&mut buffer, &behaviours);
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -107,7 +107,7 @@ fn pr_with_unknown_author_is_ignored_by_default() {
     // GIVEN
     let mut buffer = vec![];
 
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -128,7 +128,7 @@ fn pr_with_unknown_author_is_printed_if_requested() {
     let mut buffer = vec![];
 
     let behaviours = RunBehaviours::default().show_prs_from_untrusted_authors();
-    let mut l = RunLog::new(&mut buffer, &behaviours);
+    let mut l = RunLogger::new(&mut buffer, &behaviours);
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -165,7 +165,7 @@ fn pr_with_untrusted_author_is_ignored_by_default() {
     // GIVEN
     let mut buffer = vec![];
 
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -186,7 +186,7 @@ fn pr_with_untrusted_author_is_printed_if_requested() {
     let mut buffer = vec![];
 
     let behaviours = RunBehaviours::default().show_prs_from_untrusted_authors();
-    let mut l = RunLog::new(&mut buffer, &behaviours);
+    let mut l = RunLogger::new(&mut buffer, &behaviours);
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -223,7 +223,7 @@ fn pr_with_empty_check_conclusion_is_printed_correctly() {
     // GIVEN
     let mut buffer = vec![];
 
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -266,7 +266,7 @@ fn pr_with_a_failed_check_is_printed_correctly() {
     // GIVEN
     let mut buffer = vec![];
 
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -307,7 +307,7 @@ fn pr_with_unknown_state_is_printed_correctly() {
     // GIVEN
     let mut buffer = vec![];
 
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -348,7 +348,7 @@ fn pr_with_an_undesirable_state_is_printed_correctly() {
     // GIVEN
     let mut buffer = vec![];
 
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -389,7 +389,7 @@ fn pr_with_a_finished_check_is_printed_correctly() {
     // GIVEN
     let mut buffer = vec![];
 
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -431,7 +431,7 @@ fn printing_summary_works() {
     // GIVEN
     let mut buffer = vec![];
 
-    let mut l = RunLog::new(&mut buffer, &RunBehaviours::default());
+    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -493,7 +493,7 @@ fn disqualifications_can_be_skipped_in_summary_when_requested() {
 
     let behaviours = RunBehaviours::default().skip_disqualifications_in_summary();
 
-    let mut l = RunLog::new(&mut buffer, &behaviours);
+    let mut l = RunLogger::new(&mut buffer, &behaviours);
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -549,7 +549,7 @@ fn summary_includes_dq_that_are_ignored_by_default_if_requested() {
         .show_prs_with_unmatched_head()
         .show_prs_from_untrusted_authors();
 
-    let mut l = RunLog::new(&mut buffer, &behaviours);
+    let mut l = RunLogger::new(&mut buffer, &behaviours);
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -614,7 +614,7 @@ fn summary_doesnt_include_dq_if_none_exist() {
 
     let behaviours = RunBehaviours::default().skip_disqualifications_in_summary();
 
-    let mut l = RunLog::new(&mut buffer, &behaviours);
+    let mut l = RunLogger::new(&mut buffer, &behaviours);
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
@@ -659,7 +659,7 @@ fn disqualification_reasons_are_left_aligned_in_summary() {
 
     let behaviours = RunBehaviours::default().show_prs_with_unmatched_head();
 
-    let mut l = RunLog::new(&mut buffer, &behaviours);
+    let mut l = RunLogger::new(&mut buffer, &behaviours);
     let repo_check = RepoCheck {
         owner: OWNER.to_string(),
         name: REPO.to_string(),
