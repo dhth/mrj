@@ -1,6 +1,7 @@
 use super::data::RunData;
 use anyhow::Context;
 use regex::Regex;
+use std::cmp::Reverse;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::Path;
@@ -44,7 +45,7 @@ where
         })
         .collect();
 
-    entries.sort_by(|a, b| b.1.cmp(&a.1));
+    entries.sort_by_key(|entry| Reverse(entry.1));
 
     for (path, _) in entries.into_iter().skip(n as usize) {
         println!("[INFO] deleting older run file: {}", path.to_string_lossy());
@@ -95,7 +96,7 @@ where
         })
         .collect();
 
-    entries.sort_by(|a, b| b.1.cmp(&a.1));
+    entries.sort_by_key(|entry| Reverse(entry.1));
 
     let mut runs = Vec::new();
 
