@@ -540,7 +540,7 @@ expression: result
         document.querySelectorAll("[data-url]").forEach(function(row) {
             row.addEventListener("click", function(e) {
                 if (e.target.closest("a")) return;
-                window.open(this.dataset.url, "_blank");
+                window.open(this.dataset.url, "_blank", "noopener,noreferrer");
             });
         });
 
