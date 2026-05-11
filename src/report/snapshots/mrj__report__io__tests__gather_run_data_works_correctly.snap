@@ -2,7 +2,114 @@
 source: src/report/io.rs
 expression: result
 ---
-- label: run-577 (sun-nov-02)
-  contents: "[INFO] The time right now is 2025-11-01 23:31:47.722303883 UTC\n[INFO] I'm only looking for PRs where the base branch is \"main\"\n[INFO] I'm sorting PRs based on \"creation date\" in the \"ascending\" direction"
-- label: run-576 (sat-nov-01)
-  contents: "[INFO] The time right now is 2025-11-01 22:33:11.521555796 UTC\n[INFO] I'm only looking for PRs where the base branch is \"main\"\n[INFO] I'm sorting PRs based on \"creation date\" in the \"ascending\" direction"
+- started_at: "2025-11-02T23:31:11Z"
+  finished_at: "2025-11-02T23:31:47Z"
+  took_ms: 36000
+  mode: dry-run
+  config:
+    base_branch: main
+    head_pattern: (dependabot|update)
+    merge_if_blocked: false
+    merge_if_checks_skipped: true
+    merge_type: squash
+    sort_by: created
+    sort_direction: asc
+    flags:
+      show_repos_with_no_prs: false
+      show_prs_from_untrusted_authors: false
+      show_prs_with_unmatched_head: false
+      skip_disqualifications_in_summary: false
+  summary:
+    num_disqualifications: 1
+    num_errors: 2
+    num_merged: 0
+  repos:
+    - repo: dhth/mrj
+      owner: dhth
+      name: mrj
+      status: finished
+      prs:
+        - number: 12
+          title: "build: bump clap from 4.5.39 to 4.5.40"
+          url: "https://github.com/dhth/mrj/pull/12"
+          created_at: "2025-11-02T23:00:00Z"
+          updated_at: "2025-11-02T23:10:00Z"
+          status: disqualified
+          qualifications:
+            - kind: head
+              value: dependabot/cargo/clap-4.5.40
+          disqualification:
+            kind: author
+            value: untrusted-bot
+          merged: false
+        - number: 13
+          title: "build: bump tera from 1.19.0 to 1.20.1"
+          url: "https://github.com/dhth/mrj/pull/13"
+          created_at: "2025-11-02T23:05:00Z"
+          updated_at: "2025-11-02T23:12:00Z"
+          status: qualified
+          qualifications:
+            - kind: head
+              value: dependabot/cargo/tera-1.20.1
+            - kind: author
+              value: "dependabot[bot]"
+            - kind: check
+              name: test
+              conclusion: success
+          merged: false
+        - number: 14
+          title: "build: bump regex from 1.12.2 to 1.12.3"
+          url: "https://github.com/dhth/mrj/pull/14"
+          created_at: "2025-11-02T23:08:00Z"
+          updated_at: "2025-11-02T23:15:00Z"
+          status: errored
+          qualifications:
+            - kind: head
+              value: dependabot/cargo/regex-1.12.3
+          error: "couldn't merge PR: GitHub API was down"
+          merged: false
+    - repo: dhth/bmm
+      owner: dhth
+      name: bmm
+      status: errored
+      error: "couldn't fetch open PRs for repo: GitHub API returned a 404"
+      prs: []
+- started_at: "2025-11-01T22:32:41Z"
+  finished_at: "2025-11-01T22:33:11Z"
+  took_ms: 30000
+  mode: execute
+  config:
+    base_branch: main
+    head_pattern: dependabot
+    merge_if_blocked: false
+    merge_if_checks_skipped: false
+    merge_type: squash
+    sort_by: updated
+    sort_direction: desc
+    flags:
+      show_repos_with_no_prs: true
+      show_prs_from_untrusted_authors: false
+      show_prs_with_unmatched_head: false
+      skip_disqualifications_in_summary: false
+  summary:
+    num_disqualifications: 0
+    num_errors: 0
+    num_merged: 1
+  repos:
+    - repo: dhth/mrj
+      owner: dhth
+      name: mrj
+      status: finished
+      prs:
+        - number: 11
+          title: "build: bump octocrab from 0.49.6 to 0.49.7"
+          url: "https://github.com/dhth/mrj/pull/11"
+          created_at: "2025-11-01T22:20:00Z"
+          updated_at: "2025-11-01T22:28:00Z"
+          status: qualified
+          qualifications:
+            - kind: head
+              value: dependabot/cargo/octocrab-0.49.7
+            - kind: author
+              value: "dependabot[bot]"
+          merged: true

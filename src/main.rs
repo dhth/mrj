@@ -3,6 +3,7 @@ mod auth;
 mod config;
 mod domain;
 mod merge;
+mod persistence;
 mod report;
 
 use anyhow::Context;
@@ -12,7 +13,9 @@ use auth::get_token;
 use clap::Parser;
 use config::get_config;
 use merge::{RunBehaviours, merge_prs};
+use persistence::persist_run;
 use report::generate_report;
+use std::sync::Arc;
 
 use crate::domain::ReportConfig;
 
@@ -42,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
             execute,
             plain_stdout,
         } => {
-            let config = get_config(config_file)?;
+            let config = Arc::new(get_config(config_file)?);
 
             if config.repos.is_empty() && repos.is_empty() {
                 anyhow::bail!("no repos to run for");
@@ -76,7 +79,16 @@ async fn main() -> anyhow::Result<()> {
                 execute,
                 plain_stdout,
             };
-            merge_prs(client, config, repos, run_behaviours).await?;
+
+            let Some(results) =
+                merge_prs(client, Arc::clone(&config), repos, run_behaviours.clone()).await?
+            else {
+                return Ok(());
+            };
+
+            if let Some(output_path) = run_behaviours.output_path.as_deref() {
+                persist_run(results, config.as_ref(), &run_behaviours, output_path)?;
+            }
         }
         MrjCommand::Config { config_command } => match config_command {
             ConfigCommand::Validate { config_file } => {

@@ -30,7 +30,7 @@ fn debug_mode_works() {
     config file:                          tests/assets/valid-config-with-all-props.toml
     repos (overridden):                   []
     output to file:                       false
-    output file:                          output.txt
+    output file:                          output.json
     write summary:                        false
     summary file:                         summary.txt
     skip disqualifications in summary:    false
@@ -69,7 +69,7 @@ fn overriding_repos_works() {
     config file:                          tests/assets/valid-config-with-no-repos.toml
     repos (overridden):                   ["dhth/mrj", "dhth/bmm"]
     output to file:                       false
-    output file:                          output.txt
+    output file:                          output.json
     write summary:                        false
     summary file:                         summary.txt
     skip disqualifications in summary:    false

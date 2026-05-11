@@ -24,14 +24,14 @@ pub fn generate_report(config: &ReportConfig) -> anyhow::Result<()> {
     let run_number = last_run_number + 1;
     let now = Utc::now();
     let date = now.format("%a-%b-%d").to_string().to_lowercase();
-    let new_run_file = runs_dir.join(format!("run-{run_number}--{date}.txt"));
+    let new_run_file = runs_dir.join(format!("run-{run_number}--{date}.json"));
 
     std::fs::copy(&config.output_path, new_run_file)
         .context("couldn't copy latest run to mrj's \"runs\" directory")?;
 
     #[allow(clippy::expect_used)]
     let file_regex =
-        Regex::new(r"^run-(\d+)[^\.]*\.txt$").expect("regex for run files should've been built");
+        Regex::new(r"^run-(\d+)[^\.]*\.json$").expect("regex for run files should've been built");
 
     super::io::keep_last_n_outputs(&runs_dir, config.num_runs, &file_regex)?;
 

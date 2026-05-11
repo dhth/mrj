@@ -1,4 +1,4 @@
-use super::data::RunData;
+use crate::persistence::schema::{StoredRunData, StoredRunEnvelope};
 use anyhow::Context;
 use regex::Regex;
 use std::cmp::Reverse;
@@ -76,7 +76,10 @@ where
     Ok(())
 }
 
-pub(super) fn gather_run_data<P>(runs_dir: P, file_regex: &Regex) -> anyhow::Result<Vec<RunData>>
+pub(super) fn gather_run_data<P>(
+    runs_dir: P,
+    file_regex: &Regex,
+) -> anyhow::Result<Vec<StoredRunData>>
 where
     P: AsRef<Path>,
 {
@@ -101,28 +104,20 @@ where
     let mut runs = Vec::new();
 
     for (path, _) in entries.iter() {
-        let file_name_os = match path.file_name() {
-            Some(name) => name,
-            None => continue,
-        };
-
-        let file_name = file_name_os.to_string_lossy();
-        let stem = file_name.replace(".txt", "");
-        let (run_id, date_part) = match stem.split_once("--") {
-            Some((r, d)) => (r.to_string(), Some(d.to_string())),
-            None => (stem.to_string(), None),
-        };
-
-        let label = match date_part {
-            Some(d) => format!("{run_id} ({d})"),
-            None => run_id,
-        };
-
         let mut contents = String::new();
         File::open(path)?.read_to_string(&mut contents)?;
-        contents = contents.trim_end().to_string();
+        let persisted_run: StoredRunEnvelope = match serde_json::from_str(&contents) {
+            Ok(persisted_run) => persisted_run,
+            Err(err) => {
+                eprintln!(
+                    "couldn't parse run output from {}: {err}",
+                    path.to_string_lossy()
+                );
+                continue;
+            }
+        };
 
-        runs.push(RunData { label, contents });
+        runs.push(persisted_run.run);
     }
 
     Ok(runs)
@@ -154,7 +149,7 @@ mod tests {
     fn gather_run_data_works_correctly() -> anyhow::Result<()> {
         // GIVEN
         let runs_dir = "src/report/testdata/rundata/runs";
-        let file_regex = Regex::new(r"^run-(\d+)[^\.]*\.txt$")?;
+        let file_regex = Regex::new(r"^run-(\d+)[^\.]*\.json$")?;
 
         // WHEN
         let result = gather_run_data(runs_dir, &file_regex)?;

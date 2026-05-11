@@ -15,14 +15,12 @@ use tokio::sync::Semaphore;
 pub(super) async fn merge_pr_for_repo(
     semaphore: Arc<Semaphore>,
     client: Arc<Octocrab>,
-    config: Arc<Config>,
+    config: &Config,
     repo: Repo,
     execute: bool,
 ) -> RepoResult {
     let mut repo_check = RepoCheck::new(&repo.owner, &repo.repo);
 
-    // acquiring of the semaphore permit is done inside this function
-    // so that an error, if any, can be reported in the log
     match semaphore
         .acquire()
         .await
@@ -58,15 +56,13 @@ pub(super) async fn merge_pr_for_repo(
         return RepoResult::Finished(repo_check.finish());
     }
 
-    // This cannot be run concurrently as we only want to merge 1 PR for a
-    // repo in a run
     for pull_request in &page {
         let merge_result = merge_pr(
             &repo.owner,
             &repo.repo,
             pull_request,
             client.as_ref(),
-            config.as_ref(),
+            config,
             execute,
         )
         .await;
@@ -74,7 +70,6 @@ pub(super) async fn merge_pr_for_repo(
         repo_check.add_merge_result(merge_result);
 
         if no_failure {
-            // PR was merged
             break;
         }
     }

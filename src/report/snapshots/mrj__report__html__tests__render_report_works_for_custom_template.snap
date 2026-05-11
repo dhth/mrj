@@ -2,17 +2,35 @@
 source: src/report/html.rs
 expression: result
 ---
-custom template
-Generated at 2025-01-16T12:00:00Z
--> run-576 (sat-nov-01)
----
-[INFO] The time right now is 2025-11-01 22:33:11.521555796 UTC
-[INFO] I&#x27;m only looking for PRs where the base branch is &quot;main&quot;
-[INFO] I&#x27;m sorting PRs based on &quot;creation date&quot; in the &quot;ascending&quot; direction
----
--> run-577 (sun-nov-02)
----
-[INFO] The time right now is 2025-11-01 23:31:47.722303883 UTC
-[INFO] I&#x27;m only looking for PRs where the base branch is &quot;main&quot;
-[INFO] I&#x27;m sorting PRs based on &quot;creation date&quot; in the &quot;ascending&quot; direction
----
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>custom template</title>
+</head>
+<body>
+    <h1>custom template</h1>
+    <p>Generated at 2025-01-16T12:00:00Z</p>
+    <section>
+        <h2>2025-11-02</h2>
+        <p>mode=dry-run took=36000</p>
+        <p>
+            summary=0 merged / 1 disqualified / 2 errors
+        </p>
+        <ul>
+            <li>repo=dhth&#x2F;mrj status=finished prs=3</li>
+            <li>repo=dhth&#x2F;bmm status=errored prs=0</li>
+        </ul>
+    </section>
+    <section>
+        <h2>2025-11-01</h2>
+        <p>mode=execute took=30000</p>
+        <p>
+            summary=1 merged / 0 disqualified / 0 errors
+        </p>
+        <ul>
+            <li>repo=dhth&#x2F;mrj status=finished prs=1</li>
+        </ul>
+    </section>
+</body>
+</html>
