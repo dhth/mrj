@@ -456,7 +456,7 @@
                                 <td class="cell-repo">{{ repo.repo }}</td>
                                 <td class="cell-num">{{ pr.number }}</td>
                                 <td class="cell-wrap">{{ pr.title }}</td>
-                                <td class="cell-wrap remarks remarks-dq">{%- if pr.disqualification %}&#x2717; {{ pr.disqualification.kind }} &middot; {% if pr.disqualification.kind == "check" %}{{ pr.disqualification.name }}{%- if pr.disqualification.conclusion %}: {{ pr.disqualification.conclusion }}{%- endif %}{% else %}{{ pr.disqualification.value | default(value="unknown") }}{% endif %}{%- endif %}</td>
+                                <td class="cell-wrap remarks remarks-dq">{%- if pr.disqualification %}&#x2717; {{ pr.disqualification.kind }} &middot; {% if pr.disqualification.kind == "check" %}{{ pr.disqualification.name }}{%- if pr.disqualification.conclusion %}: {{ pr.disqualification.conclusion }}{%- endif %}{% elif pr.disqualification.value %}{{ pr.disqualification.value }}{% else %}unknown{% endif %}{%- endif %}</td>
                             </tr>
                             {%- endif %}
                             {%- endfor %}
