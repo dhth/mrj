@@ -35,15 +35,15 @@ pub enum MrjCommand {
             value_parser = validate_repo
             )]
         repos: Vec<Repo>,
-        /// Whether to write mrj's log of events to a file
+        /// Whether to write run output to a file
         #[arg(long = "output-to-file", short = 'o')]
         output_to_file: bool,
-        /// File to write output to
+        /// File to write run output to
         #[arg(
             long = "output-path",
             value_name = "FILE",
-            default_value = "output.txt",
-            value_parser = validate_txt_path,
+            default_value = "output.json",
+            value_parser = validate_json_path,
         )]
         output_path: PathBuf,
         /// Whether to write merge summary to a file
@@ -113,7 +113,7 @@ pub enum ReportCommand {
             long = "output-path",
             short = 'p',
             value_name = "PATH",
-            default_value = "output.txt"
+            default_value = "output.json"
         )]
         output_path: PathBuf,
         /// Whether to open report in the browser
@@ -237,5 +237,13 @@ fn validate_txt_path(s: &str) -> Result<PathBuf, String> {
         Ok(PathBuf::from(s))
     } else {
         Err(String::from("file must have a .txt extension"))
+    }
+}
+
+fn validate_json_path(s: &str) -> Result<PathBuf, String> {
+    if s.ends_with(".json") {
+        Ok(PathBuf::from(s))
+    } else {
+        Err(String::from("file must have a .json extension"))
     }
 }

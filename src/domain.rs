@@ -3,10 +3,8 @@ use octocrab::models::pulls::PullRequest;
 use octocrab::params::Direction;
 use octocrab::params::pulls::{MergeMethod, Sort};
 use regex::Regex;
-use serde::{
-    Deserialize, Deserializer,
-    de::{self, Visitor},
-};
+use serde::de::{self, Visitor};
+use serde::{Deserialize, Deserializer};
 use std::fmt::{self, Display};
 use std::path::PathBuf;
 
@@ -213,6 +211,7 @@ impl GhApiQueryParam<Direction> for SortDirection {
 }
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub enum RepoResult {
     Finished(RepoCheck<RepoCheckFinished>),
     Errored(RepoCheck<RepoCheckErrored>),
@@ -229,9 +228,18 @@ impl RepoResult {
     }
 }
 
+#[derive(Debug)]
+pub struct RunMergeResults {
+    pub results: Vec<RepoResult>,
+    pub summary: RunSummary,
+    pub started_at: DateTime<Utc>,
+    pub ended_at: DateTime<Utc>,
+}
+
 pub trait RepoCheckState: private::Sealed {}
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct RepoCheckInProgress(Vec<MergeResult>);
 impl private::Sealed for RepoCheckInProgress {}
 impl RepoCheckState for RepoCheckInProgress {}
@@ -246,12 +254,24 @@ impl RepoCheckErrored {
     }
 }
 
+#[cfg(test)]
+impl serde::Serialize for RepoCheckErrored {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.0.to_string())
+    }
+}
+
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct RepoCheckFinished(pub Vec<MergeResult>);
 impl private::Sealed for RepoCheckFinished {}
 impl RepoCheckState for RepoCheckFinished {}
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct RepoCheck<S: RepoCheckState> {
     pub owner: String,
     pub name: String,
@@ -295,6 +315,7 @@ impl RepoCheck<RepoCheckFinished> {
 }
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct PRCheck<S: PRCheckState> {
     pub number: u64,
     pub title: String,
@@ -306,6 +327,7 @@ pub struct PRCheck<S: PRCheckState> {
 }
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub enum MergeResult {
     Qualified(PRCheck<PRCheckFinished>),
     Disqualified(PRCheck<PRDisqualified>),
@@ -369,11 +391,13 @@ impl MergeResult {
 pub trait PRCheckState: private::Sealed {}
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct PRCheckInProgress;
 impl private::Sealed for PRCheckInProgress {}
 impl PRCheckState for PRCheckInProgress {}
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct PRDisqualified(pub Disqualification);
 impl private::Sealed for PRDisqualified {}
 impl PRCheckState for PRDisqualified {}
@@ -394,7 +418,18 @@ impl PRCheckErrored {
     }
 }
 
+#[cfg(test)]
+impl serde::Serialize for PRCheckErrored {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.0.to_string())
+    }
+}
+
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct PRCheckFinished;
 impl private::Sealed for PRCheckFinished {}
 impl PRCheckState for PRCheckFinished {}
@@ -459,61 +494,75 @@ impl PRCheck<PRCheckInProgress> {
     }
 }
 
-#[derive(Debug, Default)]
-pub struct RunSummary {
-    pub num_repos: usize,
-    pub num_repos_with_no_prs: usize,
-    pub disqualifications: Vec<(String, String)>,
-    pub num_errors: u16,
-    pub prs_merged: Vec<MergedPR>,
-}
-
-impl RunSummary {
-    pub fn record_repo(&mut self) {
-        self.num_repos += 1;
-    }
-
-    pub fn record_repo_with_no_prs(&mut self) {
-        self.num_repos_with_no_prs += 1;
-    }
-
-    pub fn record_disqualification(&mut self, pr_url: &str, disqualification: &Disqualification) {
-        let disqualification_summary = match disqualification {
-            Disqualification::Head(_) => "head didn't match".to_string(),
-            Disqualification::Author(author) => match author {
-                Some(a) => format!("author {a} untrusted"),
-                None => "author unknown".to_string(),
-            },
-            Disqualification::Check { name, conclusion } => match conclusion {
-                Some(c) => format!("check {name}: {c}"),
-                None => format!("check {name}: unknown conclusion"),
-            },
-            Disqualification::State(state) => match state {
-                Some(s) => format!("state: {s}"),
-                None => "state: unknown".to_string(),
-            },
-        };
-
-        self.disqualifications
-            .push((pr_url.to_string(), disqualification_summary));
-    }
-
-    pub fn record_error(&mut self) {
-        self.num_errors += 1;
-    }
-
-    pub fn record_merged_pr(&mut self, pr: MergedPR) {
-        self.prs_merged.push(pr);
-    }
-}
-
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub struct MergedPR {
     pub repo: String,
     pub title: String,
 }
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
+pub struct RunDisqualification {
+    pub pr_url: String,
+    pub reason: String,
+}
+
+#[derive(Debug, Default)]
+#[cfg_attr(test, derive(serde::Serialize))]
+pub struct RunSummary {
+    pub disqualifications: Vec<RunDisqualification>,
+    pub num_errors: u16,
+    pub prs_merged: Vec<MergedPR>,
+}
+
+impl RunSummary {
+    pub fn from_results(results: &[RepoResult], did_execute: bool) -> Self {
+        let mut num_errors = 0;
+        let mut disqualifications = vec![];
+        let mut prs_merged = vec![];
+
+        for result in results {
+            match result {
+                RepoResult::Errored(_) => {
+                    num_errors += 1;
+                }
+                RepoResult::Finished(repo_check) => {
+                    for merge_result in repo_check.results() {
+                        match merge_result {
+                            MergeResult::Qualified(pr_check) => {
+                                if did_execute {
+                                    prs_merged.push(MergedPR {
+                                        repo: result.name(),
+                                        title: pr_check.title.clone(),
+                                    });
+                                }
+                            }
+                            MergeResult::Disqualified(pr_check) => {
+                                disqualifications.push(RunDisqualification {
+                                    pr_url: pr_check.url.clone(),
+                                    reason: pr_check.state.reason().summary(),
+                                });
+                            }
+                            MergeResult::Errored(_) => {
+                                num_errors += 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Self {
+            disqualifications,
+            num_errors,
+            prs_merged,
+        }
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub enum Qualification {
     Head(String),
     Author(String),
@@ -522,6 +571,7 @@ pub enum Qualification {
 }
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
 pub enum Disqualification {
     Head(String),
     Author(Option<String>),
@@ -532,12 +582,206 @@ pub enum Disqualification {
     State(Option<String>),
 }
 
+impl Disqualification {
+    pub fn summary(&self) -> String {
+        match self {
+            Disqualification::Head(_) => "head didn't match".to_string(),
+            Disqualification::Author(author) => match author {
+                Some(a) => format!("author untrusted: {a}"),
+                None => "author unknown".to_string(),
+            },
+            Disqualification::Check { name, conclusion } => match conclusion {
+                Some(c) => format!("check {name}: {c}"),
+                None => format!("check {name}: unknown conclusion"),
+            },
+            Disqualification::State(state) => match state {
+                Some(s) => format!("state: {s}"),
+                None => "state: unknown".to_string(),
+            },
+        }
+    }
+}
+
 pub struct ReportConfig {
     pub output_path: PathBuf,
     pub custom_template: Option<String>,
     pub title: String,
     pub num_runs: u8,
     pub open_report: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use insta::assert_yaml_snapshot;
+
+    const OWNER: &str = "dhth";
+    const REPO: &str = "mrj";
+    const PR_TITLE: &str = "build: bump clap from 4.5.39 to 4.5.40";
+    const PR_URL: &str = "https://github.com/dhth/mrj/pull/1";
+    const PR_HEAD: &str = "dependabot/cargo/clap-4.5.40";
+
+    #[test]
+    fn run_summary_works_as_expected() {
+        // GIVEN
+        let repo_result = RepoResult::Finished(RepoCheck {
+            owner: OWNER.to_string(),
+            name: REPO.to_string(),
+            state: RepoCheckFinished(vec![
+                merge_result_disqualified_unmatched_head(),
+                merge_result_disqualified_unknown_author(),
+                merge_result_disqualified_untrusted_author(),
+                merge_result_disqualified_check_with_unknown_conclusion(),
+                merge_result_disqualified_failed_check(),
+                merge_result_disqualified_unknown_state(),
+                merge_result_disqualified_dirty_state(),
+                merge_result_errored(),
+                merge_result_qualified(),
+            ]),
+        });
+
+        // WHEN
+        let summary = RunSummary::from_results(&[repo_result], true);
+
+        // THEN
+        assert_yaml_snapshot!(summary, @r#"
+        disqualifications:
+          - pr_url: "https://github.com/dhth/mrj/pull/1"
+            reason: "head didn't match"
+          - pr_url: "https://github.com/dhth/mrj/pull/1"
+            reason: author unknown
+          - pr_url: "https://github.com/dhth/mrj/pull/1"
+            reason: "author untrusted: untrusted-author"
+          - pr_url: "https://github.com/dhth/mrj/pull/1"
+            reason: "check lint: unknown conclusion"
+          - pr_url: "https://github.com/dhth/mrj/pull/1"
+            reason: "check lint: failure"
+          - pr_url: "https://github.com/dhth/mrj/pull/1"
+            reason: "state: unknown"
+          - pr_url: "https://github.com/dhth/mrj/pull/1"
+            reason: "state: dirty"
+        num_errors: 1
+        prs_merged:
+          - repo: dhth/mrj
+            title: "build: bump clap from 4.5.39 to 4.5.40"
+        "#);
+    }
+
+    fn merge_result_disqualified_unmatched_head() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: None,
+            pr_updated_at: None,
+            qualifications: vec![],
+            state: PRDisqualified(Disqualification::Head("improve-tests".to_string())),
+        })
+    }
+
+    fn merge_result_disqualified_unknown_author() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: None,
+            pr_updated_at: None,
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRDisqualified(Disqualification::Author(None)),
+        })
+    }
+
+    fn merge_result_disqualified_untrusted_author() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: None,
+            pr_updated_at: None,
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRDisqualified(Disqualification::Author(Some(
+                "untrusted-author".to_string(),
+            ))),
+        })
+    }
+
+    fn merge_result_disqualified_check_with_unknown_conclusion() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: None,
+            pr_updated_at: None,
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRDisqualified(Disqualification::Check {
+                name: "lint".to_string(),
+                conclusion: None,
+            }),
+        })
+    }
+
+    fn merge_result_disqualified_failed_check() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: None,
+            pr_updated_at: None,
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRDisqualified(Disqualification::Check {
+                name: "lint".to_string(),
+                conclusion: Some("failure".to_string()),
+            }),
+        })
+    }
+
+    fn merge_result_disqualified_unknown_state() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: None,
+            pr_updated_at: None,
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRDisqualified(Disqualification::State(None)),
+        })
+    }
+
+    fn merge_result_disqualified_dirty_state() -> MergeResult {
+        MergeResult::Disqualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: None,
+            pr_updated_at: None,
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRDisqualified(Disqualification::State(Some("dirty".to_string()))),
+        })
+    }
+
+    fn merge_result_errored() -> MergeResult {
+        MergeResult::Errored(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: None,
+            pr_updated_at: None,
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRCheckErrored(anyhow::anyhow!("couldn't merge PR: GitHub API was down")),
+        })
+    }
+
+    fn merge_result_qualified() -> MergeResult {
+        MergeResult::Qualified(PRCheck {
+            number: 1,
+            title: PR_TITLE.to_string(),
+            url: PR_URL.to_string(),
+            pr_created_at: None,
+            pr_updated_at: None,
+            qualifications: vec![Qualification::Head(PR_HEAD.to_string())],
+            state: PRCheckFinished,
+        })
+    }
 }
 
 mod private {

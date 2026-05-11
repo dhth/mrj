@@ -1,12 +1,30 @@
-{{ title }}
-Generated at {{ timestamp }}
-{%- if runs | length > 0 %}
-{%- for run in runs %}
--> {{ run.label }}
----
-{{ run.contents }}
----
-{%- endfor %}
-{%- else %}
-No runs found yet.
-{%- endif %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <p>Generated at {{ timestamp }}</p>
+
+    {%- if runs | length > 0 %}
+    {%- for run in runs %}
+    <section>
+        <h2>{{ run.finished_at | date(format="%Y-%m-%d") }}</h2>
+        <p>mode={{ run.mode }} took={{ run.took_ms }}</p>
+        <p>
+            summary={{ run.summary.num_merged }} merged / {{ run.summary.num_disqualifications }} disqualified / {{ run.summary.num_errors }} errors
+        </p>
+        <ul>
+            {%- for repo in run.repos %}
+            <li>repo={{ repo.repo }} status={{ repo.status }} prs={{ repo.prs | length }}</li>
+            {%- endfor %}
+        </ul>
+    </section>
+    {%- endfor %}
+    {%- else %}
+    <p>No runs found yet.</p>
+    {%- endif %}
+</body>
+</html>

@@ -22,7 +22,7 @@ fn debug_mode_works() {
     DEBUG INFO
 
     command:        Generate report
-    output file:    output.txt
+    output file:    output.json
     open report:    false
     num runs:       10
     title:          mrj runs

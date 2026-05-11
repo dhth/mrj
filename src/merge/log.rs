@@ -1,7 +1,7 @@
 use super::behaviours::RunBehaviours;
 use crate::config::Config;
 use crate::domain::{
-    Disqualification, GhApiQueryParam, MergeResult, MergedPR, Qualification, RepoResult, RunSummary,
+    Disqualification, GhApiQueryParam, MergeResult, Qualification, RepoResult, RunSummary,
 };
 use anyhow::Context;
 use chrono::{DateTime, Utc};
@@ -18,8 +18,6 @@ const STATE: &str = "[ state  ]  ";
 pub(super) struct RunLogger<W: Write> {
     w: W,
     behaviours: RunBehaviours,
-    lines: Vec<String>,
-    summary: RunSummary,
 }
 
 impl<W: Write> RunLogger<W> {
@@ -27,14 +25,10 @@ impl<W: Write> RunLogger<W> {
         RunLogger {
             w: writer,
             behaviours: behaviours.clone(),
-            lines: vec![],
-            summary: RunSummary::default(),
         }
     }
 
-    pub(super) fn add_repo_result(&mut self, result: RepoResult) {
-        self.summary.record_repo();
-
+    pub(super) fn add_repo_result(&mut self, result: &RepoResult) {
         match &result {
             RepoResult::Errored(repo_check) => {
                 self.repo_info(&result.name());
@@ -42,52 +36,25 @@ impl<W: Write> RunLogger<W> {
                 self.error(repo_check.state.reason());
             }
             RepoResult::Finished(repo_check) => {
-                let filtered_results = repo_check
-                    .results()
-                    .iter()
-                    .filter(|result| match result {
-                        MergeResult::Disqualified(pr_check) => match pr_check.state.reason() {
-                            Disqualification::Author(_)
-                                if !self.behaviours.show_prs_from_untrusted_authors =>
-                            {
-                                false
-                            }
-                            Disqualification::Head(_)
-                                if !self.behaviours.show_prs_with_unmatched_head =>
-                            {
-                                false
-                            }
-                            _ => true,
-                        },
-                        _ => true,
-                    })
-                    .collect::<Vec<_>>();
-
-                if filtered_results.is_empty() {
-                    self.summary.record_repo_with_no_prs();
-                    if !self.behaviours.show_repos_with_no_prs {
-                        return;
-                    }
-                }
-
                 let repo = &result.name();
                 self.repo_info(repo);
 
-                if filtered_results.is_empty() {
+                if repo_check.results().is_empty() {
                     self.empty_line();
                     self.absence("no PRs");
                     return;
                 }
 
-                filtered_results
+                repo_check
+                    .results()
                     .iter()
-                    .for_each(|r| self.add_merge_result(r, repo));
+                    .for_each(|r| self.add_merge_result(r));
             }
         }
     }
 
-    pub(super) fn write_output(&mut self) -> anyhow::Result<()> {
-        let prs_merged = if self.summary.prs_merged.is_empty() {
+    pub(super) fn write_output(&mut self, summary: &RunSummary) -> anyhow::Result<()> {
+        let prs_merged = if summary.prs_merged.is_empty() {
             None
         } else {
             Some(format!(
@@ -97,7 +64,7 @@ PRs merged
 ---
 
 {}"#,
-                self.summary
+                summary
                     .prs_merged
                     .iter()
                     .map(|pr| format!("- [{}] {}", pr.repo, pr.title))
@@ -107,11 +74,10 @@ PRs merged
         };
 
         let disqualifications_summary = if !self.behaviours.skip_disqualifications_in_summary
-            && !self.summary.disqualifications.is_empty()
+            && !summary.disqualifications.is_empty()
         {
             let longest_url_len = self
-                .summary
-                .disqualifications
+                .disqualifications(summary)
                 .iter()
                 .map(|(p, _)| p.len())
                 .max()
@@ -124,8 +90,7 @@ Disqualifications
 ---
 
 {}"#,
-                self.summary
-                    .disqualifications
+                self.disqualifications(summary)
                     .iter()
                     .map(|(u, d)| format!("- {u:<longest_url_len$}        {d}"))
                     .collect::<Vec<_>>()
@@ -143,14 +108,10 @@ Disqualifications
 
 - PRs merged:                    {}
 - PRs disqualified:              {}
-- Repos checked:                 {}
-- Repos with no relevant PRs:    {}
 - Errors encountered:            {}{}{}"#,
-            self.summary.prs_merged.len(),
-            self.summary.disqualifications.len(),
-            self.summary.num_repos,
-            self.summary.num_repos_with_no_prs,
-            self.summary.num_errors,
+            summary.prs_merged.len(),
+            summary.disqualifications.len(),
+            summary.num_errors,
             prs_merged.unwrap_or_default(),
             disqualifications_summary.unwrap_or_default(),
         );
@@ -162,20 +123,6 @@ Disqualifications
         };
 
         let _ = writeln!(self.w, "{output}");
-
-        if let Some(output_path) = &self.behaviours.output_path {
-            self.lines.push(summary.clone());
-
-            let mut file = OpenOptions::new()
-                .create(true)
-                .write(true)
-                .truncate(true)
-                .open(output_path.as_path())
-                .context("couldn't open a handle to the output file")?;
-
-            file.write_all(self.lines.join("\n").as_bytes())
-                .context("couldn't write output to file")?;
-        }
 
         if let Some(summary_path) = &self.behaviours.summary_path {
             let mut file = OpenOptions::new()
@@ -213,14 +160,14 @@ Disqualifications
         }
 
         let _ = writeln!(self.w);
+    }
 
-        if self.behaviours.output_path.is_some() {
-            self.lines.push(BANNER.to_string());
-            if !self.behaviours.execute {
-                self.lines.push(dry_run_line);
-            }
-            self.lines.push("".to_string());
-        }
+    fn disqualifications<'a>(&self, summary: &'a RunSummary) -> Vec<(&'a str, &'a str)> {
+        summary
+            .disqualifications
+            .iter()
+            .map(|dq| (dq.pr_url.as_str(), dq.reason.as_str()))
+            .collect()
     }
 
     pub(super) fn print_startup_info(&mut self, config: &Config, now: DateTime<Utc>) {
@@ -268,21 +215,13 @@ Disqualifications
 
     fn info(&mut self, message: &str) {
         let _ = writeln!(self.w, "[INFO] {message}");
-
-        if self.behaviours.output_path.is_some() {
-            self.lines.push(format!("[INFO] {message}"));
-        }
     }
 
     fn empty_line(&mut self) {
         let _ = writeln!(self.w);
-
-        if self.behaviours.output_path.is_some() {
-            self.lines.push("".to_string());
-        }
     }
 
-    fn add_merge_result(&mut self, result: &MergeResult, repo: &str) {
+    fn add_merge_result(&mut self, result: &MergeResult) {
         self.pr_info(&format!(
             r#"
 -> checking PR #{}
@@ -314,17 +253,13 @@ Disqualifications
 
         match result {
             MergeResult::Disqualified(pr_check) => {
-                self.disqualification(&pr_check.url, pr_check.state.reason());
+                self.disqualification(pr_check.state.reason());
             }
             MergeResult::Errored(pr_check) => {
                 self.error(pr_check.state.reason());
             }
             MergeResult::Qualified(_) => {
-                let merged_pr = MergedPR {
-                    repo: repo.to_string(),
-                    title: result.pr_title().to_string(),
-                };
-                self.merge(merged_pr);
+                self.merge();
             }
         }
     }
@@ -345,10 +280,6 @@ Disqualifications
         };
 
         let _ = writeln!(self.w, "{output}");
-
-        if self.behaviours.output_path.is_some() {
-            self.lines.push(line);
-        }
     }
 
     fn pr_info(&mut self, msg: &str) {
@@ -359,10 +290,6 @@ Disqualifications
         };
 
         let _ = writeln!(self.w, "{output}");
-
-        if self.behaviours.output_path.is_some() {
-            self.lines.push(msg.to_string());
-        }
     }
 
     fn qualification(&mut self, q: &Qualification) {
@@ -386,13 +313,9 @@ Disqualifications
         };
 
         let _ = writeln!(self.w, "        {output}");
-
-        if self.behaviours.output_path.is_some() {
-            self.lines.push(format!("        {msg}"));
-        }
     }
 
-    fn disqualification(&mut self, pr_url: &str, dq: &Disqualification) {
+    fn disqualification(&mut self, dq: &Disqualification) {
         let msg = match dq {
             Disqualification::Head(h) => {
                 format!("{HEAD} \"{h}\" doesn't match the allowed head pattern")
@@ -424,12 +347,6 @@ Disqualifications
         };
 
         let _ = writeln!(self.w, "        {output} ❌");
-
-        if self.behaviours.output_path.is_some() {
-            self.lines.push(format!("        {msg} ❌"));
-        }
-
-        self.summary.record_disqualification(pr_url, dq);
     }
 
     fn absence(&mut self, msg: &str) {
@@ -440,13 +357,9 @@ Disqualifications
         };
 
         let _ = writeln!(self.w, "        {output}");
-
-        if self.behaviours.output_path.is_some() {
-            self.lines.push(format!("        {msg}"));
-        }
     }
 
-    fn merge(&mut self, pr: MergedPR) {
+    fn merge(&mut self) {
         let msg = if self.behaviours.execute {
             "PR merged! 🎉 ✅"
         } else {
@@ -460,14 +373,6 @@ Disqualifications
         };
 
         let _ = writeln!(self.w, "        {output}");
-
-        if self.behaviours.output_path.is_some() {
-            self.lines.push(format!("        {msg}"));
-        }
-
-        if self.behaviours.execute {
-            self.summary.record_merged_pr(pr);
-        }
     }
 
     fn error(&mut self, error: &anyhow::Error) {
@@ -479,11 +384,5 @@ Disqualifications
         };
 
         let _ = writeln!(self.w, "{output}");
-
-        if self.behaviours.output_path.is_some() {
-            self.lines.push(line);
-        }
-
-        self.summary.record_error();
     }
 }

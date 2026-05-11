@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "run": {
+    "started_at": "2025-11-02T23:31:11Z",
+    "finished_at": "2025-11-02T23:31:47Z",
+    "took_ms": 36000,
+    "mode": "dry-run",
+    "config": {
+      "base_branch": "main",
+      "head_pattern": "(dependabot|update)",
+      "merge_if_blocked": false,
+      "merge_if_checks_skipped": true,
+      "merge_type": "squash",
+      "sort_by": "created",
+      "sort_direction": "asc",
+      "flags": {
+        "show_repos_with_no_prs": false,
+        "show_prs_from_untrusted_authors": false,
+        "show_prs_with_unmatched_head": false,
+        "skip_disqualifications_in_summary": false
+      }
+    },
+    "summary": {
+      "num_disqualifications": 1,
+      "num_errors": 2,
+      "num_merged": 0
+    },
+    "repos": [
+      {
+        "repo": "dhth/mrj",
+        "owner": "dhth",
+        "name": "mrj",
+        "status": "finished",
+        "prs": [
+          {
+            "number": 12,
+            "title": "build: bump clap from 4.5.39 to 4.5.40",
+            "url": "https://github.com/dhth/mrj/pull/12",
+            "created_at": "2025-11-02T23:00:00Z",
+            "updated_at": "2025-11-02T23:10:00Z",
+            "status": "disqualified",
+            "qualifications": [
+              { "kind": "head", "value": "dependabot/cargo/clap-4.5.40" }
+            ],
+            "disqualification": { "kind": "author", "value": "untrusted-bot" },
+            "merged": false
+          },
+          {
+            "number": 13,
+            "title": "build: bump tera from 1.19.0 to 1.20.1",
+            "url": "https://github.com/dhth/mrj/pull/13",
+            "created_at": "2025-11-02T23:05:00Z",
+            "updated_at": "2025-11-02T23:12:00Z",
+            "status": "qualified",
+            "qualifications": [
+              { "kind": "head", "value": "dependabot/cargo/tera-1.20.1" },
+              { "kind": "author", "value": "dependabot[bot]" },
+              { "kind": "check", "name": "test", "conclusion": "success" }
+            ],
+            "merged": false
+          },
+          {
+            "number": 14,
+            "title": "build: bump regex from 1.12.2 to 1.12.3",
+            "url": "https://github.com/dhth/mrj/pull/14",
+            "created_at": "2025-11-02T23:08:00Z",
+            "updated_at": "2025-11-02T23:15:00Z",
+            "status": "errored",
+            "qualifications": [
+              { "kind": "head", "value": "dependabot/cargo/regex-1.12.3" }
+            ],
+            "error": "couldn't merge PR: GitHub API was down",
+            "merged": false
+          }
+        ]
+      },
+      {
+        "repo": "dhth/bmm",
+        "owner": "dhth",
+        "name": "bmm",
+        "status": "errored",
+        "error": "couldn't fetch open PRs for repo: GitHub API returned a 404",
+        "prs": []
+      }
+    ]
+  }
+}

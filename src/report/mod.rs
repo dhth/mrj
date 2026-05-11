@@ -1,4 +1,3 @@
-mod data;
 mod generate;
 mod html;
 mod io;

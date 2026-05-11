@@ -1,6 +1,8 @@
 use super::super::behaviours::RunBehaviours;
 use super::super::log::RunLogger;
-use crate::domain::{Disqualification, MergeResult, Qualification, RepoResult};
+use crate::domain::{
+    Disqualification, MergeResult, Qualification, RepoResult, RunDisqualification, RunSummary,
+};
 use crate::domain::{
     PRCheck, PRCheckFinished, PRDisqualified, RepoCheck, RepoCheckErrored, RepoCheckFinished,
 };
@@ -27,7 +29,7 @@ fn failed_repo_result_is_printed_correctly() {
     let repo_result = RepoResult::Errored(repo_check);
 
     // WHEN
-    l.add_repo_result(repo_result);
+    l.add_repo_result(&repo_result);
 
     // THEN
     let out =
@@ -46,26 +48,6 @@ fn failed_repo_result_is_printed_correctly() {
 }
 
 #[test]
-fn pr_with_unmatched_head_is_ignored_by_default() {
-    // GIVEN
-    let mut buffer = vec![];
-
-    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
-    let repo_check = RepoCheck {
-        owner: OWNER.to_string(),
-        name: REPO.to_string(),
-        state: RepoCheckFinished(vec![merge_result_disqualified_unmatched_head(1)]),
-    };
-    let repo_result = RepoResult::Finished(repo_check);
-
-    // WHEN
-    l.add_repo_result(repo_result);
-
-    // THEN
-    assert_eq!(buffer.len(), 0);
-}
-
-#[test]
 fn pr_with_unmatched_head_is_printed_if_requested() {
     // GIVEN
     let mut buffer = vec![];
@@ -80,7 +62,7 @@ fn pr_with_unmatched_head_is_printed_if_requested() {
     let repo_result = RepoResult::Finished(repo_check);
 
     // WHEN
-    l.add_repo_result(repo_result);
+    l.add_repo_result(&repo_result);
 
     // THEN
     let out =
@@ -103,26 +85,6 @@ fn pr_with_unmatched_head_is_printed_if_requested() {
 }
 
 #[test]
-fn pr_with_unknown_author_is_ignored_by_default() {
-    // GIVEN
-    let mut buffer = vec![];
-
-    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
-    let repo_check = RepoCheck {
-        owner: OWNER.to_string(),
-        name: REPO.to_string(),
-        state: RepoCheckFinished(vec![merge_result_disqualified_untrusted_author()]),
-    };
-    let repo_result = RepoResult::Finished(repo_check);
-
-    // WHEN
-    l.add_repo_result(repo_result);
-
-    // THEN
-    assert_eq!(buffer.len(), 0);
-}
-
-#[test]
 fn pr_with_unknown_author_is_printed_if_requested() {
     // GIVEN
     let mut buffer = vec![];
@@ -137,7 +99,7 @@ fn pr_with_unknown_author_is_printed_if_requested() {
     let repo_result = RepoResult::Finished(repo_check);
 
     // WHEN
-    l.add_repo_result(repo_result);
+    l.add_repo_result(&repo_result);
 
     // THEN
     let out =
@@ -161,26 +123,6 @@ fn pr_with_unknown_author_is_printed_if_requested() {
 }
 
 #[test]
-fn pr_with_untrusted_author_is_ignored_by_default() {
-    // GIVEN
-    let mut buffer = vec![];
-
-    let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
-    let repo_check = RepoCheck {
-        owner: OWNER.to_string(),
-        name: REPO.to_string(),
-        state: RepoCheckFinished(vec![merge_result_disqualified_untrusted_author()]),
-    };
-    let repo_result = RepoResult::Finished(repo_check);
-
-    // WHEN
-    l.add_repo_result(repo_result);
-
-    // THEN
-    assert_eq!(buffer.len(), 0);
-}
-
-#[test]
 fn pr_with_untrusted_author_is_printed_if_requested() {
     // GIVEN
     let mut buffer = vec![];
@@ -195,7 +137,7 @@ fn pr_with_untrusted_author_is_printed_if_requested() {
     let repo_result = RepoResult::Finished(repo_check);
 
     // WHEN
-    l.add_repo_result(repo_result);
+    l.add_repo_result(&repo_result);
 
     // THEN
     let out =
@@ -234,7 +176,7 @@ fn pr_with_empty_check_conclusion_is_printed_correctly() {
     let repo_result = RepoResult::Finished(repo_check);
 
     // WHEN
-    l.add_repo_result(repo_result);
+    l.add_repo_result(&repo_result);
 
     // THEN
     let out =
@@ -275,7 +217,7 @@ fn pr_with_a_failed_check_is_printed_correctly() {
     let repo_result = RepoResult::Finished(repo_check);
 
     // WHEN
-    l.add_repo_result(repo_result);
+    l.add_repo_result(&repo_result);
 
     // THEN
     let out =
@@ -316,7 +258,7 @@ fn pr_with_unknown_state_is_printed_correctly() {
     let repo_result = RepoResult::Finished(repo_check);
 
     // WHEN
-    l.add_repo_result(repo_result);
+    l.add_repo_result(&repo_result);
 
     // THEN
     let out =
@@ -357,7 +299,7 @@ fn pr_with_an_undesirable_state_is_printed_correctly() {
     let repo_result = RepoResult::Finished(repo_check);
 
     // WHEN
-    l.add_repo_result(repo_result);
+    l.add_repo_result(&repo_result);
 
     // THEN
     let out =
@@ -398,7 +340,7 @@ fn pr_with_a_finished_check_is_printed_correctly() {
     let repo_result = RepoResult::Finished(repo_check);
 
     // WHEN
-    l.add_repo_result(repo_result);
+    l.add_repo_result(&repo_result);
 
     // THEN
     let out =
@@ -428,149 +370,13 @@ fn pr_with_a_finished_check_is_printed_correctly() {
 
 #[test]
 fn printing_summary_works() {
-    // GIVEN
     let mut buffer = vec![];
-
     let mut l = RunLogger::new(&mut buffer, &RunBehaviours::default());
-    let repo_check = RepoCheck {
-        owner: OWNER.to_string(),
-        name: REPO.to_string(),
-        state: RepoCheckFinished(vec![
-            merge_result_disqualified_unmatched_head(1),
-            merge_result_disqualified_unknown_author(),
-            merge_result_disqualified_untrusted_author(),
-            merge_result_disqualified_check_with_unknown_conclusion(),
-            merge_result_disqualified_failed_check(),
-            merge_result_disqualified_unknown_state(),
-            merge_result_disqualified_dirty_state(),
-            merge_result_qualified(),
-        ]),
-    };
-    let repo_result = RepoResult::Finished(repo_check);
+    let summary = summary_with_disqualifications();
 
-    // WHEN
-    l.add_repo_result(repo_result);
-    l.write_output().expect("output should've been written");
+    l.write_output(&summary)
+        .expect("output should've been written");
 
-    // THEN
-    let out =
-        String::from_utf8(buffer).expect("buffer contents should've been converted to a string");
-
-    let (_, summary) = out
-        .split_once(
-            r#"
-===========
-  SUMMARY
-===========
-"#,
-        )
-        .expect("output should've been split by the summary header");
-
-    assert_snapshot!(
-        summary,
-        @r"
-        - PRs merged:                    0
-        - PRs disqualified:              4
-        - Repos checked:                 1
-        - Repos with no relevant PRs:    0
-        - Errors encountered:            0
-
-        Disqualifications
-        ---
-
-        - https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
-        - https://github.com/dhth/mrj/pull/1        check lint: failure
-        - https://github.com/dhth/mrj/pull/1        state: unknown
-        - https://github.com/dhth/mrj/pull/1        state: dirty
-        "
-    );
-}
-
-#[test]
-fn disqualifications_can_be_skipped_in_summary_when_requested() {
-    // GIVEN
-    let mut buffer = vec![];
-
-    let behaviours = RunBehaviours::default().skip_disqualifications_in_summary();
-
-    let mut l = RunLogger::new(&mut buffer, &behaviours);
-    let repo_check = RepoCheck {
-        owner: OWNER.to_string(),
-        name: REPO.to_string(),
-        state: RepoCheckFinished(vec![
-            merge_result_disqualified_unmatched_head(1),
-            merge_result_disqualified_unknown_author(),
-            merge_result_disqualified_untrusted_author(),
-            merge_result_disqualified_check_with_unknown_conclusion(),
-            merge_result_disqualified_failed_check(),
-            merge_result_disqualified_unknown_state(),
-            merge_result_disqualified_dirty_state(),
-            merge_result_qualified(),
-        ]),
-    };
-    let repo_result = RepoResult::Finished(repo_check);
-
-    // WHEN
-    l.add_repo_result(repo_result);
-    l.write_output().expect("output should've been written");
-
-    // THEN
-    let out =
-        String::from_utf8(buffer).expect("buffer contents should've been converted to a string");
-
-    let (_, summary) = out
-        .split_once(
-            r#"
-===========
-  SUMMARY
-===========
-"#,
-        )
-        .expect("output should've been split by the summary header");
-
-    assert_snapshot!(
-        summary,
-        @r"
-        - PRs merged:                    0
-        - PRs disqualified:              4
-        - Repos checked:                 1
-        - Repos with no relevant PRs:    0
-        - Errors encountered:            0
-        "
-    );
-}
-
-#[test]
-fn summary_includes_dq_that_are_ignored_by_default_if_requested() {
-    // GIVEN
-    let mut buffer = vec![];
-
-    let behaviours = RunBehaviours::default()
-        .show_prs_with_unmatched_head()
-        .show_prs_from_untrusted_authors();
-
-    let mut l = RunLogger::new(&mut buffer, &behaviours);
-    let repo_check = RepoCheck {
-        owner: OWNER.to_string(),
-        name: REPO.to_string(),
-        state: RepoCheckFinished(vec![
-            merge_result_disqualified_unmatched_head(1),
-            merge_result_disqualified_unknown_author(),
-            merge_result_disqualified_untrusted_author(),
-            merge_result_disqualified_check_with_unknown_conclusion(),
-            merge_result_disqualified_failed_check(),
-            merge_result_disqualified_unknown_state(),
-            merge_result_disqualified_dirty_state(),
-            merge_result_qualified(),
-        ]),
-    };
-    let repo_result = RepoResult::Finished(repo_check);
-
-    // WHEN
-    l.add_repo_result(repo_result);
-    l.write_output().expect("output should've been written");
-
-    // THEN
     let out =
         String::from_utf8(buffer).expect("buffer contents should've been converted to a string");
 
@@ -589,8 +395,6 @@ fn summary_includes_dq_that_are_ignored_by_default_if_requested() {
         @r"
         - PRs merged:                    0
         - PRs disqualified:              7
-        - Repos checked:                 1
-        - Repos with no relevant PRs:    0
         - Errors encountered:            0
 
         Disqualifications
@@ -608,25 +412,52 @@ fn summary_includes_dq_that_are_ignored_by_default_if_requested() {
 }
 
 #[test]
-fn summary_doesnt_include_dq_if_none_exist() {
-    // GIVEN
+fn disqualifications_can_be_skipped_in_summary_when_requested() {
     let mut buffer = vec![];
-
     let behaviours = RunBehaviours::default().skip_disqualifications_in_summary();
-
     let mut l = RunLogger::new(&mut buffer, &behaviours);
-    let repo_check = RepoCheck {
-        owner: OWNER.to_string(),
-        name: REPO.to_string(),
-        state: RepoCheckFinished(vec![merge_result_qualified()]),
+    let summary = summary_with_disqualifications();
+
+    l.write_output(&summary)
+        .expect("output should've been written");
+
+    let out =
+        String::from_utf8(buffer).expect("buffer contents should've been converted to a string");
+
+    let (_, summary) = out
+        .split_once(
+            r#"
+===========
+  SUMMARY
+===========
+"#,
+        )
+        .expect("output should've been split by the summary header");
+
+    assert_snapshot!(
+        summary,
+        @r"
+        - PRs merged:                    0
+        - PRs disqualified:              7
+        - Errors encountered:            0
+        "
+    );
+}
+
+#[test]
+fn summary_doesnt_include_dq_if_none_exist() {
+    let mut buffer = vec![];
+    let behaviours = RunBehaviours::default().skip_disqualifications_in_summary();
+    let mut l = RunLogger::new(&mut buffer, &behaviours);
+    let summary = RunSummary {
+        disqualifications: vec![],
+        num_errors: 0,
+        prs_merged: vec![],
     };
-    let repo_result = RepoResult::Finished(repo_check);
 
-    // WHEN
-    l.add_repo_result(repo_result);
-    l.write_output().expect("output should've been written");
+    l.write_output(&summary)
+        .expect("output should've been written");
 
-    // THEN
     let out =
         String::from_utf8(buffer).expect("buffer contents should've been converted to a string");
 
@@ -645,8 +476,6 @@ fn summary_doesnt_include_dq_if_none_exist() {
         @r"
         - PRs merged:                    0
         - PRs disqualified:              0
-        - Repos checked:                 1
-        - Repos with no relevant PRs:    0
         - Errors encountered:            0
         "
     );
@@ -654,29 +483,23 @@ fn summary_doesnt_include_dq_if_none_exist() {
 
 #[test]
 fn disqualification_reasons_are_left_aligned_in_summary() {
-    // GIVEN
     let mut buffer = vec![];
-
-    let behaviours = RunBehaviours::default().show_prs_with_unmatched_head();
-
+    let behaviours = RunBehaviours::default();
     let mut l = RunLogger::new(&mut buffer, &behaviours);
-    let repo_check = RepoCheck {
-        owner: OWNER.to_string(),
-        name: REPO.to_string(),
-        state: RepoCheckFinished(vec![
-            merge_result_disqualified_unmatched_head(1),
-            merge_result_disqualified_unmatched_head(11),
-            merge_result_disqualified_unmatched_head(111),
-            merge_result_disqualified_unmatched_head(1111),
-        ]),
+    let summary = RunSummary {
+        disqualifications: vec![
+            run_disqualification(1, "head didn't match"),
+            run_disqualification(11, "head didn't match"),
+            run_disqualification(111, "head didn't match"),
+            run_disqualification(1111, "head didn't match"),
+        ],
+        num_errors: 0,
+        prs_merged: vec![],
     };
-    let repo_result = RepoResult::Finished(repo_check);
 
-    // WHEN
-    l.add_repo_result(repo_result);
-    l.write_output().expect("output should've been written");
+    l.write_output(&summary)
+        .expect("output should've been written");
 
-    // THEN
     let out =
         String::from_utf8(buffer).expect("buffer contents should've been converted to a string");
 
@@ -695,8 +518,6 @@ fn disqualification_reasons_are_left_aligned_in_summary() {
         @r"
         - PRs merged:                    0
         - PRs disqualified:              4
-        - Repos checked:                 1
-        - Repos with no relevant PRs:    0
         - Errors encountered:            0
 
         Disqualifications
@@ -888,6 +709,29 @@ fn merge_result_qualified() -> MergeResult {
         ],
         state: PRCheckFinished,
     })
+}
+
+fn summary_with_disqualifications() -> RunSummary {
+    RunSummary {
+        disqualifications: vec![
+            run_disqualification(1, "head didn't match"),
+            run_disqualification(1, "author unknown"),
+            run_disqualification(1, "author untrusted-dependabot[bot] untrusted"),
+            run_disqualification(1, "check lint: unknown conclusion"),
+            run_disqualification(1, "check lint: failure"),
+            run_disqualification(1, "state: unknown"),
+            run_disqualification(1, "state: dirty"),
+        ],
+        num_errors: 0,
+        prs_merged: vec![],
+    }
+}
+
+fn run_disqualification(number: u64, reason: &str) -> RunDisqualification {
+    RunDisqualification {
+        pr_url: format!("https://github.com/dhth/mrj/pull/{number}"),
+        reason: reason.to_string(),
+    }
 }
 
 fn created_at() -> DateTime<Utc> {

@@ -1222,6 +1222,7 @@ dependencies = [
  "open",
  "regex",
  "serde",
+ "serde_json",
  "tera",
  "tokio",
  "toml",
