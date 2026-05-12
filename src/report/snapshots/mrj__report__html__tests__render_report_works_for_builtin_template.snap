@@ -478,7 +478,6 @@ expression: result
                 <summary class="board-header">
                     <span class="toggle-icon">&#9654;</span>
                     <span class="run-label">Sat Nov 01 · 22:33 UTC</span>
-                    <span class="mode-badge mode-execute">execute</span>
                     <div class="board-stats">
                         <span class="stat stat-green">1 merged</span>
                         <span class="stat stat-amber">0 disqualified</span>
