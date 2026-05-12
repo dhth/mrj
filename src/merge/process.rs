@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::domain::{
-    Disqualification as DQ, GhApiQueryParam, MergeResult, PRCheck, Qualification as Q, Repo,
-    RepoCheck, RepoResult,
+    Disqualification as DQ, GhApiQueryParam, MergeResult, PRCheck, PRDisqualified,
+    Qualification as Q, Repo, RepoCheck, RepoResult,
 };
 use anyhow::Context;
 use octocrab::Octocrab;
@@ -10,7 +10,17 @@ use octocrab::{
     params::{State, repos::Commitish},
 };
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::Semaphore;
+
+const MAX_RETRY_ATTEMPTS: usize = 3;
+const RETRY_DELAY: Duration = Duration::from_millis(3000);
+
+enum MergeAttemptOutcome {
+    Final(MergeResult),
+    Retryable(PRCheck<PRDisqualified>),
+    // A variant for retryable errors can be added here later
+}
 
 pub(super) async fn merge_pr_for_repo(
     semaphore: Arc<Semaphore>,
@@ -57,7 +67,7 @@ pub(super) async fn merge_pr_for_repo(
     }
 
     for pull_request in &page {
-        let merge_result = merge_pr(
+        let merge_result = merge_pr_with_retry(
             &repo.owner,
             &repo.repo,
             pull_request,
@@ -77,7 +87,7 @@ pub(super) async fn merge_pr_for_repo(
     RepoResult::Finished(repo_check.finish())
 }
 
-async fn merge_pr(
+async fn merge_pr_with_retry(
     owner: &str,
     repo: &str,
     pull_request: &PullRequest,
@@ -85,6 +95,30 @@ async fn merge_pr(
     config: &Config,
     execute: bool,
 ) -> MergeResult {
+    for attempt in 1..=MAX_RETRY_ATTEMPTS {
+        match merge_pr(owner, repo, pull_request, client, config, execute).await {
+            MergeAttemptOutcome::Final(result) => return result,
+            MergeAttemptOutcome::Retryable(pr_check) => {
+                if attempt == MAX_RETRY_ATTEMPTS {
+                    return MergeResult::Disqualified(pr_check);
+                }
+
+                tokio::time::sleep(RETRY_DELAY).await;
+            }
+        }
+    }
+
+    unreachable!("loop should've returned within the attempt budget")
+}
+
+async fn merge_pr(
+    owner: &str,
+    repo: &str,
+    pull_request: &PullRequest,
+    client: &Octocrab,
+    config: &Config,
+    execute: bool,
+) -> MergeAttemptOutcome {
     let mut pr_check = PRCheck::from(pull_request);
 
     if let Some(head_pattern) = &config.head_pattern {
@@ -92,7 +126,9 @@ async fn merge_pr(
         if head_pattern.re.is_match(&head_ref) {
             pr_check.add_qualification(Q::Head(head_ref));
         } else {
-            return MergeResult::Disqualified(pr_check.disqualify(DQ::Head(head_ref)));
+            return MergeAttemptOutcome::Final(MergeResult::Disqualified(
+                pr_check.disqualify(DQ::Head(head_ref)),
+            ));
         }
     }
 
@@ -101,12 +137,14 @@ async fn merge_pr(
             pr_check.add_qualification(Q::Author(trusted_user.login.clone()));
         }
         Some(other_user) => {
-            return MergeResult::Disqualified(
+            return MergeAttemptOutcome::Final(MergeResult::Disqualified(
                 pr_check.disqualify(DQ::Author(Some(other_user.login.clone()))),
-            );
+            ));
         }
         None => {
-            return MergeResult::Disqualified(pr_check.disqualify(DQ::Author(None)));
+            return MergeAttemptOutcome::Final(MergeResult::Disqualified(
+                pr_check.disqualify(DQ::Author(None)),
+            ));
         }
     }
 
@@ -118,7 +156,7 @@ async fn merge_pr(
     {
         Ok(pr) => pr,
         Err(err) => {
-            return MergeResult::Errored(pr_check.record_error(err));
+            return MergeAttemptOutcome::Final(MergeResult::Errored(pr_check.record_error(err)));
         }
     };
 
@@ -133,7 +171,7 @@ async fn merge_pr(
     {
         Ok(c) => c,
         Err(err) => {
-            return MergeResult::Errored(pr_check.record_error(err));
+            return MergeAttemptOutcome::Final(MergeResult::Errored(pr_check.record_error(err)));
         }
     };
 
@@ -152,23 +190,29 @@ async fn merge_pr(
                         conclusion: "success".to_string(),
                     });
                 } else {
-                    return MergeResult::Disqualified(pr_check.disqualify(DQ::Check {
-                        name: check.name.clone(),
-                        conclusion: Some("skipped".to_string()),
-                    }));
+                    return MergeAttemptOutcome::Final(MergeResult::Disqualified(
+                        pr_check.disqualify(DQ::Check {
+                            name: check.name.clone(),
+                            conclusion: Some("skipped".to_string()),
+                        }),
+                    ));
                 }
             }
             Some(non_successful_conclusion) => {
-                return MergeResult::Disqualified(pr_check.disqualify(DQ::Check {
-                    name: check.name.clone(),
-                    conclusion: Some(non_successful_conclusion.to_lowercase()),
-                }));
+                return MergeAttemptOutcome::Final(MergeResult::Disqualified(pr_check.disqualify(
+                    DQ::Check {
+                        name: check.name.clone(),
+                        conclusion: Some(non_successful_conclusion.to_lowercase()),
+                    },
+                )));
             }
             None => {
-                return MergeResult::Disqualified(pr_check.disqualify(DQ::Check {
-                    name: check.name.clone(),
-                    conclusion: None,
-                }));
+                return MergeAttemptOutcome::Final(MergeResult::Disqualified(pr_check.disqualify(
+                    DQ::Check {
+                        name: check.name.clone(),
+                        conclusion: None,
+                    },
+                )));
             }
         }
     }
@@ -181,14 +225,19 @@ async fn merge_pr(
             MergeableState::Blocked if config.merge_if_blocked => {
                 pr_check.add_qualification(Q::State("blocked".to_string()));
             }
-            other => {
-                return MergeResult::Disqualified(
-                    pr_check.disqualify(DQ::State(Some(format!("{other:?}").to_lowercase()))),
+            MergeableState::Unknown => {
+                return MergeAttemptOutcome::Retryable(
+                    pr_check.disqualify(DQ::State(Some("unknown".to_string()))),
                 );
+            }
+            other => {
+                return MergeAttemptOutcome::Final(MergeResult::Disqualified(
+                    pr_check.disqualify(DQ::State(Some(format!("{other:?}").to_lowercase()))),
+                ));
             }
         },
         None => {
-            return MergeResult::Disqualified(pr_check.disqualify(DQ::State(None)));
+            return MergeAttemptOutcome::Retryable(pr_check.disqualify(DQ::State(None)));
         }
     }
 
@@ -201,8 +250,8 @@ async fn merge_pr(
             .await
             .context("couldn't merge PR")
     {
-        return MergeResult::Errored(pr_check.record_error(err));
+        return MergeAttemptOutcome::Final(MergeResult::Errored(pr_check.record_error(err)));
     }
 
-    MergeResult::Qualified(pr_check.finish())
+    MergeAttemptOutcome::Final(MergeResult::Qualified(pr_check.finish()))
 }
