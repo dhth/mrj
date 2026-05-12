@@ -412,9 +412,7 @@
                 <summary class="board-header">
                     <span class="toggle-icon">&#9654;</span>
                     <span class="run-label">{{ run.finished_at | date(format="%a %b %d · %H:%M UTC") }}</span>
-                    {%- if run.mode == "execute" %}
-                    <span class="mode-badge mode-execute">{{ run.mode }}</span>
-                    {%- else %}
+                    {%- if run.mode != "execute" %}
                     <span class="mode-badge mode-other">{{ run.mode }}</span>
                     {%- endif %}
                     <div class="board-stats">
