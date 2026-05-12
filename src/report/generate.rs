@@ -22,9 +22,7 @@ pub fn generate_report(config: &ReportConfig) -> anyhow::Result<()> {
     let last_run_number = super::io::get_last_run_number(&run_number_file_path)
         .context("couldn't get last run number")?;
     let run_number = last_run_number + 1;
-    let now = Utc::now();
-    let date = now.format("%a-%b-%d").to_string().to_lowercase();
-    let new_run_file = runs_dir.join(format!("run-{run_number}--{date}.json"));
+    let new_run_file = runs_dir.join(format!("run-{run_number}.json"));
 
     std::fs::copy(&config.output_path, new_run_file)
         .context("couldn't copy latest run to mrj's \"runs\" directory")?;
@@ -51,7 +49,7 @@ pub fn generate_report(config: &ReportConfig) -> anyhow::Result<()> {
 
     let report_contents = super::html::render_report(
         run_data.as_slice(),
-        now,
+        Utc::now(),
         config.custom_template.as_deref(),
         &config.title,
     )
