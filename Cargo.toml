@@ -1,6 +1,6 @@
 [package]
 name = "mrj"
-version = "0.4.0"
+version = "0.5.0-alpha.1"
 edition = "2024"
 authors = ["Dhruv Thakur"]
 repository = "https://github.com/dhth/mrj"
@@ -16,6 +16,8 @@ categories = [
 ]
 exclude = [
     ".github",
+    "AGENTS.md",
+    "CLAUDE.md",
     "justfile",
 ]
 
