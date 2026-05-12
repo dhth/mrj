@@ -36,14 +36,15 @@ fn failed_repo_result_is_printed_correctly() {
         String::from_utf8(buffer).expect("buffer contents should've been converted to a string");
     assert_snapshot!(
         out,
-        @r#"
+        @"
 
-=============
-  dhth/mrj
-=============
 
-        error 😵: something went wrong
-"#
+    =============
+      dhth/mrj
+    =============
+
+            error 😵: something went wrong
+    "
     );
 }
 
@@ -70,17 +71,19 @@ fn pr_with_unmatched_head_is_printed_if_requested() {
     assert_snapshot!(
         out,
         @r#"
-        =============
-          dhth/mrj
-        =============
 
-        -> checking PR #1
-                build: bump clap from 4.5.39 to 4.5.40
-                https://github.com/dhth/mrj/pull/1
-                Created: Mon, 1 Jan 2024 01:01:01 +0000
-                Updated: Tue, 2 Jan 2024 01:01:01 +0000
-                [ head  ]   "improve tests" doesn't match the allowed head pattern ❌
-        "#
+
+    =============
+      dhth/mrj
+    =============
+
+    -> checking PR #1
+            build: bump clap from 4.5.39 to 4.5.40
+            https://github.com/dhth/mrj/pull/1
+            Created: Mon, 1 Jan 2024 01:01:01 +0000
+            Updated: Tue, 2 Jan 2024 01:01:01 +0000
+            [ head  ]   "improve tests" doesn't match the allowed head pattern ❌
+    "#
     );
 }
 
@@ -107,18 +110,20 @@ fn pr_with_unknown_author_is_printed_if_requested() {
     assert_snapshot!(
         out,
         @r#"
-        =============
-          dhth/mrj
-        =============
 
-        -> checking PR #1
-                build: bump clap from 4.5.39 to 4.5.40
-                https://github.com/dhth/mrj/pull/1
-                Created: Mon, 1 Jan 2024 01:01:01 +0000
-                Updated: Tue, 2 Jan 2024 01:01:01 +0000
-                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-                [ author ]   Github sent an empty user; skipping as I can't make any assumptions here ❌
-        "#
+
+    =============
+      dhth/mrj
+    =============
+
+    -> checking PR #1
+            build: bump clap from 4.5.39 to 4.5.40
+            https://github.com/dhth/mrj/pull/1
+            Created: Mon, 1 Jan 2024 01:01:01 +0000
+            Updated: Tue, 2 Jan 2024 01:01:01 +0000
+            [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+            [ author ]   Github sent an empty user; skipping as I can't make any assumptions here ❌
+    "#
     );
 }
 
@@ -145,18 +150,20 @@ fn pr_with_untrusted_author_is_printed_if_requested() {
     assert_snapshot!(
         out,
         @r#"
-        =============
-          dhth/mrj
-        =============
 
-        -> checking PR #1
-                build: bump clap from 4.5.39 to 4.5.40
-                https://github.com/dhth/mrj/pull/1
-                Created: Mon, 1 Jan 2024 01:01:01 +0000
-                Updated: Tue, 2 Jan 2024 01:01:01 +0000
-                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-                [ author ]   "untrusted-dependabot[bot]" is not in the list of trusted authors ❌
-        "#
+
+    =============
+      dhth/mrj
+    =============
+
+    -> checking PR #1
+            build: bump clap from 4.5.39 to 4.5.40
+            https://github.com/dhth/mrj/pull/1
+            Created: Mon, 1 Jan 2024 01:01:01 +0000
+            Updated: Tue, 2 Jan 2024 01:01:01 +0000
+            [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+            [ author ]   "untrusted-dependabot[bot]" is not in the list of trusted authors ❌
+    "#
     );
 }
 
@@ -184,22 +191,24 @@ fn pr_with_empty_check_conclusion_is_printed_correctly() {
     assert_snapshot!(
         out,
         @r#"
-        =============
-          dhth/mrj
-        =============
 
-        -> checking PR #1
-                build: bump clap from 4.5.39 to 4.5.40
-                https://github.com/dhth/mrj/pull/1
-                Created: Mon, 1 Jan 2024 01:01:01 +0000
-                Updated: Tue, 2 Jan 2024 01:01:01 +0000
-                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-                [ author ]   "dependabot[bot]" is in the list of trusted authors
-                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-                [ check  ]   "test" concluded with desired status: "success"
-                [ check  ]   Github returned with an empty conclusion for the check lint; skipping as I can't make any assumptions here ❌
-        "#
+
+    =============
+      dhth/mrj
+    =============
+
+    -> checking PR #1
+            build: bump clap from 4.5.39 to 4.5.40
+            https://github.com/dhth/mrj/pull/1
+            Created: Mon, 1 Jan 2024 01:01:01 +0000
+            Updated: Tue, 2 Jan 2024 01:01:01 +0000
+            [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+            [ author ]   "dependabot[bot]" is in the list of trusted authors
+            [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+            [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+            [ check  ]   "test" concluded with desired status: "success"
+            [ check  ]   Github returned with an empty conclusion for the check lint; skipping as I can't make any assumptions here ❌
+    "#
     );
 }
 
@@ -225,22 +234,24 @@ fn pr_with_a_failed_check_is_printed_correctly() {
     assert_snapshot!(
         out,
         @r#"
-        =============
-          dhth/mrj
-        =============
 
-        -> checking PR #1
-                build: bump clap from 4.5.39 to 4.5.40
-                https://github.com/dhth/mrj/pull/1
-                Created: Mon, 1 Jan 2024 01:01:01 +0000
-                Updated: Tue, 2 Jan 2024 01:01:01 +0000
-                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-                [ author ]   "dependabot[bot]" is in the list of trusted authors
-                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-                [ check  ]   "test" concluded with desired status: "success"
-                [ check  ]   "lint" concluded with undesired status: "failure" ❌
-        "#
+
+    =============
+      dhth/mrj
+    =============
+
+    -> checking PR #1
+            build: bump clap from 4.5.39 to 4.5.40
+            https://github.com/dhth/mrj/pull/1
+            Created: Mon, 1 Jan 2024 01:01:01 +0000
+            Updated: Tue, 2 Jan 2024 01:01:01 +0000
+            [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+            [ author ]   "dependabot[bot]" is in the list of trusted authors
+            [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+            [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+            [ check  ]   "test" concluded with desired status: "success"
+            [ check  ]   "lint" concluded with undesired status: "failure" ❌
+    "#
     );
 }
 
@@ -266,22 +277,24 @@ fn pr_with_unknown_state_is_printed_correctly() {
     assert_snapshot!(
         out,
         @r#"
-        =============
-          dhth/mrj
-        =============
 
-        -> checking PR #1
-                build: bump clap from 4.5.39 to 4.5.40
-                https://github.com/dhth/mrj/pull/1
-                Created: Mon, 1 Jan 2024 01:01:01 +0000
-                Updated: Tue, 2 Jan 2024 01:01:01 +0000
-                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-                [ author ]   "dependabot[bot]" is in the list of trusted authors
-                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-                [ check  ]   "test" concluded with desired status: "success"
-                [ state  ]   Github returned with an empty mergeable state; skipping as I can't make any assumptions here ❌
-        "#
+
+    =============
+      dhth/mrj
+    =============
+
+    -> checking PR #1
+            build: bump clap from 4.5.39 to 4.5.40
+            https://github.com/dhth/mrj/pull/1
+            Created: Mon, 1 Jan 2024 01:01:01 +0000
+            Updated: Tue, 2 Jan 2024 01:01:01 +0000
+            [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+            [ author ]   "dependabot[bot]" is in the list of trusted authors
+            [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+            [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+            [ check  ]   "test" concluded with desired status: "success"
+            [ state  ]   Github returned with an empty mergeable state; skipping as I can't make any assumptions here ❌
+    "#
     );
 }
 
@@ -307,22 +320,24 @@ fn pr_with_an_undesirable_state_is_printed_correctly() {
     assert_snapshot!(
         out,
         @r#"
-        =============
-          dhth/mrj
-        =============
 
-        -> checking PR #1
-                build: bump clap from 4.5.39 to 4.5.40
-                https://github.com/dhth/mrj/pull/1
-                Created: Mon, 1 Jan 2024 01:01:01 +0000
-                Updated: Tue, 2 Jan 2024 01:01:01 +0000
-                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-                [ author ]   "dependabot[bot]" is in the list of trusted authors
-                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-                [ check  ]   "test" concluded with desired status: "success"
-                [ state  ]   "dirty" is undesirable ❌
-        "#
+
+    =============
+      dhth/mrj
+    =============
+
+    -> checking PR #1
+            build: bump clap from 4.5.39 to 4.5.40
+            https://github.com/dhth/mrj/pull/1
+            Created: Mon, 1 Jan 2024 01:01:01 +0000
+            Updated: Tue, 2 Jan 2024 01:01:01 +0000
+            [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+            [ author ]   "dependabot[bot]" is in the list of trusted authors
+            [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+            [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+            [ check  ]   "test" concluded with desired status: "success"
+            [ state  ]   "dirty" is undesirable ❌
+    "#
     );
 }
 
@@ -348,23 +363,25 @@ fn pr_with_a_finished_check_is_printed_correctly() {
     assert_snapshot!(
         out,
         @r#"
-        =============
-          dhth/mrj
-        =============
 
-        -> checking PR #1
-                build: bump clap from 4.5.39 to 4.5.40
-                https://github.com/dhth/mrj/pull/1
-                Created: Mon, 1 Jan 2024 01:01:01 +0000
-                Updated: Tue, 2 Jan 2024 01:01:01 +0000
-                [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
-                [ author ]   "dependabot[bot]" is in the list of trusted authors
-                [ check  ]   "build (macos-latest)" concluded with desired status: "success"
-                [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
-                [ check  ]   "test" concluded with desired status: "success"
-                [ state  ]   "clean" is desirable
-                PR matches all criteria, I would've merged it if this weren't a dry run ✅
-        "#
+
+    =============
+      dhth/mrj
+    =============
+
+    -> checking PR #1
+            build: bump clap from 4.5.39 to 4.5.40
+            https://github.com/dhth/mrj/pull/1
+            Created: Mon, 1 Jan 2024 01:01:01 +0000
+            Updated: Tue, 2 Jan 2024 01:01:01 +0000
+            [ head  ]   "dependabot/cargo/clap-4.5.40" matches the allowed head pattern
+            [ author ]   "dependabot[bot]" is in the list of trusted authors
+            [ check  ]   "build (macos-latest)" concluded with desired status: "success"
+            [ check  ]   "build (ubuntu-latest)" concluded with desired status: "success"
+            [ check  ]   "test" concluded with desired status: "success"
+            [ state  ]   "clean" is desirable
+            PR matches all criteria, I would've merged it if this weren't a dry run ✅
+    "#
     );
 }
 
@@ -392,22 +409,23 @@ fn printing_summary_works() {
 
     assert_snapshot!(
         summary,
-        @r"
-        - PRs merged:                    0
-        - PRs disqualified:              7
-        - Errors encountered:            0
+        @"
 
-        Disqualifications
-        ---
+    - PRs merged:                    0
+    - PRs disqualified:              7
+    - Errors encountered:            0
 
-        - https://github.com/dhth/mrj/pull/1        head didn't match
-        - https://github.com/dhth/mrj/pull/1        author unknown
-        - https://github.com/dhth/mrj/pull/1        author untrusted-dependabot[bot] untrusted
-        - https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
-        - https://github.com/dhth/mrj/pull/1        check lint: failure
-        - https://github.com/dhth/mrj/pull/1        state: unknown
-        - https://github.com/dhth/mrj/pull/1        state: dirty
-        "
+    Disqualifications
+    ---
+
+    - https://github.com/dhth/mrj/pull/1        head didn't match
+    - https://github.com/dhth/mrj/pull/1        author unknown
+    - https://github.com/dhth/mrj/pull/1        author untrusted-dependabot[bot] untrusted
+    - https://github.com/dhth/mrj/pull/1        check lint: unknown conclusion
+    - https://github.com/dhth/mrj/pull/1        check lint: failure
+    - https://github.com/dhth/mrj/pull/1        state: unknown
+    - https://github.com/dhth/mrj/pull/1        state: dirty
+    "
     );
 }
 
@@ -436,11 +454,12 @@ fn disqualifications_can_be_skipped_in_summary_when_requested() {
 
     assert_snapshot!(
         summary,
-        @r"
-        - PRs merged:                    0
-        - PRs disqualified:              7
-        - Errors encountered:            0
-        "
+        @"
+
+    - PRs merged:                    0
+    - PRs disqualified:              7
+    - Errors encountered:            0
+    "
     );
 }
 
@@ -473,11 +492,12 @@ fn summary_doesnt_include_dq_if_none_exist() {
 
     assert_snapshot!(
         summary,
-        @r"
-        - PRs merged:                    0
-        - PRs disqualified:              0
-        - Errors encountered:            0
-        "
+        @"
+
+    - PRs merged:                    0
+    - PRs disqualified:              0
+    - Errors encountered:            0
+    "
     );
 }
 
@@ -515,19 +535,20 @@ fn disqualification_reasons_are_left_aligned_in_summary() {
 
     assert_snapshot!(
         summary,
-        @r"
-        - PRs merged:                    0
-        - PRs disqualified:              4
-        - Errors encountered:            0
+        @"
 
-        Disqualifications
-        ---
+    - PRs merged:                    0
+    - PRs disqualified:              4
+    - Errors encountered:            0
 
-        - https://github.com/dhth/mrj/pull/1           head didn't match
-        - https://github.com/dhth/mrj/pull/11          head didn't match
-        - https://github.com/dhth/mrj/pull/111         head didn't match
-        - https://github.com/dhth/mrj/pull/1111        head didn't match
-        "
+    Disqualifications
+    ---
+
+    - https://github.com/dhth/mrj/pull/1           head didn't match
+    - https://github.com/dhth/mrj/pull/11          head didn't match
+    - https://github.com/dhth/mrj/pull/111         head didn't match
+    - https://github.com/dhth/mrj/pull/1111        head didn't match
+    "
     );
 }
 
