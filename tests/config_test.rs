@@ -20,7 +20,7 @@ fn parsing_valid_config_with_all_props_works() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r"
+    assert_cmd_snapshot!(cmd, @"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -43,7 +43,7 @@ fn parsing_valid_config_with_mandatory_props_only_works() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r"
+    assert_cmd_snapshot!(cmd, @"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -66,7 +66,7 @@ fn sample_config_is_valid() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r"
+    assert_cmd_snapshot!(cmd, @"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -84,7 +84,7 @@ fn printing_sample_config_works() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r###"
+    assert_cmd_snapshot!(cmd, @r#"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -145,7 +145,7 @@ fn printing_sample_config_works() {
     sort_direction = "asc"
 
     ----- stderr -----
-    "###);
+    "#);
 }
 
 //-------------//
@@ -187,7 +187,7 @@ fn parsing_invalid_config_fails() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r###"
+    assert_cmd_snapshot!(cmd, @r#"
     success: false
     exit_code: 1
     ----- stdout -----
@@ -198,7 +198,7 @@ fn parsing_invalid_config_fails() {
     1 | repos = "not a list"
       |         ^^^^^^^^^^^^
     invalid type: string "not a list", expected a sequence
-    "###);
+    "#);
 }
 
 #[test]
@@ -214,7 +214,7 @@ fn fails_if_invalid_repos_provided_via_config() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r###"
+    assert_cmd_snapshot!(cmd, @r#"
     success: false
     exit_code: 1
     ----- stdout -----
@@ -225,5 +225,5 @@ fn fails_if_invalid_repos_provided_via_config() {
     3 |     "invalid-repo",
       |     ^^^^^^^^^^^^^^
     invalid value: string "invalid-repo", expected a value in the form "owner/repo"
-    "###);
+    "#);
 }

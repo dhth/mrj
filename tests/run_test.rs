@@ -20,7 +20,7 @@ fn debug_mode_works() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r"
+    assert_cmd_snapshot!(cmd, @"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -122,7 +122,7 @@ fn fails_if_no_repos_provided() {
 
     // WHEN
     // THEN
-    assert_cmd_snapshot!(cmd, @r"
+    assert_cmd_snapshot!(cmd, @"
     success: false
     exit_code: 1
     ----- stdout -----
