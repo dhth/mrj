@@ -180,29 +180,6 @@
             line-height: 1.3;
         }
 
-        .toggle-btn {
-            font-family: inherit;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--bg);
-            background: var(--accent);
-            border: none;
-            padding: 0.38rem 0.7rem;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .toggle-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        @media (prefers-color-scheme: light) {
-            .toggle-btn {
-                color: var(--surface);
-            }
-        }
-
         .board {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -404,8 +381,7 @@
             <div class="page-header">
                 <h1 class="page-title">{{ title }}</h1>
                 <div class="page-meta">
-                    <span class="page-timestamp">{{ timestamp | date(format="%Y-%m-%d %H:%M UTC") }}</span>
-                    <button class="toggle-btn" onclick="toggleAllRuns()">toggle all</button>
+                    <span class="page-timestamp">Generated at {{ timestamp | date(format="%Y-%m-%d %H:%M UTC") }}</span>
                 </div>
             </div>
         </header>
@@ -525,15 +501,7 @@
     <button id="scrollToTop" class="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">&#8593;</button>
 
     <script>
-        let allRunsOpen = true;
         const scrollToTopButton = document.getElementById("scrollToTop");
-
-        function toggleAllRuns() {
-            allRunsOpen = !allRunsOpen;
-            document.querySelectorAll("[data-run-details]").forEach(function(d) {
-                d.open = allRunsOpen;
-            });
-        }
 
         document.querySelectorAll("[data-url]").forEach(function(row) {
             row.addEventListener("click", function(e) {
