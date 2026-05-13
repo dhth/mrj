@@ -336,7 +336,12 @@
 
         .board-table tbody tr:hover { background: var(--row-hover); }
 
-        tr[data-url] { cursor: pointer; }
+        .board-table tbody tr[data-url] td {
+            cursor: pointer;
+        }
+        .board-table tbody tr[data-url] .cell-wrap a:hover {
+            text-decoration: none;
+        }
 
         .badge {
             font-size: 0.75rem;
@@ -453,7 +458,7 @@
                                 <td><span class="badge badge-dq">DISQUALIFIED</span></td>
                                 <td class="cell-repo">{{ repo.repo }}</td>
                                 <td class="cell-num">{{ pr.number }}</td>
-                                <td class="cell-wrap">{{ pr.title }}</td>
+                                <td class="cell-wrap"><a href="{{ pr.url }}" target="_blank" rel="noopener noreferrer">{{ pr.title }}</a></td>
                                 <td class="cell-wrap remarks remarks-dq">{%- if pr.disqualification %}&#x2717; {{ pr.disqualification.kind }} &middot; {% if pr.disqualification.kind == "check" %}{{ pr.disqualification.name }}{%- if pr.disqualification.conclusion %}: {{ pr.disqualification.conclusion }}{%- endif %}{% elif pr.disqualification.value %}{{ pr.disqualification.value }}{% else %}unknown{% endif %}{%- endif %}</td>
                             </tr>
                             {%- endif %}
@@ -476,7 +481,7 @@
                                 <td><span class="badge badge-err">ERRORED</span></td>
                                 <td class="cell-repo">{{ repo.repo }}</td>
                                 <td class="cell-num">{{ pr.number }}</td>
-                                <td class="cell-wrap">{{ pr.title }}</td>
+                                <td class="cell-wrap"><a href="{{ pr.url }}" target="_blank" rel="noopener noreferrer">{{ pr.title }}</a></td>
                                 <td class="cell-wrap remarks remarks-err">{%- if pr.error %}{{ pr.error }}{%- endif %}</td>
                             </tr>
                             {%- endif %}
@@ -495,7 +500,7 @@
                                 {%- endif %}
                                 <td class="cell-repo">{{ repo.repo }}</td>
                                 <td class="cell-num">{{ pr.number }}</td>
-                                <td class="cell-wrap">{{ pr.title }}</td>
+                                <td class="cell-wrap"><a href="{{ pr.url }}" target="_blank" rel="noopener noreferrer">{{ pr.title }}</a></td>
                                 <td class="cell-wrap remarks remarks-ok">{%- if pr.merged %}&#10003; merged{%- endif %}</td>
                             </tr>
                             {%- endif %}
