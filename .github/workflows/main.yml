@@ -96,21 +96,6 @@ jobs:
         uses: actions/checkout@v6
       - uses: dhth/composite-actions/.github/actions/lint-actions@main
 
-  dry-run:
-    needs: changes
-    if: ${{ github.actor != 'dependabot[bot]' && needs.changes.outputs.code == 'true' }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Dry run
-        uses: ./.github/actions/dry-run
-        with:
-          mrj_app_id: ${{ secrets.MRJ_APP_ID }}
-          mrj_app_private_key: ${{ secrets.MRJ_APP_PRIVATE_KEY }}
-
   audit:
     needs: changes
     if: ${{ needs.changes.outputs.deps == 'true' }}
