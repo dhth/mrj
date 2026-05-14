@@ -13,6 +13,7 @@
 - CLI entrypoint: `src/main.rs`
 - CLI parsing: `src/args.rs`
 - Merge flow: `src/merge/`
+- Persisted run format and storage: `src/persistence/`
 - Report generation: `src/report/`
 - Config parsing and sample config: `src/config.rs`, `src/assets/sample-config.toml`
 - Integration tests: `tests/`
@@ -22,7 +23,8 @@
 - Use `anyhow::Result` and `anyhow::Context` for fallible flows; keep user-facing errors descriptive.
 - Clippy forbids `unwrap()` and `expect()` via `Cargo.toml`; propagate or handle errors instead.
 - Preserve the existing CLI/help text style when changing commands or flags; integration tests snapshot command output.
-- Prefer snapshot-based assertions for CLI and report output; update snapshots intentionally and review them before accepting.
+- Prefer `insta`/`insta_cmd` snapshot assertions for CLI and report output; update snapshots intentionally and review them before accepting.
+- `mrj run --output-to-file` writes JSON output to `output.json` by default; `mrj report generate` consumes that JSON, stores run history under `.mrj/runs/`, and writes the rendered report to `dist/`.
 - Keep sample data and HTML/template fixtures under existing `src/report/testdata/`, `src/report/assets/`, and `src/merge/assets/` locations.
 
 ## Testing
