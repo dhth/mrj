@@ -423,6 +423,13 @@ expression: result
                             </tr>
                         </thead>
                         <tbody>
+                            <tr class="row-ok" data-url="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;13">
+                                <td><span class="badge badge-ok">QUALIFIED</span></td>
+                                <td class="cell-repo">dhth&#x2F;mrj</td>
+                                <td class="cell-num">13</td>
+                                <td class="cell-wrap"><a href="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;13" target="_blank" rel="noopener noreferrer">build: bump tera from 1.19.0 to 1.20.1</a></td>
+                                <td class="cell-wrap remarks remarks-ok"></td>
+                            </tr>
                             <tr class="row-dq" data-url="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;12">
                                 <td><span class="badge badge-dq">DISQUALIFIED</span></td>
                                 <td class="cell-repo">dhth&#x2F;mrj</td>
@@ -443,13 +450,6 @@ expression: result
                                 <td class="cell-num">&mdash;</td>
                                 <td class="cell-dim cell-wrap">&mdash;</td>
                                 <td class="cell-wrap remarks remarks-err">&#x26A0; couldn&#x27;t fetch open PRs for repo</td>
-                            </tr>
-                            <tr class="row-ok" data-url="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;13">
-                                <td><span class="badge badge-ok">QUALIFIED</span></td>
-                                <td class="cell-repo">dhth&#x2F;mrj</td>
-                                <td class="cell-num">13</td>
-                                <td class="cell-wrap"><a href="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;13" target="_blank" rel="noopener noreferrer">build: bump tera from 1.19.0 to 1.20.1</a></td>
-                                <td class="cell-wrap remarks remarks-ok"></td>
                             </tr>
                         </tbody>
                     </table>

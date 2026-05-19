@@ -429,6 +429,25 @@
                             {%- for repo in run.repos %}
                             {%- if not repo.error %}
                             {%- for pr in repo.prs %}
+                            {%- if pr.status == "qualified" %}
+                            <tr class="row-ok" data-url="{{ pr.url }}">
+                                {%- if pr.merged %}
+                                <td><span class="badge badge-merged">MERGED</span></td>
+                                {%- else %}
+                                <td><span class="badge badge-ok">QUALIFIED</span></td>
+                                {%- endif %}
+                                <td class="cell-repo">{{ repo.repo }}</td>
+                                <td class="cell-num">{{ pr.number }}</td>
+                                <td class="cell-wrap"><a href="{{ pr.url }}" target="_blank" rel="noopener noreferrer">{{ pr.title }}</a></td>
+                                <td class="cell-wrap remarks remarks-ok"></td>
+                            </tr>
+                            {%- endif %}
+                            {%- endfor %}
+                            {%- endif %}
+                            {%- endfor %}
+                            {%- for repo in run.repos %}
+                            {%- if not repo.error %}
+                            {%- for pr in repo.prs %}
                             {%- if pr.status == "disqualified" %}
                             <tr class="row-dq" data-url="{{ pr.url }}">
                                 <td><span class="badge badge-dq">DISQUALIFIED</span></td>
@@ -459,25 +478,6 @@
                                 <td class="cell-num">{{ pr.number }}</td>
                                 <td class="cell-wrap"><a href="{{ pr.url }}" target="_blank" rel="noopener noreferrer">{{ pr.title }}</a></td>
                                 <td class="cell-wrap remarks remarks-err">{%- if pr.error %}{{ pr.error }}{%- endif %}</td>
-                            </tr>
-                            {%- endif %}
-                            {%- endfor %}
-                            {%- endif %}
-                            {%- endfor %}
-                            {%- for repo in run.repos %}
-                            {%- if not repo.error %}
-                            {%- for pr in repo.prs %}
-                            {%- if pr.status == "qualified" %}
-                            <tr class="row-ok" data-url="{{ pr.url }}">
-                                {%- if pr.merged %}
-                                <td><span class="badge badge-merged">MERGED</span></td>
-                                {%- else %}
-                                <td><span class="badge badge-ok">QUALIFIED</span></td>
-                                {%- endif %}
-                                <td class="cell-repo">{{ repo.repo }}</td>
-                                <td class="cell-num">{{ pr.number }}</td>
-                                <td class="cell-wrap"><a href="{{ pr.url }}" target="_blank" rel="noopener noreferrer">{{ pr.title }}</a></td>
-                                <td class="cell-wrap remarks remarks-ok"></td>
                             </tr>
                             {%- endif %}
                             {%- endfor %}
