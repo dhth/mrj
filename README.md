@@ -13,7 +13,7 @@
 > Want to see a demo before you read the rest of the documentation?
 > View `mrj` in action [here][1].
 
-![usage](https://tools.dhruvs.space/images/mrj/v0-3-0/mrj.png)
+![report](https://tools.dhruvs.space/images/mrj/v0-5-0/report-dark.png)
 
 🤔 Motivation
 ---
@@ -50,6 +50,8 @@ verifying the authenticity of released artifacts
 
 ⚡️ Usage
 ---
+
+![usage](https://tools.dhruvs.space/images/mrj/v0-3-0/mrj.png)
 
 ```text
 $ mrj -h
@@ -211,9 +213,7 @@ mrj run --output-to-file
 mrj report generate --open
 ```
 
-This will generate a report that looks like this:
-
-![report](https://tools.dhruvs.space/images/mrj/v0-5-0/report-dark.png)
+This will generate a report that looks like this (in light mode):
 
 ![report](https://tools.dhruvs.space/images/mrj/v0-5-0/report-light.png)
 
