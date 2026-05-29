@@ -80,11 +80,11 @@ Options:
   -r, --repos <STRING,STRING>
           Repos to run for (will override repos in config)
   -o, --output-to-file
-          Whether to write mrj's log of events to a file
+          Whether to write run output to a file
       --debug
           Output debug information without doing anything
       --output-path <FILE>
-          File to write output to [default: output.txt]
+          File to write run output to [default: output.json]
   -s, --summary
           Whether to write merge summary to a file
       --summary-path <FILE>
@@ -112,7 +112,7 @@ Generate a report
 Usage: mrj report generate [OPTIONS]
 
 Options:
-  -p, --output-path <PATH>    File containing the output of "mrj run" [default: output.txt]
+  -p, --output-path <PATH>    File containing the output of "mrj run" [default: output.json]
   -o, --open                  Whether to open report in the browser
   -n, --num-runs <NUMBER>     Maximum number of runs to keep in the report (allowed range: [1, 100]) [default: 10]
       --debug                 Output debug information without doing anything
@@ -213,7 +213,9 @@ mrj report generate --open
 
 This will generate a report that looks like this:
 
-![report](https://tools.dhruvs.space/images/mrj/v0-4-0/mrj-report.png)
+![report](https://tools.dhruvs.space/images/mrj/v0-5-0/report-dark.png)
+
+![report](https://tools.dhruvs.space/images/mrj/v0-5-0/report-light.png)
 
 ⏱️ Running on a schedule via Github Actions
 ---
@@ -243,7 +245,7 @@ name: mrj
 
 on:
   schedule:
-    - cron: '0-59/30 21-23 * * *'
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -251,23 +253,23 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.4.0
+  MRJ_VERSION: v0.5.0
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
       - name: Install mrj
-        uses: jaxxstorm/action-install-gh-release@v2.1.0
+        uses: jaxxstorm/action-install-gh-release@25e24d2d23ae098373794ef1d6faecb48ee52da8 # v3.0.0
         with:
           repo: dhth/mrj
           tag: ${{ env.MRJ_VERSION }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Generate GH token
         id: generate-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.MRJ_APP_ID }}
+          client-id: ${{ secrets.MRJ_APP_ID }}
           private-key: ${{ secrets.MRJ_APP_PRIVATE_KEY }}
           owner: <your-username>
       - name: Run mrj
@@ -288,7 +290,7 @@ name: mrj
 
 on:
   schedule:
-    - cron: '0 21,22 * * *'
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -297,32 +299,35 @@ permissions:
   id-token: write
 
 env:
-  MRJ_VERSION: v0.4.0
+  MRJ_VERSION: v0.5.0
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
       - name: Install mrj
-        uses: jaxxstorm/action-install-gh-release@v2.1.0
+        uses: jaxxstorm/action-install-gh-release@25e24d2d23ae098373794ef1d6faecb48ee52da8 # v3.0.0
         with:
           repo: dhth/mrj
           tag: ${{ env.MRJ_VERSION }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Generate GH token
         id: generate-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.MRJ_APP_ID }}
+          client-id: ${{ secrets.MRJ_APP_ID }}
           private-key: ${{ secrets.MRJ_APP_PRIVATE_KEY }}
-          owner: dhth
+          owner: <your-username>
       - name: Run mrj
         env:
           MRJ_TOKEN: ${{ steps.generate-token.outputs.token }}
           CLICOLOR_FORCE: 1
           COLORTERM: "truecolor"
         run: |
-          mrj run --execute --output-to-file --summary
+          mrj run \
+              --execute \
+              --output-to-file \
+              --summary
       - name: Generate report
         run: |
           mrj report generate
@@ -330,14 +335,14 @@ jobs:
         id: run-number
         run: echo "number=$(cat ./.mrj/last-run.txt)" >> "$GITHUB_OUTPUT"
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: "dist"
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
       - name: Commit and push results
         run: |
           git config user.name "github-actions[bot]"
