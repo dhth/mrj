@@ -204,10 +204,10 @@ sort_direction = "asc"
 `mrj` lets you create an HTML report from its output. This report holds
 information for the latest run as well as the last few runs of `mrj` (for
 historical reference). You need an output to be able to generate a report, which
-you can create by passing the `--output/-o` flag to `mrj run`.
+you can create by passing the `--output-to-file/-o` flag to `mrj run`.
 
 ```bash
-mrj run --output
+mrj run --output-to-file
 mrj report generate --open
 ```
 
