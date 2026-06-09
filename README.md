@@ -395,6 +395,6 @@ want):
    ```
 
 [1]: https://deps.gh.dhruvs.space
-[2]: https://github.com/dhth/mrj-runner
+[2]: https://github.com/dhth/deps
 [3]: https://github.com/dhth/mrj/releases
 [4]: http://devlog.dhruvs.space/log/009/
