@@ -11,6 +11,7 @@ expression: result
     head_pattern: (dependabot|update)
     merge_if_blocked: false
     merge_if_checks_skipped: true
+    merge_if_checks_neutral: false
     merge_type: squash
     sort_by: created
     sort_direction: asc
@@ -83,6 +84,7 @@ expression: result
     head_pattern: dependabot
     merge_if_blocked: false
     merge_if_checks_skipped: false
+    merge_if_checks_neutral: false
     merge_type: squash
     sort_by: updated
     sort_direction: desc

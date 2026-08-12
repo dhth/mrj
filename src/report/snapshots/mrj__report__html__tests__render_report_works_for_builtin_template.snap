@@ -409,6 +409,7 @@ expression: result
                     &middot; sort=created/asc
                     &middot; merge-if-blocked=false
                     &middot; merge-if-checks-skipped=true
+                    &middot; merge-if-checks-neutral=false
                 </div>
 
                 <div class="board-table-wrap">
@@ -472,6 +473,7 @@ expression: result
                     &middot; sort=updated/desc
                     &middot; merge-if-blocked=false
                     &middot; merge-if-checks-skipped=false
+                    &middot; merge-if-checks-neutral=true
                 </div>
 
                 <div class="board-table-wrap">
@@ -491,7 +493,7 @@ expression: result
                                 <td class="cell-repo">dhth&#x2F;mrj</td>
                                 <td class="cell-num">11</td>
                                 <td class="cell-wrap"><a href="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;11" target="_blank" rel="noopener noreferrer">build: bump octocrab from 0.49.6 to 0.49.7</a></td>
-                                <td class="cell-wrap remarks remarks-ok"></td>
+                                <td class="cell-wrap remarks remarks-ok"><div>&#x2713; check &middot; advisory: neutral</div></td>
                             </tr>
                         </tbody>
                     </table>

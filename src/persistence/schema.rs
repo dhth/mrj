@@ -41,6 +41,8 @@ pub struct StoredRunConfig {
     pub head_pattern: Option<String>,
     pub merge_if_blocked: bool,
     pub merge_if_checks_skipped: bool,
+    #[serde(default)]
+    pub merge_if_checks_neutral: bool,
     pub merge_type: StoredMergeType,
     pub sort_by: StoredSortBy,
     pub sort_direction: StoredSortDirection,
@@ -178,4 +180,32 @@ pub enum StoredDisqualification {
     State {
         value: Option<String>,
     },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stored_run_config_defaults_missing_merge_if_checks_neutral_to_false() -> anyhow::Result<()> {
+        let config: StoredRunConfig = serde_json::from_str(
+            r#"{
+                "merge_if_blocked": false,
+                "merge_if_checks_skipped": true,
+                "merge_type": "squash",
+                "sort_by": "created",
+                "sort_direction": "asc",
+                "flags": {
+                    "show_repos_with_no_prs": false,
+                    "show_prs_from_untrusted_authors": false,
+                    "show_prs_with_unmatched_head": false,
+                    "skip_disqualifications_in_summary": false
+                }
+            }"#,
+        )?;
+
+        assert!(!config.merge_if_checks_neutral);
+
+        Ok(())
+    }
 }

@@ -123,6 +123,11 @@ fn printing_sample_config_works() {
     # (optional, default: true)
     merge_if_checks_skipped = true
 
+    # by default mrj will not merge PRs where one or more checks have concluded with a neutral status
+    # if this setting is ON, mrj will consider neutral checks successful enough to merge
+    # (optional, default: false)
+    merge_if_checks_neutral = false
+
     # how to merge the pull request
     # can be one of: [squash, merge, rebase]
     # make sure the choice is actually enabled in your settings

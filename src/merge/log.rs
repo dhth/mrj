@@ -187,6 +187,10 @@ Disqualifications
             self.info("I won't merge PRs if checks are skipped");
         }
 
+        if config.merge_if_checks_neutral {
+            self.info("I will merge PRs if checks conclude with a neutral status");
+        }
+
         if self.behaviours.show_repos_with_no_prs {
             self.info("I will show repositories that have no PRs");
         }

@@ -15,6 +15,8 @@ pub struct Config {
     pub merge_if_blocked: bool,
     #[serde(default = "default_true")]
     pub merge_if_checks_skipped: bool,
+    #[serde(default = "default_false")]
+    pub merge_if_checks_neutral: bool,
     pub merge_type: MergeType,
     #[serde(default = "default_sort")]
     pub sort_by: SortBy,
@@ -79,6 +81,7 @@ base_branch = "main"
 head_pattern = "(dependabot|update)"
 merge_if_blocked = true
 merge_if_checks_skipped = true
+merge_if_checks_neutral = true
 merge_type = "squash"
 sort_by = "updated"
 sort_direction = "desc"
@@ -101,6 +104,7 @@ sort_direction = "desc"
         base_branch: main
         merge_if_blocked: true
         merge_if_checks_skipped: true
+        merge_if_checks_neutral: true
         merge_type: Squash
         sort_by: updated
         sort_direction: desc
@@ -137,6 +141,7 @@ merge_type = "squash"
         base_branch: ~
         merge_if_blocked: false
         merge_if_checks_skipped: true
+        merge_if_checks_neutral: false
         merge_type: Squash
         sort_by: created
         sort_direction: asc

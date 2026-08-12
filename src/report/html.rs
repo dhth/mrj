@@ -116,6 +116,7 @@ mod tests {
                     head_pattern: Some("(dependabot|update)".into()),
                     merge_if_blocked: false,
                     merge_if_checks_skipped: true,
+                    merge_if_checks_neutral: false,
                     merge_type: StoredMergeType::Squash,
                     sort_by: StoredSortBy::Created,
                     sort_direction: StoredSortDirection::Asc,
@@ -244,6 +245,7 @@ mod tests {
                     head_pattern: Some("dependabot".into()),
                     merge_if_blocked: false,
                     merge_if_checks_skipped: false,
+                    merge_if_checks_neutral: true,
                     merge_type: StoredMergeType::Squash,
                     sort_by: StoredSortBy::Updated,
                     sort_direction: StoredSortDirection::Desc,
@@ -286,6 +288,10 @@ mod tests {
                             },
                             StoredQualification::Author {
                                 value: "dependabot[bot]".into(),
+                            },
+                            StoredQualification::Check {
+                                name: "advisory".into(),
+                                conclusion: "neutral".into(),
                             },
                         ],
                         disqualification: None,

@@ -412,6 +412,7 @@
                     &middot; sort={{ run.config.sort_by }}/{{ run.config.sort_direction }}
                     &middot; merge-if-blocked={{ run.config.merge_if_blocked }}
                     &middot; merge-if-checks-skipped={{ run.config.merge_if_checks_skipped }}
+                    &middot; merge-if-checks-neutral={{ run.config.merge_if_checks_neutral }}
                 </div>
 
                 <div class="board-table-wrap">
@@ -439,7 +440,7 @@
                                 <td class="cell-repo">{{ repo.repo }}</td>
                                 <td class="cell-num">{{ pr.number }}</td>
                                 <td class="cell-wrap"><a href="{{ pr.url }}" target="_blank" rel="noopener noreferrer">{{ pr.title }}</a></td>
-                                <td class="cell-wrap remarks remarks-ok"></td>
+                                <td class="cell-wrap remarks remarks-ok">{%- for qualification in pr.qualifications %}{% if qualification.kind == "check" and qualification.conclusion == "neutral" %}<div>&#x2713; check &middot; {{ qualification.name }}: {{ qualification.conclusion }}</div>{% endif %}{%- endfor %}</td>
                             </tr>
                             {%- endif %}
                             {%- endfor %}
