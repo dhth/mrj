@@ -198,6 +198,12 @@ async fn merge_pr(
                     ));
                 }
             }
+            Some("neutral") if config.merge_if_checks_neutral => {
+                pr_check.add_qualification(Q::Check {
+                    name: check.name.clone(),
+                    conclusion: "neutral".to_string(),
+                });
+            }
             Some(non_successful_conclusion) => {
                 return MergeAttemptOutcome::Final(MergeResult::Disqualified(pr_check.disqualify(
                     DQ::Check {

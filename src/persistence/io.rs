@@ -75,6 +75,7 @@ fn map_config(config: &Config, behaviours: &RunBehaviours) -> StoredRunConfig {
             .map(|pattern| pattern.re.as_str().to_string()),
         merge_if_blocked: config.merge_if_blocked,
         merge_if_checks_skipped: config.merge_if_checks_skipped,
+        merge_if_checks_neutral: config.merge_if_checks_neutral,
         merge_type: (&config.merge_type).into(),
         sort_by: (&config.sort_by).into(),
         sort_direction: (&config.sort_direction).into(),
