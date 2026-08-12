@@ -52,7 +52,7 @@ where
         if let Err(err) = std::fs::remove_file(&path) {
             eprintln!(
                 "couldn't delete older run file: {}, you might want to delete it manually, error: {}",
-                &path.to_string_lossy(),
+                path.to_string_lossy(),
                 err
             );
         }

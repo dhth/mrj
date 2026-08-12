@@ -42,7 +42,7 @@ pub fn get_config(config_path: PathBuf) -> anyhow::Result<Config> {
     let config_str = std::fs::read_to_string(&config_path).with_context(|| {
         format!(
             "couldn't read config file \"{}\"",
-            &config_path.to_string_lossy()
+            config_path.to_string_lossy()
         )
     })?;
     let config: Config = parse_config(&config_str)?;
