@@ -1,13 +1,5 @@
 ## Common Commands
-- Prefer `just` over raw `cargo` commands.
-- Build: `just build`
-- Check: `just check`
-- Test: `just test`
-- Lint: `just lint`
-- Format: `just fmt`
-- Full local verification: `just all`
-- Review snapshot changes: `just review`
-- Run CLI locally: `just run -- --help`
+- Development tools and tasks are defined in `mise.toml`.
 
 ## Codebase Layout
 - CLI entrypoint: `src/main.rs`
@@ -28,8 +20,8 @@
 - Keep sample data and HTML/template fixtures under existing `src/report/testdata/`, `src/report/assets/`, and `src/merge/assets/` locations.
 
 ## Testing
-- Run `just test` for normal coverage.
-- Run `just review` when snapshot tests change.
+- Run `mise run test` for normal coverage.
+- Run `mise run review` when snapshot tests change.
 - Target a specific test file with `cargo test --test <name>`.
 - Target a specific module test with `cargo test <filter>`.
 
