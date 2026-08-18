@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+remote_env_dir="$(mktemp -d)"
+trap 'rm -rf "$remote_env_dir"' EXIT
+
+git clone --depth 1 --quiet \
+	https://github.com/dhth/remote-env.git \
+	"$remote_env_dir"
+
+install -d "$HOME/.config/mise"
+install -m 0644 \
+	"$remote_env_dir/global-tools/mise.toml" \
+	"$HOME/.config/mise/config.toml"
+install -m 0644 \
+	"$remote_env_dir/global-tools/mise.lock" \
+	"$HOME/.config/mise/mise.lock"
+
+"$HOME/.local/bin/mise" -C "$HOME" install --locked

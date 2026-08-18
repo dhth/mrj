@@ -4,6 +4,10 @@ set -euo pipefail
 
 curl -fsSL https://mise.run/bash | sh
 
+if ! .agents/global-tools; then
+	echo "warning: global tools could not be installed; continuing" >&2
+fi
+
 "$HOME/.local/bin/mise" trust
 "$HOME/.local/bin/mise" install --locked \
 	actionlint \
