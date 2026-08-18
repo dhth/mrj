@@ -9,12 +9,15 @@ git clone --depth 1 --quiet \
 	https://github.com/dhth/remote-env.git \
 	"$remote_env_dir"
 
-install -d "$HOME/.config/mise"
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+install -d "$config_home/mise"
 install -m 0644 \
 	"$remote_env_dir/global-tools/mise.toml" \
-	"$HOME/.config/mise/config.toml"
+	"$config_home/mise/config.toml"
 install -m 0644 \
 	"$remote_env_dir/global-tools/mise.lock" \
-	"$HOME/.config/mise/mise.lock"
+	"$config_home/mise/mise.lock"
 
 "$HOME/.local/bin/mise" -C "$HOME" install --locked
+
+cp -R "$remote_env_dir/config/." "$config_home/"
