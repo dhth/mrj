@@ -22,4 +22,4 @@ publish-jobs = ["homebrew", "./publish-crates"]
 # Permissions for custom jobs
 github-custom-job-permissions = { "publish-crates" = { contents = "read", id-token = "write" } }
 # Enable building assets on a PR; used for testing
-pr-run-mode = "upload"
+# pr-run-mode = "upload"
