@@ -3,11 +3,14 @@ idiomatic_version_file_enable_tools = ["rust"]
 task.run_auto_install = false
 
 [tools]
-actionlint = "1.7.12"
-"aqua:EmbarkStudios/cargo-deny" = "0.20.2"
-cargo-dist = "0.31.0"
+actionlint = "latest"
+cargo-deny = "latest"
+cargo-dist = "0.32.0"
 cargo-insta = "1.48.0"
-yamlfmt = "0.21.0"
+yamlfmt = "latest"
+
+[tool_alias]
+cargo-deny = "aqua:EmbarkStudios/cargo-deny"
 
 [tasks.all]
 alias = "a"
@@ -64,12 +67,15 @@ alias = "publish-dry"
 description = "Validate the crate package without publishing"
 run = "cargo publish --dry-run --allow-dirty"
 
-[tasks.review]
+[tasks."update-snapshots"]
+alias = "us"
+description = "Update test snapshots"
+run = "cargo insta test --accept"
+
+[tasks."review-snapshots"]
 alias = "re"
-description = "Run tests and review snapshot changes"
-raw_args = true
-interactive = true
-run = "cargo insta test --review"
+description = "Review pending test snapshots"
+run = "cargo insta review"
 
 [tasks.run]
 alias = "r"
