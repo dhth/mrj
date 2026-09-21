@@ -10,30 +10,36 @@ const BUILTIN_TEMPLATE: &str = include_str!("./assets/templates/index.html");
 #[derive(Serialize)]
 struct ReportContext<'a> {
     title: &'a str,
-    timestamp: DateTime<Utc>,
-    runs: &'a [StoredRunData],
+    timestamp: String,
+    runs: Vec<ReportRunContext<'a>>,
+}
+
+#[derive(Serialize)]
+struct ReportRunContext<'a> {
+    #[serde(flatten)]
+    run: &'a StoredRunData,
+    finished_at_display: String,
 }
 
 pub(super) fn render_report(
     runs: &[StoredRunData],
     reference_time: DateTime<Utc>,
-    custom_template: Option<&str>,
     title: &str,
 ) -> anyhow::Result<String> {
     let mut tera = Tera::default();
-    match custom_template {
-        Some(template) => tera
-            .add_raw_template("template.html", template)
-            .context("failed to parse HTML template")?,
-        None => tera
-            .add_raw_template("template.html", BUILTIN_TEMPLATE)
-            .context("failed to parse built-in HTML template")?,
-    }
+    tera.add_raw_template("template.html", BUILTIN_TEMPLATE)
+        .context("failed to parse built-in HTML template")?;
 
-    let tera_ctx = TeraContext::from_serialize(ReportContext {
+    let tera_ctx = TeraContext::from_serialize(&ReportContext {
         title,
-        timestamp: reference_time,
-        runs,
+        timestamp: reference_time.format("%Y-%m-%d %H:%M UTC").to_string(),
+        runs: runs
+            .iter()
+            .map(|run| ReportRunContext {
+                run,
+                finished_at_display: run.finished_at.format("%a %b %d · %H:%M UTC").to_string(),
+            })
+            .collect(),
     })
     .context("failed to build report context")?;
 
@@ -55,8 +61,6 @@ mod tests {
     use chrono::TimeZone;
     use insta::assert_snapshot;
 
-    const CUSTOM_TEMPLATE: &str = include_str!("testdata/custom_template.html");
-
     #[test]
     fn render_report_works_for_builtin_template() -> anyhow::Result<()> {
         // GIVEN
@@ -67,30 +71,7 @@ mod tests {
             .unwrap();
 
         // WHEN
-        let result = render_report(runs.as_slice(), now, None, "mrj runs")?;
-
-        // THEN
-        assert_snapshot!(result);
-
-        Ok(())
-    }
-
-    #[test]
-    fn render_report_works_for_custom_template() -> anyhow::Result<()> {
-        // GIVEN
-        let runs = sample_runs();
-        let now = Utc
-            .with_ymd_and_hms(2025, 1, 16, 12, 0, 0)
-            .single()
-            .unwrap();
-
-        // WHEN
-        let result = render_report(
-            runs.as_slice(),
-            now,
-            Some(CUSTOM_TEMPLATE),
-            "custom template",
-        )?;
+        let result = render_report(runs.as_slice(), now, "mrj runs")?;
 
         // THEN
         assert_snapshot!(result);

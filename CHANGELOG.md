@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow merging PRs with neutral check conclusions via an optional configuration parameter
 
+### Removed
+
+- (breaking) Remove the `--html-template` option for providing a custom HTML report template
+
 ## [v0.5.0] - May 29, 2026
 
 ### Changed

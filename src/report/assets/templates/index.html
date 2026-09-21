@@ -381,7 +381,7 @@
             <div class="page-header">
                 <h1 class="page-title">{{ title }}</h1>
                 <div class="page-meta">
-                    <span class="page-timestamp">Generated at {{ timestamp | date(format="%Y-%m-%d %H:%M UTC") }}</span>
+                    <span class="page-timestamp">Generated at {{ timestamp }}</span>
                 </div>
             </div>
         </header>
@@ -392,7 +392,7 @@
             <details {% if loop.first %}open{% endif %} data-run-details class="board">
                 <summary class="board-header">
                     <span class="toggle-icon">&#9654;</span>
-                    <span class="run-label">{{ run.finished_at | date(format="%a %b %d · %H:%M UTC") }}</span>
+                    <span class="run-label">{{ run.finished_at_display }}</span>
                     {%- if run.mode != "execute" %}
                     <span class="mode-badge mode-other">{{ run.mode }}</span>
                     {%- endif %}

@@ -26,7 +26,6 @@ fn debug_mode_works() {
     open report:    false
     num runs:       10
     title:          mrj runs
-    template path:  <NOT PROVIDED>
 
     ----- stderr -----
     ");
@@ -40,8 +39,6 @@ fn overriding_flags_works() {
         "report",
         "generate",
         "--debug",
-        "--html-template",
-        "path/to/template.html",
         "--num-runs",
         "20",
         "--open",
@@ -64,7 +61,6 @@ fn overriding_flags_works() {
     open report:    true
     num runs:       20
     title:          dependency updates
-    template path:  path/to/template.html
 
     ----- stderr -----
     ");
