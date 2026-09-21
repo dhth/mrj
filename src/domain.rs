@@ -604,7 +604,6 @@ impl Disqualification {
 
 pub struct ReportConfig {
     pub output_path: PathBuf,
-    pub custom_template: Option<String>,
     pub title: String,
     pub num_runs: u8,
     pub open_report: bool,

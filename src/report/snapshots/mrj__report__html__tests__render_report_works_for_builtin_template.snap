@@ -424,33 +424,33 @@ expression: result
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="row-ok" data-url="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;13">
+                            <tr class="row-ok" data-url="https://github.com/dhth/mrj/pull/13">
                                 <td><span class="badge badge-ok">QUALIFIED</span></td>
-                                <td class="cell-repo">dhth&#x2F;mrj</td>
+                                <td class="cell-repo">dhth/mrj</td>
                                 <td class="cell-num">13</td>
-                                <td class="cell-wrap"><a href="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;13" target="_blank" rel="noopener noreferrer">build: bump tera from 1.19.0 to 1.20.1</a></td>
+                                <td class="cell-wrap"><a href="https://github.com/dhth/mrj/pull/13" target="_blank" rel="noopener noreferrer">build: bump tera from 1.19.0 to 1.20.1</a></td>
                                 <td class="cell-wrap remarks remarks-ok"></td>
                             </tr>
-                            <tr class="row-dq" data-url="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;12">
+                            <tr class="row-dq" data-url="https://github.com/dhth/mrj/pull/12">
                                 <td><span class="badge badge-dq">DISQUALIFIED</span></td>
-                                <td class="cell-repo">dhth&#x2F;mrj</td>
+                                <td class="cell-repo">dhth/mrj</td>
                                 <td class="cell-num">12</td>
-                                <td class="cell-wrap"><a href="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;12" target="_blank" rel="noopener noreferrer">build: bump clap from 4.5.39 to 4.5.40</a></td>
+                                <td class="cell-wrap"><a href="https://github.com/dhth/mrj/pull/12" target="_blank" rel="noopener noreferrer">build: bump clap from 4.5.39 to 4.5.40</a></td>
                                 <td class="cell-wrap remarks remarks-dq">&#x2717; author &middot; untrusted-bot</td>
                             </tr>
-                            <tr class="row-err" data-url="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;14">
+                            <tr class="row-err" data-url="https://github.com/dhth/mrj/pull/14">
                                 <td><span class="badge badge-err">ERRORED</span></td>
-                                <td class="cell-repo">dhth&#x2F;mrj</td>
+                                <td class="cell-repo">dhth/mrj</td>
                                 <td class="cell-num">14</td>
-                                <td class="cell-wrap"><a href="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;14" target="_blank" rel="noopener noreferrer">build: bump regex from 1.12.2 to 1.12.3</a></td>
+                                <td class="cell-wrap"><a href="https://github.com/dhth/mrj/pull/14" target="_blank" rel="noopener noreferrer">build: bump regex from 1.12.2 to 1.12.3</a></td>
                                 <td class="cell-wrap remarks remarks-err">GitHub API returned a transient error</td>
                             </tr>
                             <tr class="row-err">
                                 <td><span class="badge badge-err">ERROR</span></td>
-                                <td class="cell-repo">dhth&#x2F;bmm</td>
+                                <td class="cell-repo">dhth/bmm</td>
                                 <td class="cell-num">&mdash;</td>
                                 <td class="cell-dim cell-wrap">&mdash;</td>
-                                <td class="cell-wrap remarks remarks-err">&#x26A0; couldn&#x27;t fetch open PRs for repo</td>
+                                <td class="cell-wrap remarks remarks-err">&#x26A0; couldn&#39;t fetch open PRs for repo</td>
                             </tr>
                         </tbody>
                     </table>
@@ -488,11 +488,11 @@ expression: result
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="row-ok" data-url="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;11">
+                            <tr class="row-ok" data-url="https://github.com/dhth/mrj/pull/11">
                                 <td><span class="badge badge-merged">MERGED</span></td>
-                                <td class="cell-repo">dhth&#x2F;mrj</td>
+                                <td class="cell-repo">dhth/mrj</td>
                                 <td class="cell-num">11</td>
-                                <td class="cell-wrap"><a href="https:&#x2F;&#x2F;github.com&#x2F;dhth&#x2F;mrj&#x2F;pull&#x2F;11" target="_blank" rel="noopener noreferrer">build: bump octocrab from 0.49.6 to 0.49.7</a></td>
+                                <td class="cell-wrap"><a href="https://github.com/dhth/mrj/pull/11" target="_blank" rel="noopener noreferrer">build: bump octocrab from 0.49.6 to 0.49.7</a></td>
                                 <td class="cell-wrap remarks remarks-ok"><div>&#x2713; check &middot; advisory: neutral</div></td>
                             </tr>
                         </tbody>

@@ -47,13 +47,9 @@ pub fn generate_report(config: &ReportConfig) -> anyhow::Result<()> {
     let run_data = super::io::gather_run_data(runs_dir, &file_regex)
         .context("couldn't gather data from previous runs")?;
 
-    let report_contents = super::html::render_report(
-        run_data.as_slice(),
-        Utc::now(),
-        config.custom_template.as_deref(),
-        &config.title,
-    )
-    .context("couldn't render report")?;
+    let report_contents =
+        super::html::render_report(run_data.as_slice(), Utc::now(), &config.title)
+            .context("couldn't render report")?;
 
     // WRITE AND OPEN
     super::io::write_report(&report_contents, &dist_dir).context("couldn't write report")?;
