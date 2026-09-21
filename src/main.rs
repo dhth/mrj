@@ -2,6 +2,8 @@ mod args;
 mod auth;
 mod config;
 mod domain;
+#[allow(dead_code)]
+mod github;
 mod merge;
 mod persistence;
 mod report;

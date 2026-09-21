@@ -16,10 +16,10 @@ cargo-deny = "aqua:EmbarkStudios/cargo-deny"
 alias = "a"
 description = "Check, format, lint, and test"
 run = [
-	{ task = "check" },
-	{ task = "fmt" },
-	{ task = "lint" },
-	{ task = "test" },
+  { task = "check" },
+  { task = "fmt" },
+  { task = "lint" },
+  { task = "test" },
 ]
 
 [tasks.build]
